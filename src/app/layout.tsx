@@ -17,7 +17,11 @@ export const metadata: Metadata = constructMetadata({
   title: 'Manage your tasks & workflows',
 });
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>

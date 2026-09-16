@@ -2,9 +2,20 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function proxy(request: NextRequest) {
-  const token = request.cookies.get('token')?.value;
   const { pathname } = request.nextUrl;
 
+  // Skip static assets, API routes, and system endpoints
+  if (
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/favicon.ico') ||
+    pathname.startsWith('/icon.svg') ||
+    /\.(svg|png|jpg|jpeg|gif|webp|ico|css|js)$/.test(pathname)
+  ) {
+    return NextResponse.next();
+  }
+
+  const token = request.cookies.get('token')?.value;
   const isAuthRoute = pathname.startsWith('/auth');
   const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/users');
 
@@ -27,10 +38,3 @@ export function proxy(request: NextRequest) {
 
   return NextResponse.next();
 }
-
-// Specify matcher to skip static assets and images
-export const config = {
-  matcher: [
-    String.raw`/((?!api|_next/static|_next/image|favicon.ico|icon.svg|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)`,
-  ],
-};
