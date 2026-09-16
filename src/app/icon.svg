@@ -1,57 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="100%" height="100%" fill="none">
   <defs>
-    <linearGradient id="evalGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#12B3EB"/>
-      <stop offset="35%" stop-color="#268EEC"/>
-      <stop offset="70%" stop-color="#5B53EE"/>
-      <stop offset="100%" stop-color="#841BF8"/>
+    <linearGradient id="taskflowFaviconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="50%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#4f46e5" />
     </linearGradient>
   </defs>
-
-  <!-- Document Outer Border & Folded Corner -->
-  <path d="M 444 16 H 68 C 50.3 16 36 30.3 36 48 V 464 C 36 481.7 50.3 496 68 496 H 340 L 444 392 V 344 H 428 V 390 L 338 480 H 68 C 59.2 480 52 472.8 52 464 V 48 C 52 39.2 59.2 32 68 32 H 444 C 452.8 32 460 39.2 460 48 V 212 H 476 V 48 C 476 30.3 461.7 16 444 16 Z" fill="url(#evalGradient)"/>
-
-  <!-- Folded Corner Flap -->
-  <path d="M 344 394 H 440 L 344 490 V 406 C 344 399.4 344 394 344 394 Z" fill="url(#evalGradient)"/>
-
-  <!-- Top Left Gear -->
-  <path fill-rule="evenodd" clip-rule="evenodd" d="M 167.3 60 C 163.6 60 160.3 62.4 159.2 65.9 L 156.4 75 C 151.7 76.5 147.2 78.6 143 81.3 L 134.3 77.4 C 131 75.9 127.1 76.9 124.9 79.8 L 112.9 95.8 C 110.7 98.7 111 102.7 113.6 105.2 L 120.3 111.8 C 119.2 116.3 118.7 121 118.7 125.8 C 118.7 130.6 119.2 135.3 120.3 139.8 L 113.6 146.4 C 111 148.9 110.7 152.9 112.9 155.8 L 124.9 171.8 C 127.1 174.7 131 175.7 134.3 174.2 L 143 170.3 C 147.2 173 151.7 175.1 156.4 176.6 L 159.2 185.7 C 160.3 189.2 163.6 191.6 167.3 191.6 H 187.3 C 191 191.6 194.3 189.2 195.4 185.7 L 198.2 176.6 C 202.9 175.1 207.4 173 211.6 170.3 L 220.3 174.2 C 223.6 175.7 227.5 174.7 229.7 171.8 L 241.7 155.8 C 243.9 152.9 243.6 148.9 241 146.4 L 234.3 139.8 C 235.4 135.3 235.9 130.6 235.9 125.8 C 235.9 121 235.4 116.3 234.3 111.8 L 241 105.2 C 243.6 102.7 243.9 98.7 241.7 95.8 L 229.7 79.8 C 227.5 76.9 223.6 75.9 220.3 77.4 L 211.6 81.3 C 207.4 78.6 202.9 76.5 198.2 75 L 195.4 65.9 C 194.3 62.4 191 60 187.3 60 H 167.3 Z M 177.3 103.8 C 165.2 103.8 155.3 113.7 155.3 125.8 C 155.3 137.9 165.2 147.8 177.3 147.8 C 189.4 147.8 199.3 137.9 199.3 125.8 C 199.3 113.7 189.4 103.8 177.3 103.8 Z" fill="url(#evalGradient)"/>
-
-  <!-- Top Right Header Lines -->
-  <rect x="256" y="62" width="150" height="16" rx="8" fill="url(#evalGradient)"/>
-  <rect x="256" y="98" width="150" height="16" rx="8" fill="url(#evalGradient)"/>
-  <rect x="256" y="134" width="80" height="16" rx="8" fill="url(#evalGradient)"/>
-
-  <!-- First Checkbox & Checkmark -->
-  <path d="M 144 246 H 76 C 71.6 246 68 249.6 68 254 V 322 C 68 326.4 71.6 330 76 330 H 144 C 148.4 330 152 326.4 152 322 V 292 H 168 V 322 C 168 335.3 157.3 346 144 346 H 76 C 62.7 346 52 335.3 52 322 V 254 C 52 240.7 62.7 230 76 230 H 144 C 148.4 230 152 233.6 152 238 C 152 242.4 148.4 246 144 246 Z" fill="url(#evalGradient)"/>
-  <path d="M 112 316 C 109.9 316 107.8 315.2 106.3 313.7 L 88.3 295.7 C 85.2 292.6 85.2 287.4 88.3 284.3 C 91.4 281.2 96.6 281.2 99.7 284.3 L 112 296.6 L 166.3 242.3 C 169.4 239.2 174.6 239.2 177.7 242.3 C 180.8 245.4 180.8 250.6 177.7 253.7 L 117.7 313.7 C 116.2 315.2 114.1 316 112 316 Z" fill="url(#evalGradient)"/>
-
-  <!-- Second Checkbox & Checkmark -->
-  <path d="M 144 360 H 76 C 71.6 360 68 363.6 68 368 V 436 C 68 440.4 71.6 444 76 444 H 144 C 148.4 444 152 440.4 152 436 V 406 H 168 V 436 C 168 449.3 157.3 460 144 460 H 76 C 62.7 460 52 449.3 52 436 V 368 C 52 354.7 62.7 344 76 344 H 144 C 148.4 344 152 347.6 152 352 C 152 356.4 148.4 360 144 360 Z" fill="url(#evalGradient)"/>
-  <path d="M 112 430 C 109.9 430 107.8 429.2 106.3 427.7 L 88.3 409.7 C 85.2 406.6 85.2 401.4 88.3 398.3 C 91.4 395.2 96.6 395.2 99.7 398.3 L 112 410.6 L 166.3 356.3 C 169.4 353.2 174.6 353.2 177.7 356.3 C 180.8 359.4 180.8 364.6 177.7 367.7 L 117.7 427.7 C 116.2 429.2 114.1 430 112 430 Z" fill="url(#evalGradient)"/>
-
-  <!-- Bottom Text Lines -->
-  <rect x="178" y="390" width="150" height="16" rx="8" fill="url(#evalGradient)"/>
-  <rect x="178" y="426" width="78" height="16" rx="8" fill="url(#evalGradient)"/>
-
-  <!-- Sleeve / Cuff -->
-  <rect x="438" y="226" width="38" height="106" rx="4" fill="url(#evalGradient)"/>
-
-  <!-- Hand and Pen -->
-  <!-- Pen Top / Upper Shaft -->
-  <path d="M 374 156 L 361 143 C 358 140 358 135 361 132 L 379 114 C 382 111 387 111 390 114 L 403 127 C 406 130 406 135 403 138 L 385 156 C 382 159 377 159 374 156 Z" fill="url(#evalGradient)"/>
-  <path d="M 276 270 L 362 184 L 380 202 L 294 288 Z" fill="url(#evalGradient)"/>
-
-  <!-- Pen Nib & Left Finger Contour -->
-  <path d="M 235 229 C 227 239 220 252 227 266 L 253 266 L 273 237 C 260 231 247 227 235 229 Z" fill="url(#evalGradient)"/>
-  <path d="M 236 318 L 253 342 L 270 325 L 244 314 C 240.5 315 237.5 316.5 236 318 Z" fill="url(#evalGradient)"/>
-  <polygon points="230,344 246,356 228,362" fill="url(#evalGradient)"/>
-
-  <!-- Finger Tips / Knuckles -->
-  <rect x="278" y="325" width="10" height="16" rx="5" fill="url(#evalGradient)"/>
-  <rect x="296" y="325" width="13" height="19" rx="6.5" fill="url(#evalGradient)"/>
-  <rect x="324" y="325" width="14" height="18" rx="7" fill="url(#evalGradient)"/>
-
-  <!-- Hand Body & Grip -->
-  <path d="M 422 248 C 390 248 370 218 360 218 C 352 218 335 239 328 248 L 345 268 C 354 278 368 288 350 290 H 262 C 253.2 290 246 297.2 246 306 C 246 314.8 253.2 322 262 322 H 345 C 375 322 400 322 422 322 V 248 Z" fill="url(#evalGradient)"/>
+  <rect x="4.5" y="4.5" width="9.5" height="9.5" rx="2.8" stroke="url(#taskflowFaviconGrad)" stroke-width="2.8" />
+  <rect x="18" y="4.5" width="9.5" height="9.5" rx="2.8" stroke="url(#taskflowFaviconGrad)" stroke-width="2.8" />
+  <rect x="18" y="18" width="9.5" height="9.5" rx="2.8" stroke="url(#taskflowFaviconGrad)" stroke-width="2.8" />
+  <rect x="4.5" y="18" width="9.5" height="9.5" rx="2.8" stroke="url(#taskflowFaviconGrad)" stroke-width="2.8" />
 </svg>

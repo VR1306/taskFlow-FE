@@ -9,9 +9,11 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check:local": "npm run type-check && npm run lint && npm run format:check",
+    "check:local": "npm run type-check && npm run test && npm run lint && npm run format:check",
     "check:sonar": "node scripts/sonar.mjs",
     "check:all": "npm run check:local && npm run check:sonar",
     "validate": "npm run check:local && npm run check:sonar",
@@ -28,13 +30,20 @@
     ]
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.9.1",
     "dotenv": "^17.4.2",
     "next": "16.3.4",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "react-hook-form": "^7.88.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -44,6 +53,8 @@
     "eslint-plugin-sonarjs": "^4.2.1",
     "eslint-plugin-unused-imports": "^4.4.1",
     "husky": "^9.1.7",
+    "jest": "^30.5.1",
+    "jest-environment-jsdom": "^30.5.1",
     "lint-staged": "^17.5.1",
     "prettier": "^3.9.6",
     "sonarqube-scanner": "^5.0.0",

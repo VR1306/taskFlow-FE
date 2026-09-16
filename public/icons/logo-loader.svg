@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="100%" height="100%" fill="none">
+  <defs>
+    <linearGradient id="taskflowLogoLoaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="50%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#4f46e5" />
+    </linearGradient>
+    <style>
+      @keyframes tfSquare1 {
+        0%, 100% { transform: scale(0.82); opacity: 0.35; transform-origin: 9.25px 9.25px; }
+        25% { transform: scale(1.12); opacity: 1; transform-origin: 9.25px 9.25px; }
+      }
+      @keyframes tfSquare2 {
+        0%, 100% { transform: scale(0.82); opacity: 0.35; transform-origin: 22.75px 9.25px; }
+        50% { transform: scale(1.12); opacity: 1; transform-origin: 22.75px 9.25px; }
+      }
+      @keyframes tfSquare3 {
+        0%, 100% { transform: scale(0.82); opacity: 0.35; transform-origin: 22.75px 22.75px; }
+        75% { transform: scale(1.12); opacity: 1; transform-origin: 22.75px 22.75px; }
+      }
+      @keyframes tfSquare4 {
+        0%, 100% { transform: scale(1.12); opacity: 1; transform-origin: 9.25px 22.75px; }
+        25%, 75% { transform: scale(0.82); opacity: 0.35; transform-origin: 9.25px 22.75px; }
+      }
+      .tf-sq-1 { animation: tfSquare1 1.4s ease-in-out infinite; }
+      .tf-sq-2 { animation: tfSquare2 1.4s ease-in-out infinite; }
+      .tf-sq-3 { animation: tfSquare3 1.4s ease-in-out infinite; }
+      .tf-sq-4 { animation: tfSquare4 1.4s ease-in-out infinite; }
+    </style>
+  </defs>
+  <rect class="tf-sq-1" x="4.5" y="4.5" width="9.5" height="9.5" rx="2.8" stroke="url(#taskflowLogoLoaderGrad)" stroke-width="2.8" />
+  <rect class="tf-sq-2" x="18" y="4.5" width="9.5" height="9.5" rx="2.8" stroke="url(#taskflowLogoLoaderGrad)" stroke-width="2.8" />
+  <rect class="tf-sq-3" x="18" y="18" width="9.5" height="9.5" rx="2.8" stroke="url(#taskflowLogoLoaderGrad)" stroke-width="2.8" />
+  <rect class="tf-sq-4" x="4.5" y="18" width="9.5" height="9.5" rx="2.8" stroke="url(#taskflowLogoLoaderGrad)" stroke-width="2.8" />
+</svg>
