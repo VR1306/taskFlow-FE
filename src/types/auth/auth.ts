@@ -23,3 +23,12 @@ export interface ApiErrorResponse {
   errors?: string[];
   error?: string;
 }
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+}

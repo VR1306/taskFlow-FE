@@ -55,9 +55,7 @@ export const LoginForm: React.FC<Readonly<LoginFormProps>> = ({ onSubmit, classN
       }
     } catch (err: unknown) {
       const message =
-        err instanceof Error
-          ? err.message
-          : 'Failed to sign in. Please check your credentials and try again.';
+        err instanceof Error ? err.message : LOGIN_CONSTANTS.errors.defaultSubmitError;
       setServerError(message);
     } finally {
       setIsSubmitting(false);
@@ -71,7 +69,12 @@ export const LoginForm: React.FC<Readonly<LoginFormProps>> = ({ onSubmit, classN
         {/* Brand Icon & Logo */}
         <div className="mb-6 flex items-center gap-2.5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-200/80 shadow-sm p-1.5">
-            <Image src="/icons/logo.svg" alt="TaskFlow Logo" width={24} height={24} />
+            <Image
+              src="/icons/logo.svg"
+              alt={LOGIN_CONSTANTS.brandLogoAlt}
+              width={24}
+              height={24}
+            />
           </div>
           <span className="text-xl font-bold tracking-tight text-slate-900">
             {LOGIN_CONSTANTS.brandName}
@@ -106,7 +109,14 @@ export const LoginForm: React.FC<Readonly<LoginFormProps>> = ({ onSubmit, classN
             placeholder={LOGIN_CONSTANTS.emailPlaceholder}
             required
             autoComplete="email"
-            icon={<Image src="/icons/mail.svg" alt="Email Icon" width={16} height={16} />}
+            icon={
+              <Image
+                src="/icons/mail.svg"
+                alt={LOGIN_CONSTANTS.emailIconAlt}
+                width={16}
+                height={16}
+              />
+            }
           />
 
           {/* Password Field */}
@@ -125,7 +135,15 @@ export const LoginForm: React.FC<Readonly<LoginFormProps>> = ({ onSubmit, classN
                 {LOGIN_CONSTANTS.forgotPasswordText}
               </Link>
             }
-            icon={<Image src="/icons/lock.svg" alt="Password Icon" width={16} height={16} />}
+            icon={
+              <Image
+                src="/icons/lock.svg"
+                alt={LOGIN_CONSTANTS.passwordIconAlt}
+                width={16}
+                height={16}
+              />
+            }
+
             trailingAction={
               <button
                 type="button"

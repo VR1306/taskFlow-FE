@@ -1,4 +1,4 @@
-import { loginSchema } from './auth';
+import { loginSchema, forgotPasswordSchema } from './auth';
 
 describe('Auth Validation Schemas', () => {
   describe('loginSchema', () => {
@@ -54,6 +54,39 @@ describe('Auth Validation Schemas', () => {
       },
     ])('fails when $scenario', ({ data, expectedError }) => {
       const result = loginSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe(expectedError);
+      }
+    });
+  });
+
+  describe('forgotPasswordSchema', () => {
+    it('validates correct email', () => {
+      const validData = {
+        email: 'user@company.com',
+      };
+
+      const result = forgotPasswordSchema.safeParse(validData);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.email).toBe('user@company.com');
+      }
+    });
+
+    test.each([
+      {
+        scenario: 'email is empty',
+        data: { email: '' },
+        expectedError: 'Work email is required',
+      },
+      {
+        scenario: 'email format is invalid',
+        data: { email: 'not-an-email' },
+        expectedError: 'Please enter a valid work email address',
+      },
+    ])('fails when $scenario', ({ data, expectedError }) => {
+      const result = forgotPasswordSchema.safeParse(data);
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.issues[0].message).toBe(expectedError);

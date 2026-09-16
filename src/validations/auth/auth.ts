@@ -13,3 +13,12 @@ export const loginSchema = z.object({
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, { error: 'Work email is required' })
+    .pipe(z.email({ error: 'Please enter a valid work email address' })),
+});
+
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;

@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import { constructMetadata } from '@/lib/metadata';
 import { LoginForm } from '@/components/auth';
+import { LOGIN_CONSTANTS } from '@/constants';
 
 export const metadata: Metadata = constructMetadata({
-  title: 'Sign In',
-  flow: 'Auth',
-  description: 'Sign in to your TaskFlow workspace to manage tasks, sprints, and team workflows.',
+  title: LOGIN_CONSTANTS.metadata.title,
+  flow: LOGIN_CONSTANTS.metadata.flow,
+  description: LOGIN_CONSTANTS.metadata.description,
 });
 
 export default function LoginPage() {

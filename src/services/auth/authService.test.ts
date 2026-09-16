@@ -38,4 +38,22 @@ describe('Auth Service', () => {
     });
     expect(result).toEqual(mockResponse);
   });
+
+  it('calls apiClient.post with trimmed email for forgotPassword', async () => {
+    const mockResponse = {
+      success: true,
+      message: 'Password reset link successfully dispatched to your email address!',
+    };
+
+    (apiClient.post as jest.Mock).mockResolvedValue(mockResponse);
+
+    const result = await authService.forgotPassword({
+      email: '  user@taskflow.io   ',
+    });
+
+    expect(apiClient.post).toHaveBeenCalledWith('/auth/forgot-password', {
+      email: 'user@taskflow.io',
+    });
+    expect(result).toEqual(mockResponse);
+  });
 });
