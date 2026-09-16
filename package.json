@@ -6,9 +6,29 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check:local": "npm run type-check && npm run lint && npm run format:check",
+    "check:sonar": "node scripts/sonar.mjs",
+    "check:all": "npm run check:local && npm run check:sonar",
+    "validate": "npm run check:local && npm run check:sonar",
+    "sonar": "node scripts/sonar.mjs",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -21,6 +41,12 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
+    "eslint-plugin-sonarjs": "^4.2.1",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
+    "prettier": "^3.9.6",
+    "sonarqube-scanner": "^5.0.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

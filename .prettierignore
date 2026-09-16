@@ -1,0 +1,10 @@
+.next
+node_modules
+dist
+build
+coverage
+.scannerwork
+scripts
+*.min.js
+*.min.css
+.env*
