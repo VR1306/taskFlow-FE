@@ -225,6 +225,7 @@ describe('ResetPasswordForm Component', () => {
   });
 
   it('handles submission when token is somehow missing inside handleFormSubmit', async () => {
+    mockGet.mockReturnValue(null);
     render(<ResetPasswordForm token="" />);
 
     const passwordInput = screen.getByPlaceholderText(RESET_PASSWORD_CONSTANTS.passwordPlaceholder);

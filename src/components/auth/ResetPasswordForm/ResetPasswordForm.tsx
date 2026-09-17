@@ -126,8 +126,8 @@ export const ResetPasswordForm: React.FC<Readonly<ResetPasswordFormProps>> = ({
   className = '',
 }) => {
   const searchParams = useSearchParams();
-  const token = propToken || searchParams.get('token') || '';
-  const email = propEmail || searchParams.get('email') || '';
+  const token = propToken !== undefined ? propToken : searchParams.get('token') || '';
+  const email = propEmail !== undefined ? propEmail : searchParams.get('email') || '';
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
