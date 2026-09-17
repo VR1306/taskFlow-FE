@@ -40,32 +40,52 @@ export function Checkbox<
   const isChecked = Boolean(field.value);
 
   return (
-    <div className={`flex items-center gap-2.5 ${className}`}>
-      <div className="relative inline-flex items-center justify-center shrink-0">
-        <input
-          id={checkboxId}
-          type="checkbox"
-          checked={isChecked}
-          onChange={(e) => field.onChange(e.target.checked)}
-          onBlur={field.onBlur}
-          disabled={disabled}
-          className="peer h-4.5 w-4.5 cursor-pointer appearance-none rounded-[5px] border border-slate-300 bg-white transition-all duration-150 checked:border-blue-600 checked:bg-blue-600 hover:border-slate-400 focus:outline-none focus-visible:ring-3 focus-visible:ring-blue-500/25 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 shadow-2xs"
-        />
-        <Image
-          src="/icons/check.svg"
-          alt=""
-          width={12}
-          height={12}
-          className="pointer-events-none absolute h-3 w-3 transition-all duration-150 ease-out opacity-0 scale-75 peer-checked:opacity-100 peer-checked:scale-100"
-        />
-      </div>
+    <div className={`inline-flex items-center ${className}`}>
       <label
         htmlFor={checkboxId}
-        className={`cursor-pointer text-xs sm:text-sm font-medium transition-colors select-none ${
-          disabled ? 'text-slate-400 cursor-not-allowed' : 'text-slate-700 hover:text-slate-900'
+        className={`group relative inline-flex items-center gap-2.5 select-none ${
+          disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
         }`}
       >
-        {label}
+        <div className="relative inline-flex items-center justify-center shrink-0">
+          <input
+            id={checkboxId}
+            type="checkbox"
+            checked={isChecked}
+            onChange={(e) => field.onChange(e.target.checked)}
+            onBlur={field.onBlur}
+            disabled={disabled}
+            className="sr-only peer"
+          />
+          <div
+            className={`flex h-4.5 w-4.5 items-center justify-center rounded-[5px] border transition-all duration-150 ${
+              isChecked
+                ? 'border-blue-600 bg-blue-600 text-white shadow-2xs shadow-blue-500/25'
+                : 'border-slate-300 bg-white group-hover:border-slate-400 group-hover:bg-slate-50/50'
+            } ${
+              disabled
+                ? 'border-slate-200 bg-slate-100'
+                : 'peer-focus-visible:ring-3 peer-focus-visible:ring-blue-500/25'
+            }`}
+          >
+            {isChecked && (
+              <Image
+                src="/icons/check.svg"
+                alt=""
+                width={11}
+                height={11}
+                className="h-2.5 w-2.5 brightness-0 invert pointer-events-none"
+              />
+            )}
+          </div>
+        </div>
+        <span
+          className={`text-xs sm:text-sm font-medium transition-colors ${
+            disabled ? 'text-slate-400' : 'text-slate-700 group-hover:text-slate-900'
+          }`}
+        >
+          {label}
+        </span>
       </label>
     </div>
   );

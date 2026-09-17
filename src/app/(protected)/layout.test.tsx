@@ -10,8 +10,9 @@ import uiReducer from '@/store/slices/uiSlice';
 import usersReducer from '@/store/slices/usersSlice';
 
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
   usePathname: () => '/users',
 }));
 
@@ -33,7 +34,25 @@ describe('ProtectedLayout Component', () => {
     localStorage.clear();
   });
 
-  it('renders Sidebar, Header, and main content', async () => {
+  it('redirects to /auth/login with replace when unauthenticated', async () => {
+    const store = createMockStore();
+
+    render(
+      <Provider store={store}>
+        <ProtectedLayout>
+          <div data-testid="child-content">Users Content</div>
+        </ProtectedLayout>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/auth/login');
+      expect(screen.queryByTestId('child-content')).not.toBeInTheDocument();
+    });
+  });
+
+  it('renders Sidebar, Header, and main content when authenticated', async () => {
+    authStorage.setTokens('valid-jwt-token');
     localStorage.setItem(
       'taskflow_user',
       JSON.stringify({
@@ -66,6 +85,7 @@ describe('ProtectedLayout Component', () => {
   });
 
   it('opens confirmation modal on clicking Sign Out and cancels correctly', async () => {
+    authStorage.setTokens('valid-jwt-token');
     const store = createMockStore();
 
     render(
@@ -90,10 +110,11 @@ describe('ProtectedLayout Component', () => {
 
     // Modal should close
     expect(screen.queryByText('Sign Out of TaskFlow')).not.toBeInTheDocument();
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
-  it('confirms logout from modal and navigates to login page', async () => {
+  it('confirms logout from modal and navigates to login page with replace', async () => {
+    authStorage.setTokens('valid-jwt-token');
     localStorage.setItem(
       'taskflow_user',
       JSON.stringify({
@@ -131,7 +152,7 @@ describe('ProtectedLayout Component', () => {
     await waitFor(() => {
       expect(logoutSpy).toHaveBeenCalledWith('valid-refresh-token');
       expect(clearAuthSpy).toHaveBeenCalled();
-      expect(mockPush).toHaveBeenCalledWith('/auth/login');
+      expect(mockReplace).toHaveBeenCalledWith('/auth/login');
     });
   });
 });

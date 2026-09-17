@@ -77,7 +77,7 @@ export const LoginForm: React.FC<Readonly<LoginFormProps>> = ({ onSubmit, classN
           defaultModule: response.defaultModule,
         });
 
-        router.push(destination);
+        router.replace(destination);
       }
     } catch (err: unknown) {
       const message =

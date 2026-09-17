@@ -1,11 +1,44 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AuthSideBanner } from '@/components/auth/AuthSideBanner';
+import { authStorage } from '@/helpers';
 
 export default function PublicLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+
+  // Client-side auth verification & back/forward navigation guard
+  useEffect(() => {
+    const checkPublicAuth = () => {
+      const token = authStorage.getToken();
+      if (token) {
+        setIsAuthorized(true);
+        const defaultModule = authStorage.getDefaultModule() || 'users';
+        router.replace(`/${defaultModule}`);
+      } else {
+        setIsAuthorized(false);
+      }
+    };
+
+    checkPublicAuth();
+    window.addEventListener('popstate', checkPublicAuth);
+    window.addEventListener('pageshow', checkPublicAuth);
+    return () => {
+      window.removeEventListener('popstate', checkPublicAuth);
+      window.removeEventListener('pageshow', checkPublicAuth);
+    };
+  }, [router]);
+
+  if (isAuthorized === true) {
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row bg-white transition-colors duration-300">
       {/* Left side: Dynamic Content (Forms, Welcome screen, etc.) */}

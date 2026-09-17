@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authStorage } from '@/helpers';
 import { authService } from '@/services/auth';
@@ -21,9 +21,31 @@ export default function ProtectedLayout({
 }>) {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const isCollapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
   const isLogoutModalOpen = useAppSelector((state) => state.auth.isLogoutModalOpen);
   const isLoggingOut = useAppSelector((state) => state.auth.isLoggingOut);
+
+  // Client-side auth verification & browser back/forward (bfcache) navigation guard
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = authStorage.getToken();
+      if (!token) {
+        setIsAuthenticated(false);
+        router.replace('/auth/login');
+      } else {
+        setIsAuthenticated(true);
+      }
+    };
+
+    checkAuth();
+    window.addEventListener('popstate', checkAuth);
+    window.addEventListener('pageshow', checkAuth);
+    return () => {
+      window.removeEventListener('popstate', checkAuth);
+      window.removeEventListener('pageshow', checkAuth);
+    };
+  }, [router]);
 
   const handleCloseLogoutModal = useCallback(() => {
     dispatch(closeLogoutModal());
@@ -39,9 +61,14 @@ export default function ProtectedLayout({
     } finally {
       authStorage.clearAuthSession();
       dispatch(clearCredentials());
-      router.push('/auth/login');
+      setIsAuthenticated(false);
+      router.replace('/auth/login');
     }
   }, [dispatch, router]);
+
+  if (isAuthenticated === false) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">

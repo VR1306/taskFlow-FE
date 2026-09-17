@@ -6,11 +6,13 @@ import { authService } from '@/services/auth';
 import { authStorage } from '@/helpers';
 
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
 let mockSearchParamsGet = jest.fn((_key: string): string | null => null);
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
+    replace: mockReplace,
   }),
   useSearchParams: () => ({
     get: (key: string) => mockSearchParamsGet(key),
@@ -170,7 +172,7 @@ describe('LoginForm Component', () => {
         password: 'Password123!',
         rememberMe: true,
       });
-      expect(mockPush).toHaveBeenCalledWith('/users');
+      expect(mockReplace).toHaveBeenCalledWith('/users');
     });
   });
 
@@ -202,7 +204,7 @@ describe('LoginForm Component', () => {
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/users');
+      expect(mockReplace).toHaveBeenCalledWith('/users');
     });
   });
 
@@ -232,7 +234,7 @@ describe('LoginForm Component', () => {
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/dashboard');
+      expect(mockReplace).toHaveBeenCalledWith('/dashboard');
     });
   });
 
