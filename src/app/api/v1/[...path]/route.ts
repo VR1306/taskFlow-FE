@@ -1,23 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { env } from '@/config/env';
+import { getBackendTargetUrl } from '@/helpers';
 
 interface RouteParams {
   params: Promise<{
     path?: string[];
   }>;
 }
-
-const getBackendTargetUrl = (pathSegments: string[], search: string): string => {
-  const backendBase =
-    process.env.BACKEND_API_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_API_URL ||
-    env.BACKEND_API_URL ||
-    'https://task-flow-be-eight.vercel.app/api/v1';
-
-  const cleanBase = backendBase.endsWith('/') ? backendBase.slice(0, -1) : backendBase;
-  const path = pathSegments.join('/');
-  return `${cleanBase}/${path}${search}`;
-};
 
 async function handleProxyRequest(request: NextRequest, { params }: RouteParams) {
   try {
@@ -32,6 +20,11 @@ async function handleProxyRequest(request: NextRequest, { params }: RouteParams)
     const authHeader = request.headers.get('authorization');
     if (authHeader) {
       forwardHeaders.Authorization = authHeader;
+    }
+
+    const refreshTokenHeader = request.headers.get('x-refresh-token');
+    if (refreshTokenHeader) {
+      forwardHeaders['x-refresh-token'] = refreshTokenHeader;
     }
 
     const cookieToken = request.cookies.get('token')?.value;

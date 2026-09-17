@@ -8,17 +8,12 @@ import { forgotPasswordSchema, ForgotPasswordFormData } from '@/validations/auth
 import { Input, Button, Image } from '@/components/ui';
 import { FORGOT_PASSWORD_CONSTANTS } from '@/constants';
 import { authService } from '@/services/auth';
+import { formatCountdown } from '@/helpers';
 
 export interface ForgotPasswordFormProps {
   onSubmit?: (data: ForgotPasswordFormData) => Promise<void> | void;
   className?: string;
 }
-
-const formatCountdown = (seconds: number): string => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-};
 
 export const ForgotPasswordForm: React.FC<Readonly<ForgotPasswordFormProps>> = ({
   onSubmit,

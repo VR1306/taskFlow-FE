@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginFormData } from '@/validations/auth';
 import { Input, Button, Checkbox, Image } from '@/components/ui';
 import { LOGIN_CONSTANTS } from '@/constants';
 import { authService } from '@/services/auth';
-import { authStorage } from '@/lib/auth';
+import { authStorage, resolvePostLoginRedirect } from '@/helpers';
 
 export interface LoginFormProps {
   onSubmit?: (data: LoginFormData) => Promise<void> | void;
@@ -18,6 +18,7 @@ export interface LoginFormProps {
 
 export const LoginForm: React.FC<Readonly<LoginFormProps>> = ({ onSubmit, className = '' }) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -50,8 +51,22 @@ export const LoginForm: React.FC<Readonly<LoginFormProps>> = ({ onSubmit, classN
           password: data.password,
         });
 
-        authStorage.setAuthSession(response.token, response.user, Boolean(data.rememberMe));
-        router.push('/dashboard');
+        const activeToken = response.accessToken || response.token;
+        authStorage.setAuthSession(
+          activeToken,
+          response.user,
+          Boolean(data.rememberMe),
+          response.refreshToken,
+          response.defaultModule || 'users'
+        );
+
+        const destination = resolvePostLoginRedirect({
+          redirectParam: searchParams?.get('redirect'),
+          redirectUrl: response.redirectUrl,
+          defaultModule: response.defaultModule,
+        });
+
+        router.push(destination);
       }
     } catch (err: unknown) {
       const message =

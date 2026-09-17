@@ -1,7 +1,12 @@
 import { apiClient, apiRequest } from './apiClient';
+import { authStorage } from '@/helpers';
 
 describe('API Client', () => {
   const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    authStorage.clearAuthSession();
+  });
 
   afterEach(() => {
     global.fetch = originalFetch;
@@ -25,6 +30,102 @@ describe('API Client', () => {
         headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
       })
     );
+  });
+
+  it('automatically attaches Authorization Bearer header when token exists', async () => {
+    authStorage.setAuthSession('my-jwt-token', {
+      id: '1',
+      firstName: 'Alice',
+      lastName: 'Smith',
+      email: 'alice@example.com',
+    });
+
+    const mockData = { success: true };
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => mockData,
+    });
+
+    await apiClient.get('/users/getAllUsers');
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/users/getAllUsers'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer my-jwt-token',
+        }),
+      })
+    );
+  });
+
+  it('refreshes token and retries request when encountering 401', async () => {
+    authStorage.setAuthSession(
+      'expired-token',
+      { id: '1', firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com' },
+      true,
+      'valid-refresh-token'
+    );
+
+    const mockSuccess = { success: true, data: [{ id: '1', name: 'Alice' }] };
+
+    global.fetch = jest
+      .fn()
+      // 1st call: initial protected request fails with 401
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: async () => ({ success: false, message: 'Access token has expired' }),
+      })
+      // 2nd call: refresh token request succeeds
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          accessToken: 'new-access-token',
+          refreshToken: 'new-refresh-token',
+        }),
+      })
+      // 3rd call: retried protected request succeeds with new token
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockSuccess,
+      });
+
+    const result = await apiClient.get<typeof mockSuccess>('/users/getAllUsers');
+
+    expect(result).toEqual(mockSuccess);
+    expect(authStorage.getToken()).toBe('new-access-token');
+    expect(authStorage.getRefreshToken()).toBe('new-refresh-token');
+  });
+
+  it('clears session when refresh token fails on 401', async () => {
+    authStorage.setAuthSession(
+      'expired-token',
+      { id: '1', firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com' },
+      true,
+      'invalid-refresh-token'
+    );
+
+    global.fetch = jest
+      .fn()
+      // 1st call: initial protected request fails with 401
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: async () => ({ success: false, message: 'Access token expired' }),
+      })
+      // 2nd call: refresh token request fails
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: async () => ({ success: false, message: 'Refresh token invalid' }),
+      });
+
+    await expect(apiClient.get('/users/getAllUsers')).rejects.toThrow();
+    expect(authStorage.getToken()).toBeNull();
   });
 
   it('performs successful POST request with serialized body', async () => {

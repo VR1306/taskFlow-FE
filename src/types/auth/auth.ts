@@ -3,6 +3,7 @@ export interface AuthUser {
   firstName: string;
   lastName: string;
   email: string;
+  role?: string;
 }
 
 export interface AuthSignInRequest {
@@ -14,7 +15,32 @@ export interface AuthSignInResponse {
   success: boolean;
   message: string;
   token: string;
+  accessToken?: string;
+  refreshToken?: string;
+  defaultModule?: string;
+  redirectUrl?: string;
   user: AuthUser;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+  success: boolean;
+  message: string;
+  token: string;
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface LogoutRequest {
+  refreshToken?: string;
+}
+
+export interface LogoutResponse {
+  success: boolean;
+  message: string;
 }
 
 export interface ApiErrorResponse {

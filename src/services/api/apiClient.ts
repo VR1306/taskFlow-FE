@@ -1,5 +1,5 @@
-import { env } from '@/config/env';
 import { ApiErrorResponse } from '@/types';
+import { authStorage, getBaseApiUrl } from '@/helpers';
 
 export class ApiError extends Error {
   public readonly status: number;
@@ -17,19 +17,72 @@ export class ApiError extends Error {
 
 export interface RequestOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
+  skipAuthRefresh?: boolean;
+  skipAuthToken?: boolean;
 }
 
-const getBaseUrl = (): string => {
-  const configuredUrl = env.API_URL || '/api/v1';
-  const cleanUrl = configuredUrl.endsWith('/') ? configuredUrl.slice(0, -1) : configuredUrl;
+const getBaseUrl = (): string => getBaseApiUrl();
 
-  if (typeof window === 'undefined' && !cleanUrl.startsWith('http')) {
-    const appUrl = env.APP_URL || 'http://localhost:3000';
-    const cleanAppUrl = appUrl.endsWith('/') ? appUrl.slice(0, -1) : appUrl;
-    return `${cleanAppUrl}${cleanUrl}`;
+// Global refresh promise to synchronize simultaneous 401s
+let activeRefreshPromise: Promise<string | null> | null = null;
+
+const requestNewAccessToken = async (baseUrl: string): Promise<string | null> => {
+  const refreshToken = authStorage.getRefreshToken();
+  if (!refreshToken) {
+    authStorage.clearAuthSession();
+    return null;
   }
 
-  return cleanUrl;
+  try {
+    const refreshUrl = `${baseUrl}/auth/refresh-token`;
+    const response = await fetch(refreshUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!response.ok) {
+      authStorage.clearAuthSession();
+      return null;
+    }
+
+    const data = await response.json();
+    const newAccessToken = (data.accessToken || data.token) as string;
+    const newRefreshToken = (data.refreshToken || refreshToken) as string;
+
+    if (newAccessToken) {
+      authStorage.setTokens(newAccessToken, newRefreshToken);
+      return newAccessToken;
+    }
+
+    authStorage.clearAuthSession();
+    return null;
+  } catch {
+    authStorage.clearAuthSession();
+    return null;
+  }
+};
+
+const executeTokenRefresh = async (baseUrl: string): Promise<string | null> => {
+  if (!activeRefreshPromise) {
+    activeRefreshPromise = requestNewAccessToken(baseUrl).finally(() => {
+      activeRefreshPromise = null;
+    });
+  }
+  return activeRefreshPromise;
+};
+
+const isAuthBypassEndpoint = (endpoint: string): boolean => {
+  return (
+    endpoint.includes('/auth/signIn') ||
+    endpoint.includes('/auth/refresh-token') ||
+    endpoint.includes('/auth/refreshToken') ||
+    endpoint.includes('/auth/forgot-password') ||
+    endpoint.includes('/auth/reset-password')
+  );
 };
 
 export async function apiRequest<T>(
@@ -46,13 +99,36 @@ export async function apiRequest<T>(
     ...(options.headers as Record<string, string> | undefined),
   };
 
+  // Automatically attach Bearer token if not explicitly disabled or set
+  if (!options.skipAuthToken && !headers.Authorization && !headers.authorization) {
+    const token = authStorage.getToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
   const config: RequestInit = {
     ...options,
     headers,
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
   };
 
-  const response = await fetch(url, config);
+  let response = await fetch(url, config);
+
+  // If 401 Unauthorized and not an auth exclusion, attempt transparent token refresh & retry
+  if (response.status === 401 && !options.skipAuthRefresh && !isAuthBypassEndpoint(cleanEndpoint)) {
+    const newAccessToken = await executeTokenRefresh(baseUrl);
+    if (newAccessToken) {
+      const retryHeaders = {
+        ...headers,
+        Authorization: `Bearer ${newAccessToken}`,
+      };
+      response = await fetch(url, {
+        ...config,
+        headers: retryHeaders,
+      });
+    }
+  }
 
   let data: unknown;
   try {

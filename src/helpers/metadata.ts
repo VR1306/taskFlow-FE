@@ -34,11 +34,6 @@ export const SITE_CONFIG = {
 /**
  * Common metadata generator for all TaskFlow pages.
  * Supports page-wise and flow-wise title formatting and SEO/Robots configuration.
- *
- * Examples:
- * - constructMetadata({ title: 'Sign In', flow: 'Auth' }) => "Sign In | Auth - TaskFlow"
- * - constructMetadata({ title: 'Overview', flow: 'Dashboard' }) => "Overview | Dashboard - TaskFlow"
- * - constructMetadata({ title: 'Pricing' }) => "Pricing | TaskFlow"
  */
 export function constructMetadata({
   title,
@@ -107,3 +102,5 @@ export function constructMetadata({
     }),
   };
 }
+
+export default constructMetadata;

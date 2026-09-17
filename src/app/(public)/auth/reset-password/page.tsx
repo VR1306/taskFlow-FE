@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { constructMetadata } from '@/lib/metadata';
+import { constructMetadata } from '@/helpers';
 import { ResetPasswordForm } from '@/components/auth';
 import { Loader } from '@/components/ui';
 import { RESET_PASSWORD_CONSTANTS } from '@/constants';

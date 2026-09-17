@@ -5,9 +5,14 @@ import { LOGIN_CONSTANTS } from '@/constants';
 import { authService } from '@/services/auth';
 
 const mockPush = jest.fn();
+let mockSearchParamsGet = jest.fn((_key: string): string | null => null);
+
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
+  }),
+  useSearchParams: () => ({
+    get: (key: string) => mockSearchParamsGet(key),
   }),
 }));
 
@@ -20,6 +25,7 @@ jest.mock('@/services/auth', () => ({
 describe('LoginForm Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSearchParamsGet = jest.fn((_key: string): string | null => null);
   });
 
   it('renders all form elements, labels, and footer correctly', () => {
@@ -108,11 +114,15 @@ describe('LoginForm Component', () => {
     });
   });
 
-  it('calls authService.signIn and redirects to dashboard on successful login', async () => {
+  it('calls authService.signIn and redirects to module from response on successful login', async () => {
     (authService.signIn as jest.Mock).mockResolvedValue({
       success: true,
       message: 'Sign-in successful!',
       token: 'mock-jwt-token',
+      accessToken: 'mock-jwt-token',
+      refreshToken: 'mock-refresh-token',
+      defaultModule: 'users',
+      redirectUrl: '/users',
       user: { id: '1', email: 'user@taskflow.com', firstName: 'Alex', lastName: 'R' },
     });
 
@@ -138,6 +148,68 @@ describe('LoginForm Component', () => {
         email: 'user@taskflow.com',
         password: 'Password123!',
       });
+      expect(mockPush).toHaveBeenCalledWith('/users');
+    });
+  });
+
+  it('redirects to searchParams redirect url when available', async () => {
+    mockSearchParamsGet = jest.fn((key: string) => (key === 'redirect' ? '/users' : null));
+
+    (authService.signIn as jest.Mock).mockResolvedValue({
+      success: true,
+      message: 'Sign-in successful!',
+      token: 'mock-jwt-token',
+      user: { id: '1', email: 'user@taskflow.com', firstName: 'Alex', lastName: 'R' },
+    });
+
+    render(<LoginForm />);
+
+    const emailInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.emailPlaceholder);
+    const passwordInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.passwordPlaceholder);
+    const submitBtn = screen.getByRole('button', {
+      name: LOGIN_CONSTANTS.submitButtonText,
+    });
+
+    fireEvent.change(emailInput, { target: { value: 'user@taskflow.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
+
+    await waitFor(() => {
+      expect(submitBtn).not.toBeDisabled();
+    });
+
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/users');
+    });
+  });
+
+  it('falls back to dashboard when response does not provide redirect info', async () => {
+    (authService.signIn as jest.Mock).mockResolvedValue({
+      success: true,
+      message: 'Sign-in successful!',
+      token: 'mock-jwt-token',
+      user: { id: '1', email: 'user@taskflow.com', firstName: 'Alex', lastName: 'R' },
+    });
+
+    render(<LoginForm />);
+
+    const emailInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.emailPlaceholder);
+    const passwordInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.passwordPlaceholder);
+    const submitBtn = screen.getByRole('button', {
+      name: LOGIN_CONSTANTS.submitButtonText,
+    });
+
+    fireEvent.change(emailInput, { target: { value: 'user@taskflow.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
+
+    await waitFor(() => {
+      expect(submitBtn).not.toBeDisabled();
+    });
+
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/dashboard');
     });
   });

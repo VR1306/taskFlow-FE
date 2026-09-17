@@ -17,6 +17,10 @@ describe('Auth Service', () => {
       success: true,
       message: 'Sign-in successful!',
       token: 'jwt-token-xyz',
+      accessToken: 'jwt-token-xyz',
+      refreshToken: 'refresh-token-xyz',
+      defaultModule: 'users',
+      redirectUrl: '/users',
       user: {
         id: '123',
         firstName: 'John',
@@ -36,6 +40,45 @@ describe('Auth Service', () => {
       email: 'john@example.com',
       password: 'SuperSecretPassword',
     });
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('calls apiClient.post for refreshToken with skipAuthRefresh flag', async () => {
+    const mockResponse = {
+      success: true,
+      message: 'Token refreshed successfully!',
+      token: 'new-token',
+      accessToken: 'new-token',
+      refreshToken: 'new-refresh',
+    };
+
+    (apiClient.post as jest.Mock).mockResolvedValue(mockResponse);
+
+    const result = await authService.refreshToken('old-refresh-token');
+
+    expect(apiClient.post).toHaveBeenCalledWith(
+      '/auth/refresh-token',
+      { refreshToken: 'old-refresh-token' },
+      { skipAuthRefresh: true }
+    );
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('calls apiClient.post for logout with skipAuthRefresh flag', async () => {
+    const mockResponse = {
+      success: true,
+      message: 'Logged out successfully',
+    };
+
+    (apiClient.post as jest.Mock).mockResolvedValue(mockResponse);
+
+    const result = await authService.logout('test-refresh-token');
+
+    expect(apiClient.post).toHaveBeenCalledWith(
+      '/auth/logout',
+      { refreshToken: 'test-refresh-token' },
+      { skipAuthRefresh: true }
+    );
     expect(result).toEqual(mockResponse);
   });
 

@@ -6,7 +6,7 @@ export default async function RootPage() {
   const token = cookieStore.get('token')?.value;
 
   if (token) {
-    redirect('/dashboard');
+    redirect('/users');
   } else {
     redirect('/auth/login');
   }

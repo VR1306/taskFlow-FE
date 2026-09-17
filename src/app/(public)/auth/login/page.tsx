@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { constructMetadata } from '@/lib/metadata';
+import { constructMetadata } from '@/helpers';
 import { LoginForm } from '@/components/auth';
 import { LOGIN_CONSTANTS } from '@/constants';
 

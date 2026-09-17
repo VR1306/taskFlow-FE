@@ -31,9 +31,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 2. Authenticated users trying to access auth pages -> redirect to /dashboard
+  // 2. Authenticated users trying to access auth pages -> redirect to /users module
   if (isAuthRoute && token) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/users', request.url));
   }
 
   return NextResponse.next();

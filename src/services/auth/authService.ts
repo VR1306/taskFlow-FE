@@ -2,6 +2,8 @@ import { apiClient } from '@/services/api';
 import {
   AuthSignInRequest,
   AuthSignInResponse,
+  RefreshTokenResponse,
+  LogoutResponse,
   ForgotPasswordRequest,
   ForgotPasswordResponse,
   ResetPasswordRequest,
@@ -13,6 +15,20 @@ export const authService = {
     return apiClient.post<AuthSignInResponse>('/auth/signIn', {
       email: credentials.email.trim(),
       password: credentials.password,
+    });
+  },
+
+  refreshToken: async (refreshToken: string): Promise<RefreshTokenResponse> => {
+    return apiClient.post<RefreshTokenResponse>(
+      '/auth/refresh-token',
+      { refreshToken },
+      { skipAuthRefresh: true }
+    );
+  },
+
+  logout: async (refreshToken?: string): Promise<LogoutResponse> => {
+    return apiClient.post<LogoutResponse>('/auth/logout', refreshToken ? { refreshToken } : {}, {
+      skipAuthRefresh: true,
     });
   },
 
