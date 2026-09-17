@@ -1,9 +1,24 @@
 'use client';
 
-import React, { useEffect, useMemo, useCallback, useState, memo } from 'react';
-import { Button, Loader, Avatar, Pagination, Image, ConfirmationModal } from '@/components/ui';
-import { UserActionsMenu, CreateUserModal, ViewUserModal, EditUserModal } from '@/components/users';
-import { getRoleBadgeClass } from '@/helpers';
+import React, { useEffect, useMemo, useCallback, useState } from 'react';
+import {
+  Button,
+  Loader,
+  Avatar,
+  Pagination,
+  Image,
+  ConfirmationModal,
+  Table,
+  TableColumn,
+} from '@/components/ui';
+import {
+  UserActionsMenu,
+  CreateUserDrawer,
+  ViewUserDrawer,
+  EditUserDrawer,
+} from '@/components/users';
+import { getRoleBadgeClass, useDebounce } from '@/helpers';
+import { USERS_CONSTANTS } from '@/constants';
 import {
   useAppDispatch,
   useAppSelector,
@@ -13,67 +28,6 @@ import {
   deleteUserThunk,
   UserRecord,
 } from '@/store';
-
-// Memoized table row component for high-performance rendering
-interface UserTableRowProps {
-  user: UserRecord;
-  onView: (user: UserRecord) => void;
-  onEdit: (user: UserRecord) => void;
-  onDelete: (user: UserRecord) => void;
-}
-
-const UserTableRow = memo(function UserTableRow({
-  user,
-  onView,
-  onEdit,
-  onDelete,
-}: UserTableRowProps) {
-  const roleBadgeStyle = useMemo(() => getRoleBadgeClass(user.role), [user.role]);
-
-  return (
-    <tr className="hover:bg-slate-50/70 transition-colors duration-150">
-      {/* User Avatar + Name */}
-      <td className="px-5 py-4 whitespace-nowrap">
-        <div className="flex items-center gap-3">
-          <Avatar firstName={user.firstName} lastName={user.lastName} size="sm" />
-          <div className="min-w-0">
-            <span className="font-semibold text-slate-900 block truncate">
-              {user.firstName} {user.lastName}
-            </span>
-          </div>
-        </div>
-      </td>
-
-      {/* Email */}
-      <td className="px-5 py-4 whitespace-nowrap text-slate-600 font-medium text-xs sm:text-sm">
-        {user.email}
-      </td>
-
-      {/* Role */}
-      <td className="px-5 py-4 whitespace-nowrap">
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${roleBadgeStyle}`}
-        >
-          {user.role}
-        </span>
-      </td>
-
-      {/* Sequential Display User ID (TF0001 format) */}
-      <td className="px-5 py-4 whitespace-nowrap">
-        <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100/90 border border-slate-200/80 rounded-md px-2 py-0.5 select-all">
-          {user.userId || 'TF0001'}
-        </span>
-      </td>
-
-      {/* Actions Column (3-dots menu) */}
-      <td className="px-5 py-4 whitespace-nowrap text-right text-xs font-medium">
-        <UserActionsMenu user={user} onView={onView} onEdit={onEdit} onDelete={onDelete} />
-      </td>
-    </tr>
-  );
-});
-
-UserTableRow.displayName = 'UserTableRow';
 
 export default function UsersPage() {
   const dispatch = useAppDispatch();
@@ -88,18 +42,40 @@ export default function UsersPage() {
     error,
   } = useAppSelector((state) => state.users);
 
-  // Modal states
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  // Search state
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 350);
+
+  // Drawer & Modal states
+  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [selectedUserForView, setSelectedUserForView] = useState<UserRecord | null>(null);
   const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserRecord | null>(null);
   const [selectedUserForDelete, setSelectedUserForDelete] = useState<UserRecord | null>(null);
 
-  // 1. Fetch users on mount or when page/limit changes
+  // 1. Fetch users on mount or when page/limit/debouncedSearch changes
   useEffect(() => {
-    dispatch(fetchUsers({ page: currentPage, limit }));
-  }, [dispatch, currentPage, limit]);
+    dispatch(fetchUsers({ page: currentPage, limit, search: debouncedSearch }));
+  }, [dispatch, currentPage, limit, debouncedSearch]);
 
-  // 2. Pagination change handlers
+  // 2. Search change handlers
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchTerm(e.target.value);
+      if (currentPage !== 1) {
+        dispatch(setCurrentPage(1));
+      }
+    },
+    [currentPage, dispatch]
+  );
+
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm('');
+    if (currentPage !== 1) {
+      dispatch(setCurrentPage(1));
+    }
+  }, [currentPage, dispatch]);
+
+  // 3. Pagination change handlers
   const handlePageChange = useCallback(
     (page: number) => {
       dispatch(setCurrentPage(page));
@@ -114,20 +90,20 @@ export default function UsersPage() {
     [dispatch]
   );
 
-  // 3. User action triggers
-  const handleOpenCreateModal = useCallback(() => {
-    setIsCreateModalOpen(true);
+  // 4. User action triggers (Drawers)
+  const handleOpenCreateDrawer = useCallback(() => {
+    setIsCreateDrawerOpen(true);
   }, []);
 
-  const handleCloseCreateModal = useCallback(() => {
-    setIsCreateModalOpen(false);
+  const handleCloseCreateDrawer = useCallback(() => {
+    setIsCreateDrawerOpen(false);
   }, []);
 
   const handleViewUser = useCallback((user: UserRecord) => {
     setSelectedUserForView(user);
   }, []);
 
-  const handleCloseViewModal = useCallback(() => {
+  const handleCloseViewDrawer = useCallback(() => {
     setSelectedUserForView(null);
   }, []);
 
@@ -135,7 +111,7 @@ export default function UsersPage() {
     setSelectedUserForEdit(user);
   }, []);
 
-  const handleCloseEditModal = useCallback(() => {
+  const handleCloseEditDrawer = useCallback(() => {
     setSelectedUserForEdit(null);
   }, []);
 
@@ -153,22 +129,96 @@ export default function UsersPage() {
     setSelectedUserForDelete(null);
   }, [dispatch, selectedUserForDelete]);
 
-  // 4. Memoized users list from active page cache
-  const cacheKey = `${currentPage}-${limit}`;
+  // 5. Memoized users list from active page cache
+  const cacheKey = `${currentPage}-${limit}-${debouncedSearch.trim()}`;
   const users = useMemo(() => {
     return cachedPages[cacheKey]?.data || [];
   }, [cachedPages, cacheKey]);
 
+  // 6. Generic Table Columns Definition
+  const columns: TableColumn<UserRecord>[] = useMemo(
+    () => [
+      {
+        key: 'user',
+        header: USERS_CONSTANTS.tableHeaders.user,
+        align: 'left',
+        render: (user) => (
+          <div className="flex items-center gap-3">
+            <Avatar firstName={user.firstName} lastName={user.lastName} size="sm" />
+            <div className="min-w-0">
+              <span className="font-semibold text-slate-900 block truncate">
+                {user.firstName} {user.lastName}
+              </span>
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: 'email',
+        header: USERS_CONSTANTS.tableHeaders.email,
+        align: 'left',
+        render: (user) => (
+          <span className="text-slate-600 font-medium text-xs sm:text-sm lowercase">
+            {user.email.toLowerCase()}
+          </span>
+        ),
+      },
+      {
+        key: 'role',
+        header: USERS_CONSTANTS.tableHeaders.role,
+        align: 'left',
+        render: (user) => {
+          const roleBadgeStyle = getRoleBadgeClass(user.role);
+          return (
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${roleBadgeStyle}`}
+            >
+              {user.role}
+            </span>
+          );
+        },
+      },
+      {
+        key: 'userId',
+        header: USERS_CONSTANTS.tableHeaders.userId,
+        align: 'left',
+        render: (user) => (
+          <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100/90 border border-slate-200/80 rounded-md px-2 py-0.5 select-all">
+            {user.userId || 'TF0001'}
+          </span>
+        ),
+      },
+      {
+        key: 'actions',
+        header: USERS_CONSTANTS.tableHeaders.actions,
+        align: 'right',
+        render: (user) => (
+          <UserActionsMenu
+            user={user}
+            onView={handleViewUser}
+            onEdit={handleEditUser}
+            onDelete={handleDeleteUser}
+          />
+        ),
+      },
+    ],
+    [handleViewUser, handleEditUser, handleDeleteUser]
+  );
+
+  const emptyMessage = debouncedSearch.trim()
+    ? USERS_CONSTANTS.noSearchResults(debouncedSearch.trim())
+    : USERS_CONSTANTS.emptyMessage;
+
   return (
     <div className="space-y-6">
-      {/* Header section with clean Title and '+ Create User' button */}
+      {/* Header section with modern Title and sleek '+ Create User' button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-            User Management
+            {USERS_CONSTANTS.pageTitle}
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-slate-500 max-w-xl">
-            Manage team members, roles, and access permissions across your organization.
+            {USERS_CONSTANTS.pageSubtitle}
           </p>
         </div>
 
@@ -176,11 +226,11 @@ export default function UsersPage() {
           <Button
             type="button"
             variant="primary"
-            onClick={handleOpenCreateModal}
-            className="w-full sm:w-auto text-xs font-semibold bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-500/25 gap-2 py-2.5 px-4"
+            onClick={handleOpenCreateDrawer}
+            leftIcon={<Image src="/icons/plus-white.svg" alt="" width={15} height={15} />}
+            className="w-full sm:w-auto text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/30 active:scale-[0.98] transition-all duration-200 py-2.5 px-4 rounded-xl cursor-pointer"
           >
-            <Image src="/icons/plus.svg" alt="" width={15} height={15} className="brightness-200" />
-            <span>Create User</span>
+            {USERS_CONSTANTS.createUserButtonText}
           </Button>
         </div>
       </div>
@@ -195,74 +245,89 @@ export default function UsersPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => dispatch(fetchUsers({ page: currentPage, limit, forceRefresh: true }))}
+            onClick={() =>
+              dispatch(
+                fetchUsers({
+                  page: currentPage,
+                  limit,
+                  search: debouncedSearch,
+                  forceRefresh: true,
+                })
+              )
+            }
             className="text-xs"
           >
-            Retry
+            {USERS_CONSTANTS.retryButtonText}
           </Button>
         </div>
       )}
 
       {/* Main Content Area */}
-      {isLoading && users.length === 0 ? (
+      {isLoading && users.length === 0 && !debouncedSearch && totalItems === 0 ? (
         <div className="flex justify-center py-16 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
-          <Loader text="Loading team members..." />
+          <Loader text={USERS_CONSTANTS.loadingText} />
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-          {/* Card Top Title */}
-          <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/40">
-            <h2 className="text-xs sm:text-sm font-semibold text-slate-800">
-              All Members ({totalItems > 0 ? totalItems : users.length})
-            </h2>
-            {isLoading && (
-              <span className="text-xs text-blue-600 animate-pulse font-medium">Updating...</span>
-            )}
+          {/* Card Top Header: Title & Search Bar */}
+          <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/40">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xs sm:text-sm font-semibold text-slate-800">
+                {USERS_CONSTANTS.membersCardTitle(totalItems > 0 ? totalItems : users.length)}
+              </h2>
+              {isLoading && (
+                <span className="text-xs text-blue-600 animate-pulse font-medium">
+                  {USERS_CONSTANTS.updatingText}
+                </span>
+              )}
+            </div>
+
+            {/* Search Input Bar */}
+            <div className="relative w-full sm:w-72 md:w-80">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Image
+                  src="/icons/search.svg"
+                  alt=""
+                  width={15}
+                  height={15}
+                  className="opacity-50"
+                />
+              </div>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                placeholder={USERS_CONSTANTS.searchPlaceholder}
+                aria-label={USERS_CONSTANTS.searchAriaLabel}
+                className="w-full rounded-xl border border-slate-200/90 bg-white py-2 pl-9 pr-8 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 shadow-2xs transition-all duration-200 focus:border-blue-600 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/15 hover:border-slate-300"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  aria-label={USERS_CONSTANTS.clearSearchAriaLabel}
+                  className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <Image
+                    src="/icons/close.svg"
+                    alt=""
+                    width={13}
+                    height={13}
+                    className="opacity-60 hover:opacity-100 transition-opacity"
+                  />
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Responsive Table Wrapper */}
-          <div className="overflow-x-auto min-h-[160px]">
-            <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
-              <thead className="bg-slate-50/80 text-slate-500 font-semibold text-xs uppercase tracking-wider">
-                <tr>
-                  <th scope="col" className="px-5 py-3.5">
-                    User
-                  </th>
-                  <th scope="col" className="px-5 py-3.5">
-                    Email
-                  </th>
-                  <th scope="col" className="px-5 py-3.5">
-                    Role
-                  </th>
-                  <th scope="col" className="px-5 py-3.5">
-                    User ID
-                  </th>
-                  <th scope="col" className="px-5 py-3.5 text-right">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {users.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-slate-400 text-sm">
-                      No user records found.
-                    </td>
-                  </tr>
-                ) : (
-                  users.map((user) => (
-                    <UserTableRow
-                      key={user._id}
-                      user={user}
-                      onView={handleViewUser}
-                      onEdit={handleEditUser}
-                      onDelete={handleDeleteUser}
-                    />
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          {/* Reusable Generic Table Component */}
+          <Table<UserRecord>
+            columns={columns}
+            data={users}
+            keyExtractor={(user) => user._id}
+            emptyMessage={emptyMessage}
+            ariaLabel={USERS_CONSTANTS.pageTitle}
+          />
 
           {/* React Pagination Component */}
           {totalItems > 0 && (
@@ -281,33 +346,40 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* Create User Modal */}
-      <CreateUserModal isOpen={isCreateModalOpen} onClose={handleCloseCreateModal} />
+      {/* Create User Slide-over Drawer */}
+      <CreateUserDrawer isOpen={isCreateDrawerOpen} onClose={handleCloseCreateDrawer} />
 
-      {/* View User Modal */}
-      <ViewUserModal
+      {/* View User Slide-over Drawer */}
+      <ViewUserDrawer
         isOpen={Boolean(selectedUserForView)}
-        onClose={handleCloseViewModal}
+        onClose={handleCloseViewDrawer}
+        onEdit={handleEditUser}
         user={selectedUserForView}
       />
 
-      {/* Edit User Modal */}
-      <EditUserModal
+      {/* Edit User Slide-over Drawer */}
+      <EditUserDrawer
         isOpen={Boolean(selectedUserForEdit)}
-        onClose={handleCloseEditModal}
+        onClose={handleCloseEditDrawer}
         user={selectedUserForEdit}
       />
 
-      {/* Delete User Confirmation Modal (Soft delete) */}
+      {/* Delete User Confirmation Modal */}
       <ConfirmationModal
         isOpen={Boolean(selectedUserForDelete)}
         onClose={handleCloseDeleteModal}
         onConfirm={handleConfirmDelete}
-        title="Delete User Account"
-        message={`Are you sure you want to delete ${selectedUserForDelete?.firstName} ${selectedUserForDelete?.lastName} (${selectedUserForDelete?.userId || 'TF0001'})? This user will be soft-deleted and removed from active workspace members.`}
-        confirmText="Delete User"
-        cancelText="Cancel"
+        title={USERS_CONSTANTS.deleteModal.title}
+        message={USERS_CONSTANTS.deleteModal.message(
+          selectedUserForDelete?.firstName || '',
+          selectedUserForDelete?.lastName || '',
+          selectedUserForDelete?.userId || 'TF0001'
+        )}
+        confirmText={USERS_CONSTANTS.deleteModal.confirmButtonText}
+        cancelText={USERS_CONSTANTS.deleteModal.cancelButtonText}
         isDestructive={true}
+        iconSrc="/icons/trash.svg"
+        confirmIcon={<Image src="/icons/trash-white.svg" alt="" width={15} height={15} />}
         isLoading={isActionLoading}
       />
     </div>

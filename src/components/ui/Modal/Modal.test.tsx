@@ -91,5 +91,20 @@ describe('Modal & ConfirmationModal Components', () => {
       fireEvent.click(confirmBtn);
       expect(handleConfirm).toHaveBeenCalledTimes(1);
     });
+
+    it('renders with custom confirmIcon and iconSrc', () => {
+      render(
+        <ConfirmationModal
+          isOpen={true}
+          onClose={jest.fn()}
+          onConfirm={jest.fn()}
+          title="Delete Item"
+          message="Are you sure?"
+          confirmIcon={<span data-testid="confirm-icon">Icon</span>}
+          iconSrc="/icons/trash.svg"
+        />
+      );
+      expect(screen.getByTestId('confirm-icon')).toBeInTheDocument();
+    });
   });
 });

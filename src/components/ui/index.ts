@@ -7,4 +7,7 @@ export * from './Loader';
 export * from './Badge';
 export * from './Avatar';
 export * from './Modal';
+export * from './Drawer';
+export * from './Select';
 export * from './Pagination';
+export * from './Table';

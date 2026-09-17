@@ -1,4 +1,4 @@
 export * from './UserActionsMenu';
-export * from './CreateUserModal';
-export * from './ViewUserModal';
-export * from './EditUserModal';
+export * from './CreateUserDrawer';
+export * from './ViewUserDrawer';
+export * from './EditUserDrawer';

@@ -53,4 +53,17 @@ describe('Button Component', () => {
     const button = screen.getByRole('button', { name: new RegExp(variant, 'i') });
     expect(button.className).toContain(expectedClass);
   });
+
+  it('renders leftIcon and rightIcon when not loading', () => {
+    render(
+      <Button
+        leftIcon={<span data-testid="left-icon">L</span>}
+        rightIcon={<span data-testid="right-icon">R</span>}
+      >
+        Icon Button
+      </Button>
+    );
+    expect(screen.getByTestId('left-icon')).toBeInTheDocument();
+    expect(screen.getByTestId('right-icon')).toBeInTheDocument();
+  });
 });

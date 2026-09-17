@@ -37,7 +37,7 @@ export const Button: React.FC<Readonly<ButtonProps>> = ({
   };
 
   const sizeStyles = {
-    sm: 'h-9 px-3.5 text-xs rounded-lg gap-1.5',
+    sm: 'h-9 px-3.5 text-xs rounded-lg gap-2 font-semibold',
     md: 'h-11 px-4 text-sm rounded-xl gap-2 font-semibold',
     lg: 'h-12 px-6 text-base rounded-xl gap-2.5 font-semibold',
   };
@@ -65,13 +65,19 @@ export const Button: React.FC<Readonly<ButtonProps>> = ({
       )}
 
       {/* Left Icon (only shown when not loading) */}
-      {!isLoading && leftIcon && <span className="inline-flex shrink-0">{leftIcon}</span>}
+      {!isLoading && leftIcon && (
+        <span className="inline-flex shrink-0 items-center justify-center">{leftIcon}</span>
+      )}
 
       {/* Text / Children */}
-      <span>{isLoading && loadingText ? loadingText : children}</span>
+      <span className="inline-flex items-center justify-center gap-2 leading-none">
+        {isLoading && loadingText ? loadingText : children}
+      </span>
 
       {/* Right Icon */}
-      {!isLoading && rightIcon && <span className="inline-flex shrink-0">{rightIcon}</span>}
+      {!isLoading && rightIcon && (
+        <span className="inline-flex shrink-0 items-center justify-center">{rightIcon}</span>
+      )}
     </button>
   );
 };

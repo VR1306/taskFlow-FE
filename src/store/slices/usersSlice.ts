@@ -8,6 +8,7 @@ export interface UserRecord {
   lastName: string;
   email: string;
   role: string;
+  isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;
   isDeleted?: boolean;
@@ -38,6 +39,7 @@ export interface UsersState {
   cachedPages: Record<string, CachedPageData>;
   currentPage: number;
   limit: number;
+  search: string;
   totalItems: number;
   totalPages: number;
   isLoading: boolean;
@@ -50,6 +52,7 @@ const initialState: UsersState = {
   cachedPages: {},
   currentPage: 1,
   limit: 10,
+  search: '',
   totalItems: 0,
   totalPages: 1,
   isLoading: false,
@@ -60,18 +63,19 @@ const initialState: UsersState = {
 
 export const fetchUsers = createAsyncThunk<
   { data: UserRecord[]; pagination: PaginationInfo; cacheKey: string; fromCache: boolean },
-  { page?: number; limit?: number; forceRefresh?: boolean },
+  { page?: number; limit?: number; search?: string; forceRefresh?: boolean } | void,
   { state: { users: UsersState } }
 >('users/fetchUsers', async (params, { getState, rejectWithValue }) => {
   const state = getState().users;
-  const page = params.page ?? state.currentPage;
-  const limit = params.limit ?? state.limit;
-  const cacheKey = `${page}-${limit}`;
+  const page = params?.page ?? state.currentPage;
+  const limit = params?.limit ?? state.limit;
+  const search = params?.search !== undefined ? params.search.trim() : state.search;
+  const cacheKey = `${page}-${limit}-${search}`;
   const cached = state.cachedPages[cacheKey];
 
   const isCacheValid = cached && Date.now() - cached.timestamp < state.ttlMs;
 
-  if (!params.forceRefresh && isCacheValid) {
+  if (!params?.forceRefresh && isCacheValid) {
     return {
       data: cached.data,
       pagination: cached.pagination,
@@ -81,8 +85,9 @@ export const fetchUsers = createAsyncThunk<
   }
 
   try {
+    const searchParam = search ? `&search=${encodeURIComponent(search)}` : '';
     const response = await apiClient.get<UsersApiResponse>(
-      `/users/getAllUsers?page=${page}&limit=${limit}`
+      `/users/getAllUsers?page=${page}&limit=${limit}${searchParam}`
     );
 
     const fallbackPagination: PaginationInfo = {
@@ -163,6 +168,10 @@ export const usersSlice = createSlice({
       state.limit = action.payload;
       state.currentPage = 1; // reset to page 1 on limit change
     },
+    setSearch: (state, action: PayloadAction<string>) => {
+      state.search = action.payload;
+      state.currentPage = 1; // reset to page 1 on search change
+    },
     invalidateUsersCache: (state) => {
       state.cachedPages = {};
     },
@@ -175,7 +184,9 @@ export const usersSlice = createSlice({
       .addCase(fetchUsers.pending, (state, action) => {
         const page = action.meta.arg?.page ?? state.currentPage;
         const limit = action.meta.arg?.limit ?? state.limit;
-        const cacheKey = `${page}-${limit}`;
+        const search =
+          action.meta.arg?.search !== undefined ? action.meta.arg.search.trim() : state.search;
+        const cacheKey = `${page}-${limit}-${search}`;
         const cached = state.cachedPages[cacheKey];
         const isCacheValid = cached && Date.now() - cached.timestamp < state.ttlMs;
 
@@ -192,6 +203,10 @@ export const usersSlice = createSlice({
         state.limit = action.payload.pagination.limit;
         state.totalItems = action.payload.pagination.totalItems;
         state.totalPages = action.payload.pagination.totalPages;
+
+        if (action.meta.arg?.search !== undefined) {
+          state.search = action.meta.arg.search.trim();
+        }
 
         if (!action.payload.fromCache) {
           state.cachedPages[action.payload.cacheKey] = {
@@ -242,7 +257,7 @@ export const usersSlice = createSlice({
   },
 });
 
-export const { setCurrentPage, setLimit, invalidateUsersCache, clearUsersError } =
+export const { setCurrentPage, setLimit, setSearch, invalidateUsersCache, clearUsersError } =
   usersSlice.actions;
 
 export default usersSlice.reducer;

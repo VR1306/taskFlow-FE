@@ -16,6 +16,7 @@ export interface ConfirmationModalProps {
   isDestructive?: boolean;
   isLoading?: boolean;
   iconSrc?: string;
+  confirmIcon?: React.ReactNode;
 }
 
 export const ConfirmationModal = memo(function ConfirmationModal({
@@ -29,8 +30,9 @@ export const ConfirmationModal = memo(function ConfirmationModal({
   isDestructive = true,
   isLoading = false,
   iconSrc,
+  confirmIcon,
 }: ConfirmationModalProps) {
-  const defaultIcon = isDestructive ? '/icons/logout-modal.svg' : '/icons/info-modal.svg';
+  const defaultIcon = isDestructive ? '/icons/trash.svg' : '/icons/info-modal.svg';
   const resolvedIcon = iconSrc || defaultIcon;
 
   return (
@@ -68,6 +70,7 @@ export const ConfirmationModal = memo(function ConfirmationModal({
             onClick={onConfirm}
             isLoading={isLoading}
             disabled={isLoading}
+            leftIcon={confirmIcon}
             className={`w-full font-semibold transition-all ${
               isDestructive
                 ? 'bg-red-600 hover:bg-red-700 focus-visible:ring-red-500 shadow-sm shadow-red-500/25 border border-red-600 text-white'

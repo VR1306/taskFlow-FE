@@ -6,6 +6,7 @@ import {
   getRoleBadgeClass,
   getUserInitials,
   formatCountdown,
+  formatDate,
 } from './helpers';
 
 describe('Frontend General Helpers', () => {
@@ -110,6 +111,18 @@ describe('Frontend General Helpers', () => {
       expect(formatCountdown(125)).toBe('2:05');
       expect(formatCountdown(0)).toBe('0:00');
       expect(formatCountdown(-10)).toBe('0:00');
+    });
+  });
+
+  describe('formatDate', () => {
+    it('formats valid ISO date strings', () => {
+      expect(formatDate('2026-01-01T00:00:00.000Z')).toContain('2026');
+    });
+
+    it('returns N/A for empty or invalid dates', () => {
+      expect(formatDate('')).toBe('N/A');
+      expect(formatDate(undefined)).toBe('N/A');
+      expect(formatDate('invalid-date')).toBe('N/A');
     });
   });
 });

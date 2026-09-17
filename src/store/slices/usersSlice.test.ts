@@ -1,6 +1,7 @@
 import usersReducer, {
   setCurrentPage,
   setLimit,
+  setSearch,
   invalidateUsersCache,
   clearUsersError,
   fetchUsers,
@@ -18,6 +19,7 @@ describe('usersSlice Redux Reducer & Async Thunks', () => {
     cachedPages: {},
     currentPage: 1,
     limit: 10,
+    search: '',
     totalItems: 0,
     totalPages: 1,
     isLoading: false,
@@ -69,6 +71,16 @@ describe('usersSlice Redux Reducer & Async Thunks', () => {
     expect(state.currentPage).toBe(1);
   });
 
+  it('handles setSearch and resets currentPage to 1', () => {
+    const populatedState: UsersState = {
+      ...initialUsersState,
+      currentPage: 4,
+    };
+    const state = usersReducer(populatedState, setSearch('Alice'));
+    expect(state.search).toBe('Alice');
+    expect(state.currentPage).toBe(1);
+  });
+
   it('handles invalidateUsersCache', () => {
     const populatedState: UsersState = {
       ...initialUsersState,
@@ -114,14 +126,37 @@ describe('usersSlice Redux Reducer & Async Thunks', () => {
     const state = usersReducer(initialUsersState, result);
     expect(state.isLoading).toBe(false);
     expect(state.totalItems).toBe(1);
-    expect(state.cachedPages['1-10']?.data).toEqual(mockUsersData);
+    expect(state.cachedPages['1-10-']?.data).toEqual(mockUsersData);
+  });
+
+  it('fetches users with search query and encodes parameter', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValueOnce({
+      success: true,
+      data: mockUsersData,
+      pagination: mockPagination,
+    });
+
+    const dispatch = jest.fn();
+    const getState = () => ({ users: initialUsersState });
+
+    const thunk = fetchUsers({ page: 1, limit: 10, search: 'Alice Smith' });
+    const result = await thunk(dispatch, getState, undefined);
+
+    expect(result.type).toBe('users/fetchUsers/fulfilled');
+    expect(apiClient.get).toHaveBeenCalledWith(
+      '/users/getAllUsers?page=1&limit=10&search=Alice%20Smith'
+    );
+
+    const state = usersReducer(initialUsersState, result);
+    expect(state.search).toBe('Alice Smith');
+    expect(state.cachedPages['1-10-Alice Smith']?.data).toEqual(mockUsersData);
   });
 
   it('uses cached data without calling API when cache is fresh', async () => {
     const freshCacheState: UsersState = {
       ...initialUsersState,
       cachedPages: {
-        '1-10': {
+        '1-10-': {
           data: mockUsersData,
           pagination: mockPagination,
           timestamp: Date.now(),

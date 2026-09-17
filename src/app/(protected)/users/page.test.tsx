@@ -107,7 +107,9 @@ describe('UsersPage Component', () => {
     const cancelBtn = screen.getByRole('button', { name: /cancel/i });
     fireEvent.click(cancelBtn);
 
-    expect(screen.queryByText('Create New User')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Create New User')).not.toBeInTheDocument();
+    });
   });
 
   it('handles user actions: View Details, Edit User, Delete User', async () => {
@@ -226,5 +228,79 @@ describe('UsersPage Component', () => {
     });
 
     expect(apiClient.get).toHaveBeenCalledTimes(2);
+  });
+
+  it('filters users by typing in search input with debounce and allows clearing', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      success: true,
+      data: [
+        {
+          _id: 'user-001',
+          userId: 'TF0001',
+          firstName: 'Jane',
+          lastName: 'Doe',
+          email: 'jane@example.com',
+          role: 'SuperAdmin',
+        },
+      ],
+      pagination: { totalItems: 1, totalPages: 1, currentPage: 1, limit: 10 },
+    });
+
+    const store = createMockStore();
+
+    render(
+      <Provider store={store}>
+        <UsersPage />
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText('Search members by name, email, or user ID...')
+      ).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText('Search members by name, email, or user ID...');
+    fireEvent.change(searchInput, { target: { value: 'Jane' } });
+
+    await waitFor(() => {
+      expect(apiClient.get).toHaveBeenCalledWith('/users/getAllUsers?page=1&limit=10&search=Jane');
+    });
+
+    // Clear search button should appear
+    const clearButton = screen.getByLabelText('Clear search');
+    expect(clearButton).toBeInTheDocument();
+    fireEvent.click(clearButton);
+
+    expect(searchInput).toHaveValue('');
+  });
+
+  it('displays search empty message when debounced search returns 0 results', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      success: true,
+      data: [],
+      pagination: { totalItems: 0, totalPages: 1, currentPage: 1, limit: 10 },
+    });
+
+    const store = createMockStore();
+
+    render(
+      <Provider store={store}>
+        <UsersPage />
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText('Search members by name, email, or user ID...')
+      ).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText('Search members by name, email, or user ID...');
+    fireEvent.change(searchInput, { target: { value: 'NonexistentUser' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('No users matching "NonexistentUser" found.')).toBeInTheDocument();
+    });
   });
 });
