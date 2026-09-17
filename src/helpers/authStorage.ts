@@ -5,6 +5,8 @@ const REFRESH_COOKIE_NAME = 'refreshToken';
 const USER_STORAGE_KEY = 'taskflow_user';
 const REFRESH_STORAGE_KEY = 'taskflow_refresh_token';
 const DEFAULT_MODULE_KEY = 'taskflow_default_module';
+const REMEMBERED_EMAIL_KEY = 'taskflow_remembered_email';
+const REMEMBER_ME_KEY = 'taskflow_remember_me';
 
 export const authStorage = {
   setAuthSession: (
@@ -34,6 +36,13 @@ export const authStorage = {
       if (defaultModule) {
         localStorage.setItem(DEFAULT_MODULE_KEY, defaultModule);
       }
+      if (rememberMe) {
+        localStorage.setItem(REMEMBERED_EMAIL_KEY, user.email);
+        localStorage.setItem(REMEMBER_ME_KEY, 'true');
+      } else {
+        localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+        localStorage.removeItem(REMEMBER_ME_KEY);
+      }
     } catch {
       // Ignore storage errors in restricted browser environments
     }
@@ -51,6 +60,42 @@ export const authStorage = {
       } catch {
         // Ignore storage errors
       }
+    }
+  },
+
+  getRememberedEmail: (): string => {
+    if (typeof window === 'undefined') return '';
+
+    try {
+      return localStorage.getItem(REMEMBERED_EMAIL_KEY) || '';
+    } catch {
+      return '';
+    }
+  },
+
+  getRememberMe: (): boolean => {
+    if (typeof window === 'undefined') return false;
+
+    try {
+      return localStorage.getItem(REMEMBER_ME_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  },
+
+  setRememberedCredentials: (rememberMe: boolean, email = ''): void => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      if (rememberMe && email) {
+        localStorage.setItem(REMEMBERED_EMAIL_KEY, email);
+        localStorage.setItem(REMEMBER_ME_KEY, 'true');
+      } else {
+        localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+        localStorage.removeItem(REMEMBER_ME_KEY);
+      }
+    } catch {
+      // Ignore storage errors
     }
   },
 

@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { LOGIN_CONSTANTS } from '@/constants';
 import { authService } from '@/services/auth';
+import { authStorage } from '@/helpers';
 
 const mockPush = jest.fn();
 let mockSearchParamsGet = jest.fn((_key: string): string | null => null);
@@ -26,6 +27,7 @@ describe('LoginForm Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSearchParamsGet = jest.fn((_key: string): string | null => null);
+    localStorage.clear();
   });
 
   it('renders all form elements, labels, and footer correctly', () => {
@@ -47,6 +49,23 @@ describe('LoginForm Component', () => {
       screen.getByRole('button', { name: LOGIN_CONSTANTS.submitButtonText })
     ).toBeInTheDocument();
     expect(screen.getByText(LOGIN_CONSTANTS.footerActionText)).toBeInTheDocument();
+  });
+
+  it('pre-fills email and rememberMe checkbox when stored in authStorage', async () => {
+    authStorage.setRememberedCredentials(true, 'remembered.user@taskflow.io');
+
+    render(<LoginForm />);
+
+    await waitFor(() => {
+      const emailInput = screen.getByPlaceholderText(
+        LOGIN_CONSTANTS.emailPlaceholder
+      ) as HTMLInputElement;
+      expect(emailInput.value).toBe('remembered.user@taskflow.io');
+      const rememberCheckbox = screen.getByLabelText(
+        LOGIN_CONSTANTS.keepSignedInLabel
+      ) as HTMLInputElement;
+      expect(rememberCheckbox.checked).toBe(true);
+    });
   });
 
   it('keeps the submit button disabled when fields are empty or invalid', async () => {
@@ -114,7 +133,7 @@ describe('LoginForm Component', () => {
     });
   });
 
-  it('calls authService.signIn and redirects to module from response on successful login', async () => {
+  it('calls authService.signIn with rememberMe and redirects to module from response on successful login', async () => {
     (authService.signIn as jest.Mock).mockResolvedValue({
       success: true,
       message: 'Sign-in successful!',
@@ -130,12 +149,14 @@ describe('LoginForm Component', () => {
 
     const emailInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.emailPlaceholder);
     const passwordInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.passwordPlaceholder);
+    const rememberMeCheckbox = screen.getByLabelText(LOGIN_CONSTANTS.keepSignedInLabel);
     const submitBtn = screen.getByRole('button', {
       name: LOGIN_CONSTANTS.submitButtonText,
     });
 
     fireEvent.change(emailInput, { target: { value: 'user@taskflow.com' } });
     fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
+    fireEvent.click(rememberMeCheckbox);
 
     await waitFor(() => {
       expect(submitBtn).not.toBeDisabled();
@@ -147,6 +168,7 @@ describe('LoginForm Component', () => {
       expect(authService.signIn).toHaveBeenCalledWith({
         email: 'user@taskflow.com',
         password: 'Password123!',
+        rememberMe: true,
       });
       expect(mockPush).toHaveBeenCalledWith('/users');
     });

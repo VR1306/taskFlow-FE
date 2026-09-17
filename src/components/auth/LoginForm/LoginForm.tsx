@@ -35,8 +35,18 @@ export const LoginForm: React.FC<Readonly<LoginFormProps>> = ({ onSubmit, classN
 
   const {
     handleSubmit,
+    setValue,
     formState: { isValid },
   } = methods;
+
+  React.useEffect(() => {
+    const rememberedEmail = authStorage.getRememberedEmail();
+    const rememberMe = authStorage.getRememberMe();
+    if (rememberedEmail) {
+      setValue('email', rememberedEmail, { shouldValidate: true });
+      setValue('rememberMe', rememberMe, { shouldValidate: true });
+    }
+  }, [setValue]);
 
   const handleFormSubmit = async (data: LoginFormData) => {
     try {
@@ -49,6 +59,7 @@ export const LoginForm: React.FC<Readonly<LoginFormProps>> = ({ onSubmit, classN
         const response = await authService.signIn({
           email: data.email,
           password: data.password,
+          rememberMe: Boolean(data.rememberMe),
         });
 
         const activeToken = response.accessToken || response.token;

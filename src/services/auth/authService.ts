@@ -15,6 +15,7 @@ export const authService = {
     return apiClient.post<AuthSignInResponse>('/auth/signIn', {
       email: credentials.email.trim(),
       password: credentials.password,
+      rememberMe: Boolean(credentials.rememberMe),
     });
   },
 

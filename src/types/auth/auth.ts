@@ -9,6 +9,7 @@ export interface AuthUser {
 export interface AuthSignInRequest {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export interface AuthSignInResponse {
@@ -17,6 +18,7 @@ export interface AuthSignInResponse {
   token: string;
   accessToken?: string;
   refreshToken?: string;
+  rememberMe?: boolean;
   defaultModule?: string;
   redirectUrl?: string;
   user: AuthUser;

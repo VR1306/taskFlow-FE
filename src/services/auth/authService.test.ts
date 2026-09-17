@@ -34,11 +34,13 @@ describe('Auth Service', () => {
     const result = await authService.signIn({
       email: '  john@example.com  ',
       password: 'SuperSecretPassword',
+      rememberMe: true,
     });
 
     expect(apiClient.post).toHaveBeenCalledWith('/auth/signIn', {
       email: 'john@example.com',
       password: 'SuperSecretPassword',
+      rememberMe: true,
     });
     expect(result).toEqual(mockResponse);
   });
