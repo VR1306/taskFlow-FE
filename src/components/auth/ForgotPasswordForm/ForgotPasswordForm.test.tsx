@@ -198,9 +198,7 @@ describe('ForgotPasswordForm Component', () => {
     const tryDifferentBtn = screen.getByRole('button', {
       name: FORGOT_PASSWORD_CONSTANTS.tryDifferentEmailText,
     });
-    act(() => {
-      fireEvent.click(tryDifferentBtn);
-    });
+    fireEvent.click(tryDifferentBtn);
 
     await waitFor(() => {
       expect(screen.getByText(FORGOT_PASSWORD_CONSTANTS.title)).toBeInTheDocument();

@@ -168,12 +168,9 @@ export const ForgotPasswordForm: React.FC<Readonly<ForgotPasswordFormProps>> = (
 
       {/* Resend Success Notification */}
       {resendSuccess && (
-        <div
-          role="status"
-          className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs font-medium text-emerald-700 animate-fadeIn"
-        >
+        <output className="block mb-5 rounded-xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs font-medium text-emerald-700 animate-fadeIn">
           {FORGOT_PASSWORD_CONSTANTS.resendSuccessMessage}
-        </div>
+        </output>
       )}
 
       {!isSuccess ? (
