@@ -1,4 +1,4 @@
-import { loginSchema, forgotPasswordSchema } from './auth';
+import { loginSchema, forgotPasswordSchema, resetPasswordSchema } from './auth';
 
 describe('Auth Validation Schemas', () => {
   describe('loginSchema', () => {
@@ -87,6 +87,51 @@ describe('Auth Validation Schemas', () => {
       },
     ])('fails when $scenario', ({ data, expectedError }) => {
       const result = forgotPasswordSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe(expectedError);
+      }
+    });
+  });
+
+  describe('resetPasswordSchema', () => {
+    it('validates matching passwords with 8 or more characters', () => {
+      const validData = {
+        password: 'NewStrongPassword@123',
+        confirmPassword: 'NewStrongPassword@123',
+      };
+
+      const result = resetPasswordSchema.safeParse(validData);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.password).toBe('NewStrongPassword@123');
+        expect(result.data.confirmPassword).toBe('NewStrongPassword@123');
+      }
+    });
+
+    test.each([
+      {
+        scenario: 'password is empty',
+        data: { password: '', confirmPassword: '' },
+        expectedError: 'Password is required',
+      },
+      {
+        scenario: 'password is less than 8 characters',
+        data: { password: 'short', confirmPassword: 'short' },
+        expectedError: 'Password must be at least 8 characters',
+      },
+      {
+        scenario: 'confirm password is empty',
+        data: { password: 'ValidPassword123', confirmPassword: '' },
+        expectedError: 'Please confirm your password',
+      },
+      {
+        scenario: 'passwords do not match',
+        data: { password: 'ValidPassword123', confirmPassword: 'DifferentPassword456' },
+        expectedError: 'Passwords do not match',
+      },
+    ])('fails when $scenario', ({ data, expectedError }) => {
+      const result = resetPasswordSchema.safeParse(data);
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.issues[0].message).toBe(expectedError);

@@ -56,4 +56,26 @@ describe('Auth Service', () => {
     });
     expect(result).toEqual(mockResponse);
   });
+
+  it('calls apiClient.post with token query and body for resetPassword', async () => {
+    const mockResponse = {
+      success: true,
+      message: 'Password reset successful!',
+    };
+
+    (apiClient.post as jest.Mock).mockResolvedValue(mockResponse);
+
+    const result = await authService.resetPassword({
+      token: 'test-token-123',
+      password: 'NewStrongPassword@123',
+      confirmPassword: 'NewStrongPassword@123',
+    });
+
+    expect(apiClient.post).toHaveBeenCalledWith('/auth/reset-password?token=test-token-123', {
+      token: 'test-token-123',
+      password: 'NewStrongPassword@123',
+      confirmPassword: 'NewStrongPassword@123',
+    });
+    expect(result).toEqual(mockResponse);
+  });
 });

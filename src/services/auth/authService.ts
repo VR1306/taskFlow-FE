@@ -4,6 +4,8 @@ import {
   AuthSignInResponse,
   ForgotPasswordRequest,
   ForgotPasswordResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
 } from '@/types';
 
 export const authService = {
@@ -19,6 +21,19 @@ export const authService = {
   ): Promise<ForgotPasswordResponse> => {
     return apiClient.post<ForgotPasswordResponse>('/auth/forgot-password', {
       email: payload.email.trim(),
+    });
+  },
+
+  resetPassword: async (
+    payload: Readonly<ResetPasswordRequest>
+  ): Promise<ResetPasswordResponse> => {
+    const endpoint = payload.token
+      ? `/auth/reset-password?token=${encodeURIComponent(payload.token)}`
+      : '/auth/reset-password';
+    return apiClient.post<ResetPasswordResponse>(endpoint, {
+      token: payload.token,
+      password: payload.password,
+      confirmPassword: payload.confirmPassword,
     });
   },
 };
