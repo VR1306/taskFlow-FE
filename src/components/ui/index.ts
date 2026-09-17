@@ -4,3 +4,7 @@ export * from './ErrorMessage';
 export * from './Image';
 export * from './Input';
 export * from './Loader';
+export * from './Badge';
+export * from './Avatar';
+export * from './Modal';
+export * from './Pagination';

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useController, useFormContext, FieldValues, Path, Control } from 'react-hook-form';
+import { Image } from '@/components/ui/Image';
 
 export interface ControlledCheckboxProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -50,18 +51,13 @@ export function Checkbox<
           disabled={disabled}
           className="peer h-4.5 w-4.5 cursor-pointer appearance-none rounded-[5px] border border-slate-300 bg-white transition-all duration-150 checked:border-blue-600 checked:bg-blue-600 hover:border-slate-400 focus:outline-none focus-visible:ring-3 focus-visible:ring-blue-500/25 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 shadow-2xs"
         />
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#ffffff"
-          strokeWidth="3.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
+        <Image
+          src="/icons/check.svg"
+          alt=""
+          width={12}
+          height={12}
           className="pointer-events-none absolute h-3 w-3 transition-all duration-150 ease-out opacity-0 scale-75 peer-checked:opacity-100 peer-checked:scale-100"
-        >
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
+        />
       </div>
       <label
         htmlFor={checkboxId}
