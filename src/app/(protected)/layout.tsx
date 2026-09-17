@@ -3,9 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { authStorage } from '@/helpers';
+import { authStorage, useCurrentUser } from '@/helpers';
 import { authService } from '@/services/auth';
-import { AuthUser } from '@/types';
 import { Image, Button } from '@/components/ui';
 
 export default function ProtectedLayout({
@@ -15,7 +14,7 @@ export default function ProtectedLayout({
 }>) {
   const router = useRouter();
   const pathname = usePathname();
-  const [currentUser] = useState<AuthUser | null>(() => authStorage.getUser());
+  const currentUser = useCurrentUser();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {

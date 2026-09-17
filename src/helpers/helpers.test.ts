@@ -22,16 +22,25 @@ describe('Frontend General Helpers', () => {
     it('returns cleaned configured URL', () => {
       expect(getBaseApiUrl('https://api.taskflow.io/v1/')).toBe('https://api.taskflow.io/v1');
     });
+
+    it('handles relative configured URL in browser context', () => {
+      expect(getBaseApiUrl('/api/v1/')).toBe('/api/v1');
+    });
   });
 
   describe('getBackendTargetUrl', () => {
-    it('constructs backend url from segments', () => {
+    it('constructs backend url from segments and base url', () => {
       const url = getBackendTargetUrl(
         ['users', 'getAllUsers'],
         '?page=1',
         'https://api.taskflow.io/v1'
       );
       expect(url).toBe('https://api.taskflow.io/v1/users/getAllUsers?page=1');
+    });
+
+    it('constructs backend url with default empty search and default base', () => {
+      const url = getBackendTargetUrl(['auth', 'login']);
+      expect(url).toContain('/auth/login');
     });
   });
 

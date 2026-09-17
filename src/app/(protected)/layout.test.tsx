@@ -16,14 +16,17 @@ describe('ProtectedLayout Component', () => {
     authStorage.clearAuthSession();
   });
 
-  it('renders branding, active navigation links, and children content', () => {
-    jest.spyOn(authStorage, 'getUser').mockReturnValue({
-      id: '123',
-      firstName: 'Alice',
-      lastName: 'Smith',
-      email: 'alice@example.com',
-      role: 'Admin',
-    });
+  it('renders branding, active navigation links, and children content', async () => {
+    localStorage.setItem(
+      'taskflow_user',
+      JSON.stringify({
+        id: '123',
+        firstName: 'Alice',
+        lastName: 'Smith',
+        email: 'alice@example.com',
+        role: 'Admin',
+      })
+    );
 
     render(
       <ProtectedLayout>
@@ -34,19 +37,24 @@ describe('ProtectedLayout Component', () => {
     expect(screen.getByText('TaskFlow')).toBeInTheDocument();
     expect(screen.getByText('Users Module')).toBeInTheDocument();
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Alice Smith')).toBeInTheDocument();
-    expect(screen.getByText('alice@example.com')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Alice Smith')).toBeInTheDocument();
+      expect(screen.getByText('alice@example.com')).toBeInTheDocument();
+    });
     expect(screen.getByTestId('child-content')).toBeInTheDocument();
   });
 
   it('handles sign-out and navigates to login page', async () => {
-    jest.spyOn(authStorage, 'getUser').mockReturnValue({
-      id: '123',
-      firstName: 'Alice',
-      lastName: 'Smith',
-      email: 'alice@example.com',
-      role: 'Admin',
-    });
+    localStorage.setItem(
+      'taskflow_user',
+      JSON.stringify({
+        id: '123',
+        firstName: 'Alice',
+        lastName: 'Smith',
+        email: 'alice@example.com',
+        role: 'Admin',
+      })
+    );
     jest.spyOn(authStorage, 'getRefreshToken').mockReturnValue('valid-refresh-token');
     const logoutSpy = jest
       .spyOn(authService, 'logout')

@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { authStorage } from '@/helpers';
-import { AuthUser } from '@/types';
+import { useCurrentUser } from '@/helpers';
 import { Button } from '@/components/ui';
 
 export default function DashboardPage() {
-  const [currentUser] = useState<AuthUser | null>(() => authStorage.getUser());
+  const currentUser = useCurrentUser();
 
   return (
     <div className="space-y-6">
