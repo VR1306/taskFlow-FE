@@ -42,7 +42,7 @@ export default function UsersPage() {
         const response = await apiClient.get<UsersApiResponse>(
           '/users/getAllUsers?page=1&limit=20'
         );
-        if (!isCancelled && response && response.data) {
+        if (!isCancelled && response?.data) {
           setUsers(response.data);
           setTotalCount(response.pagination?.totalItems ?? response.data.length);
           setErrorMessage(null);

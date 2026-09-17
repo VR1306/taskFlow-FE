@@ -67,11 +67,9 @@ const requestNewAccessToken = async (baseUrl: string): Promise<string | null> =>
 };
 
 const executeTokenRefresh = async (baseUrl: string): Promise<string | null> => {
-  if (!activeRefreshPromise) {
-    activeRefreshPromise = requestNewAccessToken(baseUrl).finally(() => {
-      activeRefreshPromise = null;
-    });
-  }
+  activeRefreshPromise ??= requestNewAccessToken(baseUrl).finally(() => {
+    activeRefreshPromise = null;
+  });
   return activeRefreshPromise;
 };
 
