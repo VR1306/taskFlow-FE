@@ -205,7 +205,13 @@ export const Sidebar = memo(function Sidebar() {
             title="TaskFlow"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200/80 shadow-xs p-1.5 transition-transform duration-200 group-hover:scale-105">
-              <Image src="/icons/logo.svg" alt="TaskFlow Logo" width={24} height={24} priority />
+              <Image
+                src="/icons/logo.svg"
+                alt="TaskFlow Logo"
+                width={24}
+                height={24}
+                loading="eager"
+              />
             </div>
 
             {(!isCollapsed || isMobileOpen) && (

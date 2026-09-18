@@ -8,10 +8,10 @@ import { ERROR_PAGES_CONSTANTS } from '@/constants';
 export default function ErrorBoundary({
   error,
   reset,
-}: {
+}: Readonly<{
   error: Error & { digest?: string };
   reset: () => void;
-}) {
+}>) {
   useEffect(() => {
     // Log error to monitoring services if available
     console.error('Unhandled segment error:', error);

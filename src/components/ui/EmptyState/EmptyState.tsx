@@ -145,8 +145,7 @@ export const EmptyState = memo(function EmptyState({
   const activeIconSrc = iconSrc || config.defaultIconSrc;
 
   return (
-    <div
-      role="region"
+    <section
       aria-label={typeof displayTitle === 'string' ? displayTitle : 'Empty state'}
       className={`flex flex-col items-center justify-center text-center select-none ${sizeConfig.container} ${className}`}
     >
@@ -154,9 +153,7 @@ export const EmptyState = memo(function EmptyState({
       <div
         className={`flex items-center justify-center border transition-transform duration-200 ${sizeConfig.iconWrapper} ${config.iconBadgeBg}`}
       >
-        {icon ? (
-          icon
-        ) : (
+        {icon ?? (
           <Image
             src={activeIconSrc}
             alt=""
@@ -174,9 +171,7 @@ export const EmptyState = memo(function EmptyState({
       {/* Action Buttons */}
       {(action || actionText || secondaryActionText) && (
         <div className={`flex flex-wrap items-center justify-center gap-3 ${sizeConfig.actionGap}`}>
-          {action ? (
-            action
-          ) : (
+          {action ?? (
             <>
               {secondaryActionText && onSecondaryAction && (
                 <Button
@@ -205,7 +200,7 @@ export const EmptyState = memo(function EmptyState({
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 });
 

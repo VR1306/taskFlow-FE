@@ -44,8 +44,8 @@ const getAlignmentClass = (align?: 'left' | 'center' | 'right'): string => {
   }
 };
 
-const getSkeletonCellPlaceholder = (colIndex: number, totalCols: number) => {
-  if (colIndex === 0) {
+const getSkeletonCellPlaceholder = (isFirstCol: boolean, isLastCol: boolean) => {
+  if (isFirstCol) {
     return (
       <div className="flex items-center gap-3">
         <div className="h-8 w-8 rounded-full bg-slate-200 animate-shimmer shrink-0" />
@@ -53,17 +53,27 @@ const getSkeletonCellPlaceholder = (colIndex: number, totalCols: number) => {
       </div>
     );
   }
-  if (colIndex === totalCols - 1) {
+  if (isLastCol) {
     return (
       <div className="flex justify-end">
         <div className="h-7 w-7 rounded-lg bg-slate-200 animate-shimmer shrink-0" />
       </div>
     );
   }
-  if (colIndex % 2 === 1) {
-    return <div className="h-3.5 w-32 rounded-md bg-slate-200 animate-shimmer" />;
+  return <div className="h-3.5 w-32 rounded-md bg-slate-200 animate-shimmer" />;
+};
+
+const formatCellValue = (val: unknown): React.ReactNode => {
+  if (val === null || val === undefined) {
+    return '';
   }
-  return <div className="h-4 w-20 rounded-full bg-slate-200 animate-shimmer" />;
+  if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+    return String(val);
+  }
+  if (typeof val === 'object') {
+    return JSON.stringify(val);
+  }
+  return '';
 };
 
 export function Table<T>({
@@ -84,64 +94,71 @@ export function Table<T>({
   rowClassName,
   className = '',
   wrapperClassName = '',
-  ariaLabel = 'Data table',
+  ariaLabel = 'Data Table',
 }: Readonly<TableProps<T>>) {
   const getKey = (item: T, index: number): string | number => {
     if (keyExtractor) return keyExtractor(item, index);
-    if (item && typeof item === 'object') {
-      const candidate = (item as { _id?: string; id?: string })._id || (item as { id?: string }).id;
-      if (candidate !== undefined) return candidate;
+    const candidate = (item as Record<string, unknown>)._id || (item as Record<string, unknown>).id;
+    if (typeof candidate === 'string' || typeof candidate === 'number') {
+      return candidate;
     }
     return index;
   };
 
-  const getRowClass = (item: T, index: number): string => {
-    const base = 'hover:bg-slate-50/70 transition-colors duration-150';
-    const cursor = onRowClick ? 'cursor-pointer' : '';
-    const custom =
-      typeof rowClassName === 'function' ? rowClassName(item, index) : rowClassName || '';
-    return `${base} ${cursor} ${custom}`.trim();
-  };
-
-  const renderSkeletonRows = () => {
-    const rows = Array.from({ length: skeletonRowCount }, (_, i) => i);
-    return rows.map((rowIndex) => (
-      <tr
-        key={`skeleton-row-${rowIndex}`}
-        data-testid="table-skeleton-row"
-        className="border-b border-slate-100/80"
-      >
-        {columns.map((col, colIndex) => (
-          <td
-            key={`skeleton-${rowIndex}-${col.key}`}
-            className={`px-5 py-4 whitespace-nowrap ${getAlignmentClass(col.align)} ${col.className || ''}`}
-          >
-            {getSkeletonCellPlaceholder(colIndex, columns.length)}
-          </td>
-        ))}
-      </tr>
-    ));
+  const getRowClass = (item: T, index: number) => {
+    let custom = '';
+    if (typeof rowClassName === 'function') {
+      custom = rowClassName(item, index);
+    } else if (rowClassName) {
+      custom = rowClassName;
+    }
+    const interactive = onRowClick
+      ? 'cursor-pointer hover:bg-blue-50/50 focus-within:bg-blue-50/50'
+      : 'hover:bg-slate-50/80';
+    return `border-b border-slate-100 last:border-b-0 transition-colors ${interactive} ${custom}`;
   };
 
   const renderTableBody = () => {
-    // Initial loading with no existing records -> Render skeleton shimmer rows
+    // Skeleton loading state when there is no data yet
     if (isLoading && data.length === 0) {
-      return renderSkeletonRows();
+      const skeletonRows = Array.from({ length: skeletonRowCount }, (_, i) => ({
+        id: `skeleton-row-${i + 1}`,
+      }));
+      return skeletonRows.map((skeletonRow) => (
+        <tr
+          key={skeletonRow.id}
+          data-testid="table-skeleton-row"
+          className="border-b border-slate-100 last:border-b-0"
+        >
+          {columns.map((col) => {
+            const isFirstCol = col.key === columns[0]?.key;
+            const isLastCol = col.key === columns.at(-1)?.key;
+            return (
+              <td
+                key={`skeleton-td-${col.key}`}
+                className={`px-5 py-4 whitespace-nowrap ${getAlignmentClass(col.align)} ${col.className || ''}`}
+              >
+                {getSkeletonCellPlaceholder(isFirstCol, isLastCol)}
+              </td>
+            );
+          })}
+        </tr>
+      ));
     }
 
-    // Empty state when not loading
+    // Empty state
     if (data.length === 0) {
       return (
-        <tr className="animate-in fade-in duration-300">
-          <td colSpan={columns.length} className="px-6 py-8 text-center">
+        <tr>
+          <td colSpan={columns.length} className="p-0 border-none">
             {emptyState || (
               <EmptyState
-                variant={emptyVariant}
                 title={emptyTitle}
                 description={emptyMessage}
+                variant={emptyVariant}
                 icon={emptyIcon}
                 action={emptyAction}
-                size="sm"
+                className="py-12 px-4"
               />
             )}
           </td>
@@ -163,7 +180,7 @@ export function Table<T>({
           >
             {col.render
               ? col.render(item, index)
-              : String((item as Record<string, unknown>)[col.key] ?? '')}
+              : formatCellValue((item as Record<string, unknown>)[col.key])}
           </td>
         ))}
       </tr>
@@ -174,11 +191,8 @@ export function Table<T>({
     <div className={`relative overflow-x-auto min-h-[160px] ${wrapperClassName}`}>
       {/* Top Indeterminate Progress Line when updating/loading */}
       {isLoading && (
-        <div
-          role="progressbar"
-          aria-label={loadingText}
-          className="absolute top-0 left-0 right-0 h-0.5 bg-blue-100 overflow-hidden z-20"
-        >
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-100 overflow-hidden z-20">
+          <progress aria-label={loadingText} className="sr-only" />
           <div className="h-full bg-blue-600 animate-indeterminate-bar w-full" />
         </div>
       )}

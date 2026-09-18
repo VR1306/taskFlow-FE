@@ -15,7 +15,13 @@ export default function NotFound() {
         {/* Brand Logo Header */}
         <div className="mb-6 flex items-center gap-2.5">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-slate-200/80 shadow-xs p-2">
-            <Image src="/icons/logo.svg" alt="TaskFlow Logo" width={28} height={28} priority />
+            <Image
+              src="/icons/logo.svg"
+              alt="TaskFlow Logo"
+              width={28}
+              height={28}
+              loading="eager"
+            />
           </div>
           <span className="text-2xl font-bold tracking-tight text-slate-900">TaskFlow</span>
         </div>

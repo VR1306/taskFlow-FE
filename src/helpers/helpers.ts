@@ -112,7 +112,7 @@ export const formatDate = (dateString?: string | Date): string => {
   if (!dateString) return 'N/A';
   try {
     const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-    if (isNaN(date.getTime())) return 'N/A';
+    if (Number.isNaN(date.getTime())) return 'N/A';
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',

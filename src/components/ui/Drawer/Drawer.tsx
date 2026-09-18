@@ -30,7 +30,7 @@ export const Drawer = memo(function Drawer({
   footer,
   width = 'md',
   showCloseButton = true,
-}: DrawerProps) {
+}: Readonly<DrawerProps>) {
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isAnimated, setIsAnimated] = useState(false);
 
@@ -76,12 +76,12 @@ export const Drawer = memo(function Drawer({
   if (!isRendered && !isOpen) return null;
 
   return (
-    <div
-      role="dialog"
+    <dialog
+      open
       aria-modal="true"
       aria-labelledby={title ? 'drawer-title' : undefined}
       aria-describedby={description ? 'drawer-description' : undefined}
-      className={`fixed inset-0 z-50 overflow-hidden transition-all duration-300 ${
+      className={`m-0 p-0 border-none bg-transparent max-w-none max-h-none w-full h-full fixed inset-0 z-50 overflow-hidden transition-all duration-300 ${
         isAnimated ? 'pointer-events-auto' : 'pointer-events-none'
       }`}
     >
@@ -149,7 +149,7 @@ export const Drawer = memo(function Drawer({
           )}
         </aside>
       </div>
-    </div>
+    </dialog>
   );
 });
 

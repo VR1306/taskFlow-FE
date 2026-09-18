@@ -84,8 +84,8 @@ export const fetchUsers = createAsyncThunk<
   const page = params?.page ?? state.currentPage;
   const limit = params?.limit ?? state.limit;
   const search = params?.search !== undefined ? params.search.trim() : state.search;
-  const role = params?.role !== undefined ? params.role : state.filters.role || '';
-  const status = params?.status !== undefined ? params.status : state.filters.status || '';
+  const role = params?.role ?? state.filters.role ?? '';
+  const status = params?.status ?? state.filters.status ?? '';
   const cacheKey = `${page}-${limit}-${search}-${role}-${status}`;
   const cached = state.cachedPages[cacheKey];
 
@@ -231,12 +231,8 @@ export const usersSlice = createSlice({
         const limit = action.meta.arg?.limit ?? state.limit;
         const search =
           action.meta.arg?.search !== undefined ? action.meta.arg.search.trim() : state.search;
-        const role =
-          action.meta.arg?.role !== undefined ? action.meta.arg.role : state.filters.role || '';
-        const status =
-          action.meta.arg?.status !== undefined
-            ? action.meta.arg.status
-            : state.filters.status || '';
+        const role = action.meta.arg?.role ?? state.filters.role ?? '';
+        const status = action.meta.arg?.status ?? state.filters.status ?? '';
         const cacheKey = `${page}-${limit}-${search}-${role}-${status}`;
         const cached = state.cachedPages[cacheKey];
         const isCacheValid = cached && Date.now() - cached.timestamp < state.ttlMs;

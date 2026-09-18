@@ -31,7 +31,7 @@ export const ConfirmationModal = memo(function ConfirmationModal({
   isLoading = false,
   iconSrc,
   confirmIcon,
-}: ConfirmationModalProps) {
+}: Readonly<ConfirmationModalProps>) {
   const defaultIcon = isDestructive ? '/icons/trash.svg' : '/icons/info-modal.svg';
   const resolvedIcon = iconSrc || defaultIcon;
 
@@ -46,7 +46,7 @@ export const ConfirmationModal = memo(function ConfirmationModal({
               : 'bg-blue-50 border border-blue-100/80 shadow-xs'
           }`}
         >
-          <Image src={resolvedIcon} alt="" width={30} height={30} priority />
+          <Image src={resolvedIcon} alt="" width={30} height={30} loading="eager" />
         </div>
 
         <h3 className="text-xl font-bold tracking-tight text-slate-900 mb-2.5">{title}</h3>
