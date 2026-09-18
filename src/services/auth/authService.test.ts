@@ -123,4 +123,47 @@ describe('Auth Service', () => {
     });
     expect(result).toEqual(mockResponse);
   });
+
+  it('calls apiClient.post without token query when token is omitted in resetPassword', async () => {
+    const mockResponse = {
+      success: true,
+      message: 'Password reset successful!',
+    };
+
+    (apiClient.post as jest.Mock).mockResolvedValue(mockResponse);
+
+    const result = await authService.resetPassword({
+      password: 'NewStrongPassword@123',
+      confirmPassword: 'NewStrongPassword@123',
+    });
+
+    expect(apiClient.post).toHaveBeenCalledWith('/auth/reset-password', {
+      token: undefined,
+      password: 'NewStrongPassword@123',
+      confirmPassword: 'NewStrongPassword@123',
+    });
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('calls apiClient.post with payload for changePassword', async () => {
+    const mockResponse = {
+      success: true,
+      message: 'Password changed successfully!',
+    };
+
+    (apiClient.post as jest.Mock).mockResolvedValue(mockResponse);
+
+    const result = await authService.changePassword({
+      currentPassword: 'OldPassword@123',
+      newPassword: 'NewStrongPassword@456',
+      confirmPassword: 'NewStrongPassword@456',
+    });
+
+    expect(apiClient.post).toHaveBeenCalledWith('/auth/change-password', {
+      currentPassword: 'OldPassword@123',
+      newPassword: 'NewStrongPassword@456',
+      confirmPassword: 'NewStrongPassword@456',
+    });
+    expect(result).toEqual(mockResponse);
+  });
 });

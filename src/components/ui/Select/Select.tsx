@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo } from 'react';
+import React, { memo, useState, useEffect, useId } from 'react';
 import ReactSelect, {
   Props as ReactSelectProps,
   StylesConfig,
@@ -60,6 +60,13 @@ export const Select = memo(function Select<T = string>({
   className = '',
   ...rest
 }: CustomSelectProps<T>) {
+  const generatedId = useId();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const selectedOption: SelectOption<T> | null = options.find((opt) => opt.value === value) || null;
 
   const customStyles: StylesConfig<SelectOption<T>, false, GroupBase<SelectOption<T>>> = {
@@ -147,7 +154,7 @@ export const Select = memo(function Select<T = string>({
   return (
     <div className={`w-full ${className}`}>
       <ReactSelect<SelectOption<T>, false, GroupBase<SelectOption<T>>>
-        instanceId={id || 'react-select-input'}
+        instanceId={id || generatedId}
         inputId={id}
         options={options}
         value={selectedOption}
@@ -159,7 +166,7 @@ export const Select = memo(function Select<T = string>({
         menuPlacement="auto"
         menuPosition="fixed"
         menuShouldScrollIntoView={false}
-        menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+        menuPortalTarget={mounted && typeof document !== 'undefined' ? document.body : null}
         maxMenuHeight={220}
         {...rest}
       />

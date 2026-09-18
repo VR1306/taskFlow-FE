@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo, useMemo, useCallback } from 'react';
+import React, { memo, useMemo, useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Image, Badge, Avatar } from '@/components/ui';
@@ -33,14 +33,99 @@ const navItems: NavItem[] = [
   },
 ];
 
+interface SidebarUserFooterProps {
+  currentUser: ReturnType<typeof useCurrentUser>;
+  mounted: boolean;
+  isCollapsed: boolean;
+  isMobileOpen: boolean;
+  userRoleVariant: 'purple' | 'primary' | 'default';
+  onLogout: () => void;
+}
+
+const SidebarUserFooter = memo(function SidebarUserFooter({
+  currentUser,
+  mounted,
+  isCollapsed,
+  isMobileOpen,
+  userRoleVariant,
+  onLogout,
+}: SidebarUserFooterProps) {
+  if (isCollapsed && !isMobileOpen) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-1">
+        <Avatar
+          firstName={mounted ? currentUser?.firstName : undefined}
+          lastName={mounted ? currentUser?.lastName : undefined}
+          size="sm"
+          colorScheme="blue"
+        />
+        <button
+          type="button"
+          onClick={onLogout}
+          aria-label="Sign out"
+          title="Sign out of TaskFlow"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all duration-200 cursor-pointer shadow-2xs"
+        >
+          <Image src="/icons/logout-danger.svg" alt="Sign Out" width={15} height={15} />
+        </button>
+      </div>
+    );
+  }
+
+  const displayName =
+    mounted && currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'User Account';
+  const displayEmail = mounted && currentUser?.email ? currentUser.email : '';
+
+  return (
+    <div className="flex items-center justify-between gap-2.5 rounded-xl p-2.5 bg-white border border-slate-200/80 shadow-2xs">
+      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <Avatar
+          firstName={mounted ? currentUser?.firstName : undefined}
+          lastName={mounted ? currentUser?.lastName : undefined}
+          size="sm"
+          colorScheme="blue"
+        />
+
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs font-bold text-slate-900 leading-tight">{displayName}</p>
+          <p className="truncate text-[11px] text-slate-500">{displayEmail}</p>
+          {mounted && currentUser?.role && (
+            <div className="mt-1">
+              <Badge size="sm" variant={userRoleVariant}>
+                {currentUser.role}
+              </Badge>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={onLogout}
+        aria-label="Sign out"
+        title="Sign out of TaskFlow"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all duration-200 cursor-pointer shadow-2xs"
+      >
+        <Image src="/icons/logout-danger.svg" alt="Sign Out" width={16} height={16} />
+      </button>
+    </div>
+  );
+});
+
 export const Sidebar = memo(function Sidebar() {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const isCollapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
   const isMobileOpen = useAppSelector((state) => state.ui.mobileSidebarOpen);
-  const currentUser = useCurrentUser();
+  const reduxUser = useAppSelector((state) => state.auth.user);
+  const storageUser = useCurrentUser();
+  const currentUser = reduxUser || storageUser;
+  const [mounted, setMounted] = useState(false);
 
-  // Handlers with useCallback
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const handleToggleCollapse = useCallback(() => {
     dispatch(toggleSidebar());
   }, [dispatch]);
@@ -53,7 +138,6 @@ export const Sidebar = memo(function Sidebar() {
     dispatch(openLogoutModal());
   }, [dispatch]);
 
-  // Active link matcher
   const isItemActive = useCallback(
     (href: string) => {
       if (href === '/dashboard') return pathname === '/dashboard';
@@ -62,8 +146,7 @@ export const Sidebar = memo(function Sidebar() {
     [pathname]
   );
 
-  // Memoized user role badge variant
-  const userRoleVariant = useMemo(() => {
+  const userRoleVariant = useMemo<'purple' | 'primary' | 'default'>(() => {
     switch (currentUser?.role) {
       case 'SuperAdmin':
         return 'purple';
@@ -121,7 +204,6 @@ export const Sidebar = memo(function Sidebar() {
             onClick={handleCloseMobile}
             title="TaskFlow"
           >
-            {/* Same Logo container as Sign In page */}
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200/80 shadow-xs p-1.5 transition-transform duration-200 group-hover:scale-105">
               <Image src="/icons/logo.svg" alt="TaskFlow Logo" width={24} height={24} priority />
             </div>
@@ -133,7 +215,6 @@ export const Sidebar = memo(function Sidebar() {
             )}
           </Link>
 
-          {/* Mobile Close Button */}
           {isMobileOpen && (
             <button
               type="button"
@@ -169,7 +250,6 @@ export const Sidebar = memo(function Sidebar() {
                   } ${isCollapsed && !isMobileOpen ? 'justify-center px-0' : ''}`}
                   title={isCollapsed && !isMobileOpen ? item.name : undefined}
                 >
-                  {/* Left active indicator pill */}
                   {active && (
                     <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-blue-600" />
                   )}
@@ -210,64 +290,14 @@ export const Sidebar = memo(function Sidebar() {
 
         {/* User Profile Card & Sign Out Footer */}
         <div className="border-t border-slate-100 p-3 bg-slate-50/60">
-          {!isCollapsed || isMobileOpen ? (
-            <div className="flex items-center justify-between gap-2.5 rounded-xl p-2.5 bg-white border border-slate-200/80 shadow-2xs">
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <Avatar
-                  firstName={currentUser?.firstName}
-                  lastName={currentUser?.lastName}
-                  size="sm"
-                  colorScheme="blue"
-                />
-
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-slate-900 leading-tight">
-                    {currentUser
-                      ? `${currentUser.firstName} ${currentUser.lastName}`
-                      : 'User Account'}
-                  </p>
-                  <p className="truncate text-[11px] text-slate-500">{currentUser?.email}</p>
-                  {currentUser?.role && (
-                    <div className="mt-1">
-                      <Badge size="sm" variant={userRoleVariant}>
-                        {currentUser.role}
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Sign Out Button in expanded user card */}
-              <button
-                type="button"
-                onClick={handleOpenLogout}
-                aria-label="Sign out"
-                title="Sign out of TaskFlow"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all duration-200 cursor-pointer shadow-2xs"
-              >
-                <Image src="/icons/logout-danger.svg" alt="Sign Out" width={16} height={16} />
-              </button>
-            </div>
-          ) : (
-            /* Collapsed mode footer */
-            <div className="flex flex-col items-center gap-2 py-1">
-              <Avatar
-                firstName={currentUser?.firstName}
-                lastName={currentUser?.lastName}
-                size="sm"
-                colorScheme="blue"
-              />
-              <button
-                type="button"
-                onClick={handleOpenLogout}
-                aria-label="Sign out"
-                title="Sign out of TaskFlow"
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all duration-200 cursor-pointer shadow-2xs"
-              >
-                <Image src="/icons/logout-danger.svg" alt="Sign Out" width={15} height={15} />
-              </button>
-            </div>
-          )}
+          <SidebarUserFooter
+            currentUser={currentUser}
+            mounted={mounted}
+            isCollapsed={isCollapsed}
+            isMobileOpen={isMobileOpen}
+            userRoleVariant={userRoleVariant}
+            onLogout={handleOpenLogout}
+          />
         </div>
       </aside>
     </>

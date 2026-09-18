@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore, useMemo } from 'react';
 import { AuthUser } from '@/types';
 
 const USER_STORAGE_KEY = 'taskflow_user';
@@ -11,26 +11,29 @@ const subscribeStorage = (callback: () => void) => {
   return () => window.removeEventListener('storage', callback);
 };
 
+const getSnapshot = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem(USER_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const getServerSnapshot = (): string | null => null;
+
 /**
  * Hydration-safe React hook for retrieving current user from localStorage
  */
 export const useCurrentUser = (): AuthUser | null => {
-  const userJson = useSyncExternalStore(
-    subscribeStorage,
-    () => {
-      try {
-        return localStorage.getItem(USER_STORAGE_KEY);
-      } catch {
-        return null;
-      }
-    },
-    () => null
-  );
+  const raw = useSyncExternalStore(subscribeStorage, getSnapshot, getServerSnapshot);
 
-  if (!userJson) return null;
-  try {
-    return JSON.parse(userJson) as AuthUser;
-  } catch {
-    return null;
-  }
+  return useMemo(() => {
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as AuthUser;
+    } catch {
+      return null;
+    }
+  }, [raw]);
 };

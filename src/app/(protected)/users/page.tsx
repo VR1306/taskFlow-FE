@@ -16,6 +16,7 @@ import {
   CreateUserDrawer,
   ViewUserDrawer,
   EditUserDrawer,
+  UserFilterDrawer,
 } from '@/components/users';
 import { getRoleBadgeClass, useDebounce } from '@/helpers';
 import { USERS_CONSTANTS } from '@/constants';
@@ -25,8 +26,12 @@ import {
   fetchUsers,
   setCurrentPage,
   setLimit,
+  setFilters,
+  clearFilters,
+  setFilterField,
   deleteUserThunk,
   UserRecord,
+  UserFilters,
 } from '@/store';
 
 export default function UsersPage() {
@@ -35,6 +40,7 @@ export default function UsersPage() {
     cachedPages,
     currentPage,
     limit,
+    filters,
     totalItems,
     totalPages,
     isLoading,
@@ -45,17 +51,31 @@ export default function UsersPage() {
   // Search state
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 350);
+  const isSearching = searchTerm.trim() !== debouncedSearch.trim();
+  const isTableLoading = isLoading || isSearching;
 
   // Drawer & Modal states
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [selectedUserForView, setSelectedUserForView] = useState<UserRecord | null>(null);
   const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserRecord | null>(null);
   const [selectedUserForDelete, setSelectedUserForDelete] = useState<UserRecord | null>(null);
 
-  // 1. Fetch users on mount or when page/limit/debouncedSearch changes
+  // Active filter count
+  const activeFilterCount = (filters?.role ? 1 : 0) + (filters?.status ? 1 : 0);
+
+  // 1. Fetch users on mount or when page/limit/debouncedSearch/filters change
   useEffect(() => {
-    dispatch(fetchUsers({ page: currentPage, limit, search: debouncedSearch }));
-  }, [dispatch, currentPage, limit, debouncedSearch]);
+    dispatch(
+      fetchUsers({
+        page: currentPage,
+        limit,
+        search: debouncedSearch,
+        role: filters.role,
+        status: filters.status,
+      })
+    );
+  }, [dispatch, currentPage, limit, debouncedSearch, filters.role, filters.status]);
 
   // 2. Search change handlers
   const handleSearchChange = useCallback(
@@ -90,7 +110,77 @@ export default function UsersPage() {
     [dispatch]
   );
 
-  // 4. User action triggers (Drawers)
+  // 4. Filter Handlers
+  const handleOpenFilterDrawer = useCallback(() => {
+    setIsFilterDrawerOpen(true);
+  }, []);
+
+  const handleCloseFilterDrawer = useCallback(() => {
+    setIsFilterDrawerOpen(false);
+  }, []);
+
+  const handleApplyFilters = useCallback(
+    (newFilters: UserFilters) => {
+      dispatch(setFilters(newFilters));
+      dispatch(
+        fetchUsers({
+          page: 1,
+          limit,
+          search: debouncedSearch,
+          role: newFilters.role,
+          status: newFilters.status,
+          forceRefresh: true,
+        })
+      );
+      setIsFilterDrawerOpen(false);
+    },
+    [dispatch, limit, debouncedSearch]
+  );
+
+  const handleResetFilters = useCallback(() => {
+    dispatch(clearFilters());
+    dispatch(
+      fetchUsers({
+        page: 1,
+        limit,
+        search: debouncedSearch,
+        role: undefined,
+        status: undefined,
+        forceRefresh: true,
+      })
+    );
+    setIsFilterDrawerOpen(false);
+  }, [dispatch, limit, debouncedSearch]);
+
+  const handleRemoveRoleFilter = useCallback(() => {
+    dispatch(setFilterField({ field: 'role', value: undefined }));
+    dispatch(
+      fetchUsers({
+        page: 1,
+        limit,
+        search: debouncedSearch,
+        role: undefined,
+        status: filters.status,
+        forceRefresh: true,
+      })
+    );
+  }, [dispatch, limit, debouncedSearch, filters.status]);
+
+  const handleRemoveStatusFilter = useCallback(() => {
+    dispatch(setFilterField({ field: 'status', value: undefined }));
+    dispatch(
+      fetchUsers({
+        page: 1,
+        limit,
+        search: debouncedSearch,
+        role: filters.role,
+        status: undefined,
+        forceRefresh: true,
+      })
+    );
+  }, [dispatch, limit, debouncedSearch, filters.role]);
+
+  // 5. User action triggers (Drawers)
   const handleOpenCreateDrawer = useCallback(() => {
     setIsCreateDrawerOpen(true);
   }, []);
@@ -129,13 +219,13 @@ export default function UsersPage() {
     setSelectedUserForDelete(null);
   }, [dispatch, selectedUserForDelete]);
 
-  // 5. Memoized users list from active page cache
-  const cacheKey = `${currentPage}-${limit}-${debouncedSearch.trim()}`;
+  // 6. Memoized users list from active page cache
+  const cacheKey = `${currentPage}-${limit}-${debouncedSearch.trim()}-${filters?.role || ''}-${filters?.status || ''}`;
   const users = useMemo(() => {
     return cachedPages[cacheKey]?.data || [];
   }, [cachedPages, cacheKey]);
 
-  // 6. Generic Table Columns Definition
+  // 7. Generic Table Columns Definition
   const columns: TableColumn<UserRecord>[] = useMemo(
     () => [
       {
@@ -174,6 +264,30 @@ export default function UsersPage() {
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${roleBadgeStyle}`}
             >
               {user.role}
+            </span>
+          );
+        },
+      },
+      {
+        key: 'status',
+        header: USERS_CONSTANTS.tableHeaders.status,
+        align: 'left',
+        render: (user) => {
+          const isActive = user.isActive !== false;
+          return (
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                isActive
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                  : 'bg-slate-100 text-slate-600 border-slate-200'
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  isActive ? 'bg-emerald-500' : 'bg-slate-400'
+                }`}
+              />
+              {isActive ? 'Active' : 'Inactive'}
             </span>
           );
         },
@@ -251,6 +365,8 @@ export default function UsersPage() {
                   page: currentPage,
                   limit,
                   search: debouncedSearch,
+                  role: filters.role,
+                  status: filters.status,
                   forceRefresh: true,
                 })
               )
@@ -263,35 +379,39 @@ export default function UsersPage() {
       )}
 
       {/* Main Content Area */}
-      {isLoading && users.length === 0 && !debouncedSearch && totalItems === 0 ? (
-        <div className="flex justify-center py-16 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
-          <Loader text={USERS_CONSTANTS.loadingText} />
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-          {/* Card Top Header: Title & Search Bar */}
-          <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/40">
-            <div className="flex items-center gap-2">
-              <h2 className="text-xs sm:text-sm font-semibold text-slate-800">
-                {USERS_CONSTANTS.membersCardTitle(totalItems > 0 ? totalItems : users.length)}
-              </h2>
-              {isLoading && (
-                <span className="text-xs text-blue-600 animate-pulse font-medium">
-                  {USERS_CONSTANTS.updatingText}
-                </span>
-              )}
-            </div>
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden transition-all duration-200">
+        {/* Card Top Header: Title & Search/Filter Controls */}
+        <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-slate-50/40">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xs sm:text-sm font-semibold text-slate-800">
+              {USERS_CONSTANTS.membersCardTitle(totalItems > 0 ? totalItems : users.length)}
+            </h2>
+            {isTableLoading && (
+              <span className="inline-flex items-center gap-1.5 text-xs text-blue-600 font-medium animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping" />
+                {isSearching ? 'Searching...' : USERS_CONSTANTS.updatingText}
+              </span>
+            )}
+          </div>
 
+          {/* Search & Filter Toolbar */}
+          <div className="flex items-center gap-2.5 w-full md:w-auto">
             {/* Search Input Bar */}
-            <div className="relative w-full sm:w-72 md:w-80">
+            <div className="relative flex-1 md:w-72 lg:w-80">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <Image
-                  src="/icons/search.svg"
-                  alt=""
-                  width={15}
-                  height={15}
-                  className="opacity-50"
-                />
+                {isSearching ? (
+                  <div className="w-4 h-4 flex items-center justify-center">
+                    <Loader size="xs" variant="monochrome" className="text-blue-500 scale-75" />
+                  </div>
+                ) : (
+                  <Image
+                    src="/icons/search.svg"
+                    alt=""
+                    width={15}
+                    height={15}
+                    className="opacity-50"
+                  />
+                )}
               </div>
               <input
                 type="text"
@@ -306,7 +426,7 @@ export default function UsersPage() {
                   type="button"
                   onClick={handleClearSearch}
                   aria-label={USERS_CONSTANTS.clearSearchAriaLabel}
-                  className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer transition-colors"
                 >
                   <Image
                     src="/icons/close.svg"
@@ -318,33 +438,130 @@ export default function UsersPage() {
                 </button>
               )}
             </div>
-          </div>
 
-          {/* Reusable Generic Table Component */}
-          <Table<UserRecord>
-            columns={columns}
-            data={users}
-            keyExtractor={(user) => user._id}
-            emptyMessage={emptyMessage}
-            ariaLabel={USERS_CONSTANTS.pageTitle}
-          />
-
-          {/* React Pagination Component */}
-          {totalItems > 0 && (
-            <div className="border-t border-slate-100 px-4 sm:px-6">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                limit={limit}
-                onPageChange={handlePageChange}
-                onLimitChange={handleLimitChange}
-                disabled={isLoading}
+            {/* Filter Button with active count badge */}
+            <button
+              type="button"
+              onClick={handleOpenFilterDrawer}
+              aria-label={USERS_CONSTANTS.filterAriaLabel}
+              className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border transition-all duration-200 cursor-pointer shrink-0 ${
+                activeFilterCount > 0
+                  ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100/80 shadow-2xs'
+                  : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:border-slate-300 shadow-2xs'
+              }`}
+            >
+              <Image
+                src="/icons/filter.svg"
+                alt=""
+                width={15}
+                height={15}
+                className={activeFilterCount > 0 ? 'text-blue-600' : 'opacity-70'}
               />
-            </div>
-          )}
+              <span>{USERS_CONSTANTS.filterButtonText}</span>
+              {activeFilterCount > 0 && (
+                <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-bold text-white bg-blue-600 rounded-full animate-in zoom-in-95 duration-150">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
-      )}
+
+        {/* Active Filter Chips Bar */}
+        {activeFilterCount > 0 && (
+          <div className="px-5 sm:px-6 py-2.5 bg-blue-50/40 border-b border-blue-100/60 flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
+            <span className="text-xs font-medium text-slate-500">Active Filters:</span>
+            {filters?.role && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-slate-700 border border-slate-200/80 shadow-2xs transition-all animate-in zoom-in-95 duration-150">
+                <span className="text-slate-400">{USERS_CONSTANTS.activeFilters.rolePrefix}</span>
+                <span className="font-semibold text-slate-800">{filters.role}</span>
+                <button
+                  type="button"
+                  onClick={handleRemoveRoleFilter}
+                  className="text-slate-400 hover:text-slate-600 p-0.5 rounded hover:bg-slate-100 cursor-pointer transition-colors"
+                  aria-label={`Remove role filter: ${filters.role}`}
+                >
+                  <Image
+                    src="/icons/close.svg"
+                    alt=""
+                    width={10}
+                    height={10}
+                    className="opacity-60 hover:opacity-100"
+                  />
+                </button>
+              </span>
+            )}
+            {filters?.status && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-slate-700 border border-slate-200/80 shadow-2xs transition-all animate-in zoom-in-95 duration-150">
+                <span className="text-slate-400">{USERS_CONSTANTS.activeFilters.statusPrefix}</span>
+                <span className="font-semibold text-slate-800">{filters.status}</span>
+                <button
+                  type="button"
+                  onClick={handleRemoveStatusFilter}
+                  className="text-slate-400 hover:text-slate-600 p-0.5 rounded hover:bg-slate-100 cursor-pointer transition-colors"
+                  aria-label={`Remove status filter: ${filters.status}`}
+                >
+                  <Image
+                    src="/icons/close.svg"
+                    alt=""
+                    width={10}
+                    height={10}
+                    className="opacity-60 hover:opacity-100"
+                  />
+                </button>
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer ml-1 transition-colors"
+            >
+              {USERS_CONSTANTS.activeFilters.clearAll}
+            </button>
+          </div>
+        )}
+
+        {/* Reusable Generic Table Component */}
+        <Table<UserRecord>
+          columns={columns}
+          data={users}
+          keyExtractor={(user) => user._id}
+          isLoading={isTableLoading}
+          loadingText={isSearching ? 'Searching...' : USERS_CONSTANTS.loadingText}
+          emptyVariant={debouncedSearch.trim() || activeFilterCount > 0 ? 'no-search' : 'no-data'}
+          emptyTitle={
+            debouncedSearch.trim() || activeFilterCount > 0
+              ? 'No Matching Members'
+              : 'No Members Found'
+          }
+          emptyMessage={emptyMessage}
+          ariaLabel={USERS_CONSTANTS.pageTitle}
+        />
+
+        {/* React Pagination Component */}
+        {totalItems > 0 && (
+          <div className="border-t border-slate-100 px-4 sm:px-6 transition-opacity duration-200">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              limit={limit}
+              onPageChange={handlePageChange}
+              onLimitChange={handleLimitChange}
+              disabled={isTableLoading}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* User Filter Slide-over Drawer */}
+      <UserFilterDrawer
+        isOpen={isFilterDrawerOpen}
+        onClose={handleCloseFilterDrawer}
+        filters={filters}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+      />
 
       {/* Create User Slide-over Drawer */}
       <CreateUserDrawer isOpen={isCreateDrawerOpen} onClose={handleCloseCreateDrawer} />

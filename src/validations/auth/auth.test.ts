@@ -1,4 +1,9 @@
-import { loginSchema, forgotPasswordSchema, resetPasswordSchema } from './auth';
+import {
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  changePasswordSchema,
+} from './auth';
 
 describe('Auth Validation Schemas', () => {
   describe('loginSchema', () => {
@@ -132,6 +137,78 @@ describe('Auth Validation Schemas', () => {
       },
     ])('fails when $scenario', ({ data, expectedError }) => {
       const result = resetPasswordSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe(expectedError);
+      }
+    });
+  });
+
+  describe('changePasswordSchema', () => {
+    it('validates matching passwords with valid current and new password', () => {
+      const validData = {
+        currentPassword: 'OldPassword@123',
+        newPassword: 'NewStrongPassword@456',
+        confirmPassword: 'NewStrongPassword@456',
+      };
+
+      const result = changePasswordSchema.safeParse(validData);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.currentPassword).toBe('OldPassword@123');
+        expect(result.data.newPassword).toBe('NewStrongPassword@456');
+        expect(result.data.confirmPassword).toBe('NewStrongPassword@456');
+      }
+    });
+
+    test.each([
+      {
+        scenario: 'current password is empty',
+        data: {
+          currentPassword: '',
+          newPassword: 'NewPassword@123',
+          confirmPassword: 'NewPassword@123',
+        },
+        expectedError: 'Current password is required',
+      },
+      {
+        scenario: 'new password is empty',
+        data: {
+          currentPassword: 'OldPassword@123',
+          newPassword: '',
+          confirmPassword: '',
+        },
+        expectedError: 'New password is required',
+      },
+      {
+        scenario: 'new password is less than 8 characters',
+        data: {
+          currentPassword: 'OldPassword@123',
+          newPassword: 'short',
+          confirmPassword: 'short',
+        },
+        expectedError: 'New password must be at least 8 characters',
+      },
+      {
+        scenario: 'confirm password is empty',
+        data: {
+          currentPassword: 'OldPassword@123',
+          newPassword: 'NewPassword@123',
+          confirmPassword: '',
+        },
+        expectedError: 'Please confirm your new password',
+      },
+      {
+        scenario: 'new passwords do not match',
+        data: {
+          currentPassword: 'OldPassword@123',
+          newPassword: 'NewPassword@123',
+          confirmPassword: 'MismatchPassword@456',
+        },
+        expectedError: 'New passwords do not match',
+      },
+    ])('fails when $scenario', ({ data, expectedError }) => {
+      const result = changePasswordSchema.safeParse(data);
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.issues[0].message).toBe(expectedError);

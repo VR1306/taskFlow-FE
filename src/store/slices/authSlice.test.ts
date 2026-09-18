@@ -4,6 +4,8 @@ import authReducer, {
   openLogoutModal,
   closeLogoutModal,
   setIsLoggingOut,
+  openChangePasswordModal,
+  closeChangePasswordModal,
   AuthState,
 } from './authSlice';
 
@@ -13,6 +15,7 @@ describe('authSlice Redux Reducer', () => {
     isAuthenticated: false,
     isLogoutModalOpen: false,
     isLoggingOut: false,
+    isChangePasswordModalOpen: false,
     rememberMe: false,
   };
 
@@ -44,6 +47,7 @@ describe('authSlice Redux Reducer', () => {
       isAuthenticated: true,
       isLogoutModalOpen: true,
       isLoggingOut: true,
+      isChangePasswordModalOpen: true,
       rememberMe: true,
     };
 
@@ -52,6 +56,7 @@ describe('authSlice Redux Reducer', () => {
     expect(state.isAuthenticated).toBe(false);
     expect(state.isLogoutModalOpen).toBe(false);
     expect(state.isLoggingOut).toBe(false);
+    expect(state.isChangePasswordModalOpen).toBe(false);
   });
 
   it('handles openLogoutModal and closeLogoutModal', () => {
@@ -76,5 +81,13 @@ describe('authSlice Redux Reducer', () => {
   it('handles setIsLoggingOut', () => {
     const state = authReducer(initialAuthState, setIsLoggingOut(true));
     expect(state.isLoggingOut).toBe(true);
+  });
+
+  it('handles openChangePasswordModal and closeChangePasswordModal', () => {
+    let state = authReducer(initialAuthState, openChangePasswordModal());
+    expect(state.isChangePasswordModalOpen).toBe(true);
+
+    state = authReducer(state, closeChangePasswordModal());
+    expect(state.isChangePasswordModalOpen).toBe(false);
   });
 });

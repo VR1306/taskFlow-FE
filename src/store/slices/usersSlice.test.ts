@@ -2,6 +2,9 @@ import usersReducer, {
   setCurrentPage,
   setLimit,
   setSearch,
+  setFilters,
+  clearFilters,
+  setFilterField,
   invalidateUsersCache,
   clearUsersError,
   fetchUsers,
@@ -20,6 +23,7 @@ describe('usersSlice Redux Reducer & Async Thunks', () => {
     currentPage: 1,
     limit: 10,
     search: '',
+    filters: {},
     totalItems: 0,
     totalPages: 1,
     isLoading: false,
@@ -36,6 +40,7 @@ describe('usersSlice Redux Reducer & Async Thunks', () => {
       lastName: 'Smith',
       email: 'alice@example.com',
       role: 'Admin',
+      isActive: true,
     },
   ];
 
@@ -81,11 +86,46 @@ describe('usersSlice Redux Reducer & Async Thunks', () => {
     expect(state.currentPage).toBe(1);
   });
 
+  it('handles setFilters and resets currentPage to 1', () => {
+    const populatedState: UsersState = {
+      ...initialUsersState,
+      currentPage: 4,
+    };
+    const state = usersReducer(populatedState, setFilters({ role: 'Admin', status: 'Active' }));
+    expect(state.filters).toEqual({ role: 'Admin', status: 'Active' });
+    expect(state.currentPage).toBe(1);
+  });
+
+  it('handles clearFilters and resets currentPage to 1', () => {
+    const populatedState: UsersState = {
+      ...initialUsersState,
+      currentPage: 4,
+      filters: { role: 'Admin', status: 'Active' },
+    };
+    const state = usersReducer(populatedState, clearFilters());
+    expect(state.filters).toEqual({});
+    expect(state.currentPage).toBe(1);
+  });
+
+  it('handles setFilterField and resets currentPage to 1', () => {
+    const populatedState: UsersState = {
+      ...initialUsersState,
+      currentPage: 4,
+      filters: { role: 'Admin' },
+    };
+    const state = usersReducer(
+      populatedState,
+      setFilterField({ field: 'status', value: 'Active' })
+    );
+    expect(state.filters).toEqual({ role: 'Admin', status: 'Active' });
+    expect(state.currentPage).toBe(1);
+  });
+
   it('handles invalidateUsersCache', () => {
     const populatedState: UsersState = {
       ...initialUsersState,
       cachedPages: {
-        '1-10': {
+        '1-10---': {
           data: mockUsersData,
           pagination: mockPagination,
           timestamp: Date.now(),
@@ -126,7 +166,7 @@ describe('usersSlice Redux Reducer & Async Thunks', () => {
     const state = usersReducer(initialUsersState, result);
     expect(state.isLoading).toBe(false);
     expect(state.totalItems).toBe(1);
-    expect(state.cachedPages['1-10-']?.data).toEqual(mockUsersData);
+    expect(state.cachedPages['1-10---']?.data).toEqual(mockUsersData);
   });
 
   it('fetches users with search query and encodes parameter', async () => {
@@ -144,19 +184,43 @@ describe('usersSlice Redux Reducer & Async Thunks', () => {
 
     expect(result.type).toBe('users/fetchUsers/fulfilled');
     expect(apiClient.get).toHaveBeenCalledWith(
-      '/users/getAllUsers?page=1&limit=10&search=Alice%20Smith'
+      '/users/getAllUsers?page=1&limit=10&search=Alice+Smith'
     );
 
     const state = usersReducer(initialUsersState, result);
     expect(state.search).toBe('Alice Smith');
-    expect(state.cachedPages['1-10-Alice Smith']?.data).toEqual(mockUsersData);
+    expect(state.cachedPages['1-10-Alice Smith--']?.data).toEqual(mockUsersData);
+  });
+
+  it('fetches users with role and status filter parameters', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValueOnce({
+      success: true,
+      data: mockUsersData,
+      pagination: mockPagination,
+    });
+
+    const dispatch = jest.fn();
+    const getState = () => ({ users: initialUsersState });
+
+    const thunk = fetchUsers({ page: 1, limit: 10, role: 'Admin', status: 'Active' });
+    const result = await thunk(dispatch, getState, undefined);
+
+    expect(result.type).toBe('users/fetchUsers/fulfilled');
+    expect(apiClient.get).toHaveBeenCalledWith(
+      '/users/getAllUsers?page=1&limit=10&role=Admin&status=Active'
+    );
+
+    const state = usersReducer(initialUsersState, result);
+    expect(state.filters.role).toBe('Admin');
+    expect(state.filters.status).toBe('Active');
+    expect(state.cachedPages['1-10--Admin-Active']?.data).toEqual(mockUsersData);
   });
 
   it('uses cached data without calling API when cache is fresh', async () => {
     const freshCacheState: UsersState = {
       ...initialUsersState,
       cachedPages: {
-        '1-10-': {
+        '1-10---': {
           data: mockUsersData,
           pagination: mockPagination,
           timestamp: Date.now(),
@@ -200,6 +264,7 @@ describe('usersSlice Redux Reducer & Async Thunks', () => {
       lastName: 'Doe',
       email: 'jane@example.com',
       role: 'User',
+      isActive: true,
     });
     const result = await thunk(dispatch, getState, undefined);
 
@@ -209,6 +274,7 @@ describe('usersSlice Redux Reducer & Async Thunks', () => {
       lastName: 'Doe',
       email: 'jane@example.com',
       role: 'User',
+      isActive: true,
     });
   });
 
@@ -220,12 +286,14 @@ describe('usersSlice Redux Reducer & Async Thunks', () => {
     const thunk = updateUserThunk({
       id: 'usr-1',
       firstName: 'Updated',
+      isActive: false,
     });
     const result = await thunk(dispatch, getState, undefined);
 
     expect(result.type).toBe('users/updateUser/fulfilled');
     expect(apiClient.put).toHaveBeenCalledWith('/users/updateUser/usr-1', {
       firstName: 'Updated',
+      isActive: false,
     });
   });
 

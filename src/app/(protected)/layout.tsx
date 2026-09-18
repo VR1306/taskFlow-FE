@@ -6,12 +6,14 @@ import { authStorage } from '@/helpers';
 import { authService } from '@/services/auth';
 import { Sidebar, Header } from '@/components/layout';
 import { ConfirmationModal } from '@/components/ui';
+import { ChangePasswordModal } from '@/components/auth';
 import {
   useAppDispatch,
   useAppSelector,
   closeLogoutModal,
   setIsLoggingOut,
   clearCredentials,
+  closeChangePasswordModal,
 } from '@/store';
 
 export default function ProtectedLayout({
@@ -25,6 +27,7 @@ export default function ProtectedLayout({
   const isCollapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
   const isLogoutModalOpen = useAppSelector((state) => state.auth.isLogoutModalOpen);
   const isLoggingOut = useAppSelector((state) => state.auth.isLoggingOut);
+  const isChangePasswordModalOpen = useAppSelector((state) => state.auth.isChangePasswordModalOpen);
 
   // Client-side auth verification & browser back/forward (bfcache) navigation guard
   useEffect(() => {
@@ -49,6 +52,10 @@ export default function ProtectedLayout({
 
   const handleCloseLogoutModal = useCallback(() => {
     dispatch(closeLogoutModal());
+  }, [dispatch]);
+
+  const handleCloseChangePasswordModal = useCallback(() => {
+    dispatch(closeChangePasswordModal());
   }, [dispatch]);
 
   const handleConfirmLogout = useCallback(async () => {
@@ -86,6 +93,12 @@ export default function ProtectedLayout({
           {children}
         </main>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordModalOpen}
+        onClose={handleCloseChangePasswordModal}
+      />
 
       {/* Logout Confirmation Modal */}
       <ConfirmationModal

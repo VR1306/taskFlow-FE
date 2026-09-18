@@ -8,6 +8,8 @@ import {
   ForgotPasswordResponse,
   ResetPasswordRequest,
   ResetPasswordResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
 } from '@/types';
 
 export const authService = {
@@ -50,6 +52,16 @@ export const authService = {
     return apiClient.post<ResetPasswordResponse>(endpoint, {
       token: payload.token,
       password: payload.password,
+      confirmPassword: payload.confirmPassword,
+    });
+  },
+
+  changePassword: async (
+    payload: Readonly<ChangePasswordRequest>
+  ): Promise<ChangePasswordResponse> => {
+    return apiClient.post<ChangePasswordResponse>('/auth/change-password', {
+      currentPassword: payload.currentPassword,
+      newPassword: payload.newPassword,
       confirmPassword: payload.confirmPassword,
     });
   },

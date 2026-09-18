@@ -35,11 +35,17 @@ export interface CachedPageData {
   timestamp: number;
 }
 
+export interface UserFilters {
+  role?: string;
+  status?: string;
+}
+
 export interface UsersState {
   cachedPages: Record<string, CachedPageData>;
   currentPage: number;
   limit: number;
   search: string;
+  filters: UserFilters;
   totalItems: number;
   totalPages: number;
   isLoading: boolean;
@@ -53,6 +59,7 @@ const initialState: UsersState = {
   currentPage: 1,
   limit: 10,
   search: '',
+  filters: {},
   totalItems: 0,
   totalPages: 1,
   isLoading: false,
@@ -63,14 +70,23 @@ const initialState: UsersState = {
 
 export const fetchUsers = createAsyncThunk<
   { data: UserRecord[]; pagination: PaginationInfo; cacheKey: string; fromCache: boolean },
-  { page?: number; limit?: number; search?: string; forceRefresh?: boolean } | void,
+  {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    status?: string;
+    forceRefresh?: boolean;
+  } | void,
   { state: { users: UsersState } }
 >('users/fetchUsers', async (params, { getState, rejectWithValue }) => {
   const state = getState().users;
   const page = params?.page ?? state.currentPage;
   const limit = params?.limit ?? state.limit;
   const search = params?.search !== undefined ? params.search.trim() : state.search;
-  const cacheKey = `${page}-${limit}-${search}`;
+  const role = params?.role !== undefined ? params.role : state.filters.role || '';
+  const status = params?.status !== undefined ? params.status : state.filters.status || '';
+  const cacheKey = `${page}-${limit}-${search}-${role}-${status}`;
   const cached = state.cachedPages[cacheKey];
 
   const isCacheValid = cached && Date.now() - cached.timestamp < state.ttlMs;
@@ -85,9 +101,16 @@ export const fetchUsers = createAsyncThunk<
   }
 
   try {
-    const searchParam = search ? `&search=${encodeURIComponent(search)}` : '';
+    const queryParams = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
+    if (search) queryParams.set('search', search);
+    if (role && role !== 'all') queryParams.set('role', role);
+    if (status && status !== 'all') queryParams.set('status', status);
+
     const response = await apiClient.get<UsersApiResponse>(
-      `/users/getAllUsers?page=${page}&limit=${limit}${searchParam}`
+      `/users/getAllUsers?${queryParams.toString()}`
     );
 
     const fallbackPagination: PaginationInfo = {
@@ -113,7 +136,7 @@ export const fetchUsers = createAsyncThunk<
 
 export const createUserThunk = createAsyncThunk<
   void,
-  { firstName: string; lastName: string; email: string; role: string },
+  { firstName: string; lastName: string; email: string; role: string; isActive?: boolean },
   { state: { users: UsersState } }
 >('users/createUser', async (payload, { dispatch, rejectWithValue }) => {
   try {
@@ -128,7 +151,14 @@ export const createUserThunk = createAsyncThunk<
 
 export const updateUserThunk = createAsyncThunk<
   void,
-  { id: string; firstName?: string; lastName?: string; role?: string; email?: string },
+  {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    role?: string;
+    email?: string;
+    isActive?: boolean;
+  },
   { state: { users: UsersState } }
 >('users/updateUser', async ({ id, ...payload }, { getState, dispatch, rejectWithValue }) => {
   try {
@@ -172,6 +202,21 @@ export const usersSlice = createSlice({
       state.search = action.payload;
       state.currentPage = 1; // reset to page 1 on search change
     },
+    setFilters: (state, action: PayloadAction<UserFilters>) => {
+      state.filters = action.payload;
+      state.currentPage = 1; // reset to page 1 on filter change
+    },
+    clearFilters: (state) => {
+      state.filters = {};
+      state.currentPage = 1;
+    },
+    setFilterField: (
+      state,
+      action: PayloadAction<{ field: keyof UserFilters; value?: string }>
+    ) => {
+      state.filters[action.payload.field] = action.payload.value;
+      state.currentPage = 1;
+    },
     invalidateUsersCache: (state) => {
       state.cachedPages = {};
     },
@@ -186,7 +231,13 @@ export const usersSlice = createSlice({
         const limit = action.meta.arg?.limit ?? state.limit;
         const search =
           action.meta.arg?.search !== undefined ? action.meta.arg.search.trim() : state.search;
-        const cacheKey = `${page}-${limit}-${search}`;
+        const role =
+          action.meta.arg?.role !== undefined ? action.meta.arg.role : state.filters.role || '';
+        const status =
+          action.meta.arg?.status !== undefined
+            ? action.meta.arg.status
+            : state.filters.status || '';
+        const cacheKey = `${page}-${limit}-${search}-${role}-${status}`;
         const cached = state.cachedPages[cacheKey];
         const isCacheValid = cached && Date.now() - cached.timestamp < state.ttlMs;
 
@@ -206,6 +257,13 @@ export const usersSlice = createSlice({
 
         if (action.meta.arg?.search !== undefined) {
           state.search = action.meta.arg.search.trim();
+        }
+
+        if (action.meta.arg?.role !== undefined) {
+          state.filters.role = action.meta.arg.role || undefined;
+        }
+        if (action.meta.arg?.status !== undefined) {
+          state.filters.status = action.meta.arg.status || undefined;
         }
 
         if (!action.payload.fromCache) {
@@ -257,7 +315,15 @@ export const usersSlice = createSlice({
   },
 });
 
-export const { setCurrentPage, setLimit, setSearch, invalidateUsersCache, clearUsersError } =
-  usersSlice.actions;
+export const {
+  setCurrentPage,
+  setLimit,
+  setSearch,
+  setFilters,
+  clearFilters,
+  setFilterField,
+  invalidateUsersCache,
+  clearUsersError,
+} = usersSlice.actions;
 
 export default usersSlice.reducer;

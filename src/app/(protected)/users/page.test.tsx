@@ -66,7 +66,8 @@ describe('UsersPage Component', () => {
       </Provider>
     );
 
-    expect(screen.getByText('Loading team members...')).toBeInTheDocument();
+    expect(screen.getAllByTestId('table-skeleton-row')).toHaveLength(5);
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('User Management')).toBeInTheDocument();
@@ -301,6 +302,87 @@ describe('UsersPage Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('No users matching "NonexistentUser" found.')).toBeInTheDocument();
+    });
+  });
+
+  it('opens filter drawer, applies role and status filters, renders active chips, and clears filters', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      success: true,
+      data: [
+        {
+          _id: 'user-001',
+          userId: 'TF0001',
+          firstName: 'Jane',
+          lastName: 'Doe',
+          email: 'jane@example.com',
+          role: 'Admin',
+          isActive: true,
+        },
+      ],
+      pagination: { totalItems: 1, totalPages: 1, currentPage: 1, limit: 10 },
+    });
+
+    const store = createMockStore();
+
+    render(
+      <Provider store={store}>
+        <UsersPage />
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /open user filter drawer/i })).toBeInTheDocument();
+    });
+
+    // 1. Open Filter drawer
+    const filterBtn = screen.getByRole('button', { name: /open user filter drawer/i });
+    fireEvent.click(filterBtn);
+
+    expect(screen.getByText('Filter Team Members')).toBeInTheDocument();
+
+    // 2. Select role and status
+    const roleControl = screen.getByText('All Roles');
+    fireEvent.mouseDown(roleControl);
+    const adminOption = screen.getByRole('option', { name: 'Admin' });
+    fireEvent.click(adminOption);
+
+    const statusControl = screen.getByText('All Statuses');
+    fireEvent.mouseDown(statusControl);
+    const activeOption = screen.getByRole('option', { name: 'Active (Full Access)' });
+    fireEvent.click(activeOption);
+
+    // 3. Click Apply Filters
+    const applyBtn = screen.getByRole('button', { name: /apply filters/i });
+    fireEvent.click(applyBtn);
+
+    await waitFor(() => {
+      expect(apiClient.get).toHaveBeenCalledWith(
+        '/users/getAllUsers?page=1&limit=10&role=Admin&status=Active'
+      );
+    });
+
+    // 4. Verify filter chips and badge count
+    expect(screen.getByText('Role:')).toBeInTheDocument();
+    expect(screen.getByText('Status:')).toBeInTheDocument();
+    expect(screen.getByText('Clear all')).toBeInTheDocument();
+
+    // 5. Remove Role filter chip
+    const removeRoleBtn = screen.getByLabelText('Remove role filter: Admin');
+    fireEvent.click(removeRoleBtn);
+
+    await waitFor(() => {
+      expect(apiClient.get).toHaveBeenCalledWith(
+        '/users/getAllUsers?page=1&limit=10&status=Active'
+      );
+    });
+
+    // 6. Click Clear all
+    const clearAllBtn = screen.getByText('Clear all');
+    fireEvent.click(clearAllBtn);
+
+    await waitFor(() => {
+      expect(apiClient.get).toHaveBeenCalledWith('/users/getAllUsers?page=1&limit=10');
+      expect(screen.queryByText('Clear all')).not.toBeInTheDocument();
     });
   });
 });

@@ -108,7 +108,9 @@ export const Pagination = memo(function Pagination({
 
   return (
     <div
-      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4 select-none ${className}`}
+      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4 select-none transition-opacity duration-200 ${
+        disabled ? 'opacity-60' : 'opacity-100'
+      } ${className}`}
       aria-label="Pagination Navigation"
     >
       {/* Left: Summary and Limit Selector */}

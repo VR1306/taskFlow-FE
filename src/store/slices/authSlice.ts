@@ -6,6 +6,7 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLogoutModalOpen: boolean;
   isLoggingOut: boolean;
+  isChangePasswordModalOpen: boolean;
   rememberMe: boolean;
 }
 
@@ -14,6 +15,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isLogoutModalOpen: false,
   isLoggingOut: false,
+  isChangePasswordModalOpen: false,
   rememberMe: false,
 };
 
@@ -36,6 +38,7 @@ export const authSlice = createSlice({
       state.isAuthenticated = false;
       state.isLogoutModalOpen = false;
       state.isLoggingOut = false;
+      state.isChangePasswordModalOpen = false;
     },
     openLogoutModal: (state) => {
       state.isLogoutModalOpen = true;
@@ -48,6 +51,12 @@ export const authSlice = createSlice({
     setIsLoggingOut: (state, action: PayloadAction<boolean>) => {
       state.isLoggingOut = action.payload;
     },
+    openChangePasswordModal: (state) => {
+      state.isChangePasswordModalOpen = true;
+    },
+    closeChangePasswordModal: (state) => {
+      state.isChangePasswordModalOpen = false;
+    },
   },
 });
 
@@ -57,6 +66,8 @@ export const {
   openLogoutModal,
   closeLogoutModal,
   setIsLoggingOut,
+  openChangePasswordModal,
+  closeChangePasswordModal,
 } = authSlice.actions;
 
 export default authSlice.reducer;

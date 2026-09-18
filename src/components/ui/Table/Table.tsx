@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Loader } from '@/components/ui/Loader';
+import { EmptyState, EmptyStateVariant } from '@/components/ui/EmptyState';
 
 export interface TableColumn<T> {
   key: string;
@@ -16,7 +17,13 @@ export interface TableProps<T> {
   keyExtractor?: (item: T, index: number) => string | number;
   isLoading?: boolean;
   loadingText?: string;
+  skeletonRowCount?: number;
+  showLoadingOverlay?: boolean;
+  emptyTitle?: string;
   emptyMessage?: string;
+  emptyVariant?: EmptyStateVariant;
+  emptyIcon?: ReactNode;
+  emptyAction?: ReactNode;
   emptyState?: ReactNode;
   onRowClick?: (item: T) => void;
   rowClassName?: string | ((item: T, index: number) => string);
@@ -37,13 +44,41 @@ const getAlignmentClass = (align?: 'left' | 'center' | 'right'): string => {
   }
 };
 
+const getSkeletonCellPlaceholder = (colIndex: number, totalCols: number) => {
+  if (colIndex === 0) {
+    return (
+      <div className="flex items-center gap-3">
+        <div className="h-8 w-8 rounded-full bg-slate-200 animate-shimmer shrink-0" />
+        <div className="h-3.5 w-28 rounded-md bg-slate-200 animate-shimmer" />
+      </div>
+    );
+  }
+  if (colIndex === totalCols - 1) {
+    return (
+      <div className="flex justify-end">
+        <div className="h-7 w-7 rounded-lg bg-slate-200 animate-shimmer shrink-0" />
+      </div>
+    );
+  }
+  if (colIndex % 2 === 1) {
+    return <div className="h-3.5 w-32 rounded-md bg-slate-200 animate-shimmer" />;
+  }
+  return <div className="h-4 w-20 rounded-full bg-slate-200 animate-shimmer" />;
+};
+
 export function Table<T>({
   columns,
   data,
   keyExtractor,
   isLoading = false,
   loadingText = 'Loading data...',
+  skeletonRowCount = 5,
+  showLoadingOverlay = true,
+  emptyTitle,
   emptyMessage = 'No records found.',
+  emptyVariant = 'no-data',
+  emptyIcon,
+  emptyAction,
   emptyState,
   onRowClick,
   rowClassName,
@@ -68,29 +103,53 @@ export function Table<T>({
     return `${base} ${cursor} ${custom}`.trim();
   };
 
-  const renderTableBody = () => {
-    if (isLoading) {
-      return (
-        <tr>
-          <td colSpan={columns.length} className="px-6 py-12 text-center">
-            <div className="flex justify-center items-center">
-              <Loader text={loadingText} />
-            </div>
+  const renderSkeletonRows = () => {
+    const rows = Array.from({ length: skeletonRowCount }, (_, i) => i);
+    return rows.map((rowIndex) => (
+      <tr
+        key={`skeleton-row-${rowIndex}`}
+        data-testid="table-skeleton-row"
+        className="border-b border-slate-100/80"
+      >
+        {columns.map((col, colIndex) => (
+          <td
+            key={`skeleton-${rowIndex}-${col.key}`}
+            className={`px-5 py-4 whitespace-nowrap ${getAlignmentClass(col.align)} ${col.className || ''}`}
+          >
+            {getSkeletonCellPlaceholder(colIndex, columns.length)}
           </td>
-        </tr>
-      );
+        ))}
+      </tr>
+    ));
+  };
+
+  const renderTableBody = () => {
+    // Initial loading with no existing records -> Render skeleton shimmer rows
+    if (isLoading && data.length === 0) {
+      return renderSkeletonRows();
     }
 
+    // Empty state when not loading
     if (data.length === 0) {
       return (
-        <tr>
-          <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-400 text-sm">
-            {emptyState || emptyMessage}
+        <tr className="animate-in fade-in duration-300">
+          <td colSpan={columns.length} className="px-6 py-8 text-center">
+            {emptyState || (
+              <EmptyState
+                variant={emptyVariant}
+                title={emptyTitle}
+                description={emptyMessage}
+                icon={emptyIcon}
+                action={emptyAction}
+                size="sm"
+              />
+            )}
           </td>
         </tr>
       );
     }
 
+    // Normal rows rendering (supports smooth opacity during background refetches)
     return data.map((item, index) => (
       <tr
         key={getKey(item, index)}
@@ -112,10 +171,39 @@ export function Table<T>({
   };
 
   return (
-    <div className={`overflow-x-auto min-h-[160px] ${wrapperClassName}`}>
+    <div className={`relative overflow-x-auto min-h-[160px] ${wrapperClassName}`}>
+      {/* Top Indeterminate Progress Line when updating/loading */}
+      {isLoading && (
+        <div
+          role="progressbar"
+          aria-label={loadingText}
+          className="absolute top-0 left-0 right-0 h-0.5 bg-blue-100 overflow-hidden z-20"
+        >
+          <div className="h-full bg-blue-600 animate-indeterminate-bar w-full" />
+        </div>
+      )}
+
+      {/* Floating Center Overlay Badge when loading existing data */}
+      {isLoading && data.length > 0 && showLoadingOverlay && (
+        <div
+          data-testid="table-loading-overlay"
+          className="absolute inset-0 top-[42px] flex items-center justify-center bg-white/40 backdrop-blur-[1px] z-10 transition-all duration-200 animate-in fade-in"
+        >
+          <div className="bg-white/95 px-4 py-2 rounded-full shadow-lg border border-slate-200/80 flex items-center gap-2.5 text-xs font-semibold text-slate-700 animate-in zoom-in-95">
+            <Loader size="xs" />
+            <span>{loadingText}</span>
+          </div>
+        </div>
+      )}
+
       <table
-        className={`min-w-full divide-y divide-slate-100 text-sm ${className}`}
+        className={`min-w-full divide-y divide-slate-100 text-sm transition-all duration-200 ${
+          isLoading && data.length > 0
+            ? 'opacity-40 pointer-events-none select-none'
+            : 'opacity-100'
+        } ${className}`}
         aria-label={ariaLabel}
+        aria-busy={isLoading}
       >
         <thead className="bg-slate-50/80 text-slate-500 font-semibold text-xs uppercase tracking-wider">
           <tr>

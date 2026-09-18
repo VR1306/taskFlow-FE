@@ -155,4 +155,53 @@ describe('ProtectedLayout Component', () => {
       expect(mockReplace).toHaveBeenCalledWith('/auth/login');
     });
   });
+
+  it('renders ChangePasswordModal when isChangePasswordModalOpen is true and closes it', async () => {
+    authStorage.setTokens('valid-jwt-token');
+    localStorage.setItem(
+      'taskflow_user',
+      JSON.stringify({
+        id: '123',
+        firstName: 'Alice',
+        lastName: 'Smith',
+        email: 'alice@example.com',
+        role: 'Admin',
+      })
+    );
+
+    const store = createMockStore({
+      auth: {
+        user: {
+          id: '123',
+          firstName: 'Alice',
+          lastName: 'Smith',
+          email: 'alice@example.com',
+          role: 'Admin',
+        },
+        isAuthenticated: true,
+        isLogoutModalOpen: false,
+        isLoggingOut: false,
+        isChangePasswordModalOpen: true,
+        rememberMe: false,
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <ProtectedLayout>
+          <div>Content</div>
+        </ProtectedLayout>
+      </Provider>
+    );
+
+    expect(screen.getByRole('heading', { name: 'Change Password' })).toBeInTheDocument();
+    expect(
+      screen.getByText('Update your password to keep your TaskFlow account secure.')
+    ).toBeInTheDocument();
+
+    const cancelBtn = screen.getByRole('button', { name: /cancel/i });
+    fireEvent.click(cancelBtn);
+
+    expect(store.getState().auth.isChangePasswordModalOpen).toBe(false);
+  });
 });

@@ -24,11 +24,27 @@ export const STATUS_OPTIONS: SelectOption<boolean>[] = [
   { value: false, label: 'Inactive (Access Suspended)' },
 ];
 
+export const FILTER_ROLE_OPTIONS: SelectOption<string>[] = [
+  { value: 'all', label: 'All Roles' },
+  { value: 'SuperAdmin', label: 'SuperAdmin' },
+  { value: 'Admin', label: 'Admin' },
+  { value: 'Manager', label: 'Manager' },
+  { value: 'User', label: 'User' },
+];
+
+export const FILTER_STATUS_OPTIONS: SelectOption<string>[] = [
+  { value: 'all', label: 'All Statuses' },
+  { value: 'Active', label: 'Active (Full Access)' },
+  { value: 'Inactive', label: 'Inactive (Suspended)' },
+];
+
 export const USERS_CONSTANTS = {
   // Page Header & Labels
   pageTitle: 'User Management',
   pageSubtitle: 'Manage team members, roles, and access permissions across your organization.',
   createUserButtonText: 'Create User',
+  filterButtonText: 'Filter',
+  filterAriaLabel: 'Open user filter drawer',
   membersCardTitle: (count: number) => `All Members (${count})`,
   updatingText: 'Updating...',
   emptyMessage: 'No user records found.',
@@ -39,11 +55,31 @@ export const USERS_CONSTANTS = {
   loadingText: 'Loading team members...',
   retryButtonText: 'Retry',
 
+  // Filter Drawer
+  filterDrawer: {
+    title: 'Filter Team Members',
+    description: 'Refine the member list by selecting specific roles and account statuses.',
+    roleLabel: 'Assigned Role',
+    rolePlaceholder: 'Select role...',
+    statusLabel: 'Account Status',
+    statusPlaceholder: 'Select status...',
+    applyButtonText: 'Apply Filters',
+    resetButtonText: 'Reset Filters',
+  },
+
+  // Active Filter Chips
+  activeFilters: {
+    rolePrefix: 'Role: ',
+    statusPrefix: 'Status: ',
+    clearAll: 'Clear all',
+  },
+
   // Table Column Headers
   tableHeaders: {
     user: 'User',
     email: 'Email',
     role: 'Role',
+    status: 'Status',
     userId: 'User ID',
     actions: 'Actions',
   },

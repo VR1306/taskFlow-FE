@@ -42,17 +42,57 @@ describe('Table Component', () => {
     expect(screen.getByTestId('score-2')).toHaveTextContent('88%');
   });
 
-  it('renders loading state with custom loading text', () => {
-    render(<Table columns={columns} data={[]} isLoading={true} loadingText="Fetching users..." />);
+  it('renders skeleton rows when isLoading is true and data is empty', () => {
+    render(
+      <Table
+        columns={columns}
+        data={[]}
+        isLoading={true}
+        skeletonRowCount={4}
+        loadingText="Fetching users..."
+      />
+    );
 
-    expect(screen.getByText('Fetching users...')).toBeInTheDocument();
+    const skeletonRows = screen.getAllByTestId('table-skeleton-row');
+    expect(skeletonRows).toHaveLength(4);
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
     expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+  });
+
+  it('renders loading overlay and retains existing rows when isLoading is true and data is present', () => {
+    render(<Table columns={columns} data={testData} isLoading={true} loadingText="Updating..." />);
+
+    expect(screen.getByTestId('table-loading-overlay')).toBeInTheDocument();
+    expect(screen.getByText('Updating...')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.getByText('Alice')).toBeInTheDocument();
+    expect(screen.getByText('Bob')).toBeInTheDocument();
   });
 
   it('renders default empty message when data is empty', () => {
     render(<Table columns={columns} data={[]} />);
 
     expect(screen.getByText('No records found.')).toBeInTheDocument();
+  });
+
+  it('renders rich EmptyState with emptyTitle, emptyVariant, and emptyAction', () => {
+    const handleAction = jest.fn();
+    render(
+      <Table
+        columns={columns}
+        data={[]}
+        emptyTitle="No Members Found"
+        emptyMessage="Try adjusting your filters or search criteria."
+        emptyVariant="no-search"
+        emptyAction={<button onClick={handleAction}>Reset Filters</button>}
+      />
+    );
+
+    expect(screen.getByText('No Members Found')).toBeInTheDocument();
+    expect(screen.getByText('Try adjusting your filters or search criteria.')).toBeInTheDocument();
+    const btn = screen.getByRole('button', { name: 'Reset Filters' });
+    fireEvent.click(btn);
+    expect(handleAction).toHaveBeenCalledTimes(1);
   });
 
   it('renders custom emptyState when provided', () => {

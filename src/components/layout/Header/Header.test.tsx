@@ -6,10 +6,19 @@ import Header from './Header';
 import authReducer from '@/store/slices/authSlice';
 import uiReducer from '@/store/slices/uiSlice';
 import usersReducer from '@/store/slices/usersSlice';
+import { CHANGE_PASSWORD_CONSTANTS } from '@/constants';
 
 jest.mock('next/navigation', () => ({
   usePathname: () => '/users',
 }));
+
+const mockUser = {
+  id: 'usr-1',
+  firstName: 'John',
+  lastName: 'Doe',
+  email: 'john.doe@example.com',
+  role: 'SuperAdmin',
+};
 
 const createMockStore = (initialState = {}) => {
   return configureStore({
@@ -28,7 +37,17 @@ describe('Header Component', () => {
   });
 
   it('renders title and user status', () => {
-    const store = createMockStore();
+    const store = createMockStore({
+      auth: {
+        user: mockUser,
+        isAuthenticated: true,
+        isLogoutModalOpen: false,
+        isLoggingOut: false,
+        isChangePasswordModalOpen: false,
+        rememberMe: false,
+      },
+    });
+
     render(
       <Provider store={store}>
         <Header />
@@ -36,6 +55,8 @@ describe('Header Component', () => {
     );
 
     expect(screen.getByText('User Management')).toBeInTheDocument();
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+    expect(screen.getByText('SuperAdmin')).toBeInTheDocument();
   });
 
   it('handles mobile menu hamburger click', () => {
@@ -50,5 +71,158 @@ describe('Header Component', () => {
     fireEvent.click(menuButton);
 
     expect(store.getState().ui.mobileSidebarOpen).toBe(true);
+  });
+
+  it('toggles user action menu dropdown on click', () => {
+    const store = createMockStore({
+      auth: {
+        user: mockUser,
+        isAuthenticated: true,
+        isLogoutModalOpen: false,
+        isLoggingOut: false,
+        isChangePasswordModalOpen: false,
+        rememberMe: false,
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Header />
+      </Provider>
+    );
+
+    const userButton = screen.getByRole('button', { name: /user account menu/i });
+    expect(userButton).toHaveAttribute('aria-expanded', 'false');
+
+    // Open menu
+    fireEvent.click(userButton);
+    expect(userButton).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('menu', { name: /user account actions/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', {
+        name: new RegExp(CHANGE_PASSWORD_CONSTANTS.actionMenuItemText, 'i'),
+      })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /sign out/i })).toBeInTheDocument();
+
+    // Close menu by clicking button again
+    fireEvent.click(userButton);
+    expect(userButton).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('menu', { name: /user account actions/i })).not.toBeInTheDocument();
+  });
+
+  it('dispatches openChangePasswordModal when clicking Change Password in dropdown', () => {
+    const store = createMockStore({
+      auth: {
+        user: mockUser,
+        isAuthenticated: true,
+        isLogoutModalOpen: false,
+        isLoggingOut: false,
+        isChangePasswordModalOpen: false,
+        rememberMe: false,
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Header />
+      </Provider>
+    );
+
+    const userButton = screen.getByRole('button', { name: /user account menu/i });
+    fireEvent.click(userButton);
+
+    const changePasswordItem = screen.getByRole('menuitem', {
+      name: new RegExp(CHANGE_PASSWORD_CONSTANTS.actionMenuItemText, 'i'),
+    });
+    fireEvent.click(changePasswordItem);
+
+    expect(store.getState().auth.isChangePasswordModalOpen).toBe(true);
+    expect(screen.queryByRole('menu', { name: /user account actions/i })).not.toBeInTheDocument();
+  });
+
+  it('dispatches openLogoutModal when clicking Sign Out in dropdown', () => {
+    const store = createMockStore({
+      auth: {
+        user: mockUser,
+        isAuthenticated: true,
+        isLogoutModalOpen: false,
+        isLoggingOut: false,
+        isChangePasswordModalOpen: false,
+        rememberMe: false,
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Header />
+      </Provider>
+    );
+
+    const userButton = screen.getByRole('button', { name: /user account menu/i });
+    fireEvent.click(userButton);
+
+    const signOutItem = screen.getByRole('menuitem', { name: /sign out/i });
+    fireEvent.click(signOutItem);
+
+    expect(store.getState().auth.isLogoutModalOpen).toBe(true);
+    expect(screen.queryByRole('menu', { name: /user account actions/i })).not.toBeInTheDocument();
+  });
+
+  it('closes dropdown menu when clicking outside', () => {
+    const store = createMockStore({
+      auth: {
+        user: mockUser,
+        isAuthenticated: true,
+        isLogoutModalOpen: false,
+        isLoggingOut: false,
+        isChangePasswordModalOpen: false,
+        rememberMe: false,
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <div>
+          <Header />
+          <button type="button" data-testid="outside-element">
+            Outside
+          </button>
+        </div>
+      </Provider>
+    );
+
+    const userButton = screen.getByRole('button', { name: /user account menu/i });
+    fireEvent.click(userButton);
+    expect(screen.getByRole('menu', { name: /user account actions/i })).toBeInTheDocument();
+
+    fireEvent.mouseDown(screen.getByTestId('outside-element'));
+    expect(screen.queryByRole('menu', { name: /user account actions/i })).not.toBeInTheDocument();
+  });
+
+  it('closes dropdown menu when pressing Escape', () => {
+    const store = createMockStore({
+      auth: {
+        user: mockUser,
+        isAuthenticated: true,
+        isLogoutModalOpen: false,
+        isLoggingOut: false,
+        isChangePasswordModalOpen: false,
+        rememberMe: false,
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Header />
+      </Provider>
+    );
+
+    const userButton = screen.getByRole('button', { name: /user account menu/i });
+    fireEvent.click(userButton);
+    expect(screen.getByRole('menu', { name: /user account actions/i })).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('menu', { name: /user account actions/i })).not.toBeInTheDocument();
   });
 });

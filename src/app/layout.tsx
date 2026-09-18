@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { constructMetadata } from '@/helpers/metadata';
 import { StoreProvider } from '@/store/StoreProvider';
+import { OfflineBanner } from '@/components/ui';
 import '@/app/globals.css';
 
 const geistSans = Geist({
@@ -26,7 +27,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <StoreProvider>{children}</StoreProvider>
+        <StoreProvider>
+          <OfflineBanner />
+          {children}
+        </StoreProvider>
       </body>
     </html>
   );
