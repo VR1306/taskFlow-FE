@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Avatar, Badge } from '@/components/ui';
+import { Avatar, Badge, EmptyState } from '@/components/ui';
 import { RecentUserItem } from '@/types';
 
 export interface RecentUsersWidgetProps {
@@ -70,7 +70,13 @@ export const RecentUsersWidget: React.FC<RecentUsersWidgetProps> = ({ users = []
           ))}
         </div>
       ) : (
-        <div className="py-8 text-center text-xs text-slate-400">No recent users recorded</div>
+        <EmptyState
+          variant="no-data"
+          size="sm"
+          title="No Recent Members"
+          description="No new team accounts have registered recently."
+          className="py-6"
+        />
       )}
     </div>
   );

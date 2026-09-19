@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Badge } from '@/components/ui';
+import { Badge, EmptyState } from '@/components/ui';
 import { RecentRoleItem } from '@/types';
 
 export interface RecentRolesWidgetProps {
@@ -62,7 +62,13 @@ export const RecentRolesWidget: React.FC<RecentRolesWidgetProps> = ({ roles = []
           ))}
         </div>
       ) : (
-        <div className="py-8 text-center text-xs text-slate-400">No roles configured</div>
+        <EmptyState
+          variant="no-data"
+          size="sm"
+          title="No Configured Roles"
+          description="No security roles have been created in this workspace."
+          className="py-6"
+        />
       )}
     </div>
   );

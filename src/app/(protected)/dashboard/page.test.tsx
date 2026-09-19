@@ -11,6 +11,14 @@ import dashboardReducer from '@/store/slices/dashboardSlice';
 import { dashboardService } from '@/services/dashboard';
 import { authStorage } from '@/helpers';
 
+const mockPush = jest.fn();
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
 jest.mock('@/services/dashboard', () => ({
   dashboardService: {
     getDashboardStats: jest.fn(),
@@ -227,5 +235,76 @@ describe('DashboardPage Component', () => {
     fireEvent.click(refreshBtn);
 
     expect(dashboardService.getDashboardStats).toHaveBeenCalledTimes(2);
+  });
+
+  it('renders empty workspace state when stats contain 0 users, 0 roles, and 0 permissions', async () => {
+    (dashboardService.getDashboardStats as jest.Mock).mockResolvedValueOnce({
+      success: true,
+      data: {
+        summary: {
+          totalUsers: 0,
+          activeUsers: 0,
+          inactiveUsers: 0,
+          totalRoles: 0,
+          systemRoles: 0,
+          customRoles: 0,
+          activeRoles: 0,
+          totalPermissions: 0,
+        },
+        usersByRole: [],
+        usersByStatus: [],
+        rolesByType: [],
+        userRegistrationTrends: [],
+        rolePermissionsDistribution: [],
+        recentUsers: [],
+        recentRoles: [],
+      },
+    });
+
+    renderWithStore();
+
+    await waitFor(() => {
+      expect(screen.getByText('No Workspace Data Found')).toBeInTheDocument();
+    });
+
+    const manageUsersBtn = screen.getByRole('button', { name: 'Manage Users' });
+    fireEvent.click(manageUsersBtn);
+    expect(mockPush).toHaveBeenCalledWith('/users');
+
+    const configRolesBtn = screen.getByRole('button', { name: 'Configure Roles' });
+    fireEvent.click(configRolesBtn);
+    expect(mockPush).toHaveBeenCalledWith('/roles');
+  });
+
+  it('renders widget empty states when recent users and roles are empty', async () => {
+    (dashboardService.getDashboardStats as jest.Mock).mockResolvedValueOnce({
+      success: true,
+      data: {
+        summary: {
+          totalUsers: 1,
+          activeUsers: 1,
+          inactiveUsers: 0,
+          totalRoles: 1,
+          systemRoles: 1,
+          customRoles: 0,
+          activeRoles: 1,
+          totalPermissions: 5,
+        },
+        usersByRole: [],
+        usersByStatus: [],
+        rolesByType: [],
+        userRegistrationTrends: [],
+        rolePermissionsDistribution: [],
+        recentUsers: [],
+        recentRoles: [],
+      },
+    });
+
+    renderWithStore();
+
+    await waitFor(() => {
+      expect(screen.getByText('No Recent Members')).toBeInTheDocument();
+      expect(screen.getByText('No Configured Roles')).toBeInTheDocument();
+    });
   });
 });

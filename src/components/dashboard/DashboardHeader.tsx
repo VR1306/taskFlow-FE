@@ -39,15 +39,15 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-3 shrink-0">
-          <Button
-            variant="secondary"
-            size="md"
+          <button
+            type="button"
             onClick={onRefresh}
             disabled={isLoading || isRefreshing}
-            className="bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border-slate-700 cursor-pointer"
+            aria-label="Refresh Data"
+            className="h-11 px-4 text-sm font-semibold rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/25 text-white border border-white/20 hover:border-white/35 backdrop-blur-md transition-all duration-200 shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
           >
             <svg
-              className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`}
+              className={`w-4 h-4 text-blue-300 ${isRefreshing ? 'animate-spin' : ''}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -59,8 +59,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
               />
             </svg>
-            {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
-          </Button>
+            <span>{isRefreshing ? 'Refreshing...' : 'Refresh Data'}</span>
+          </button>
 
           <Link href="/users">
             <Button variant="primary" size="md" className="cursor-pointer">
