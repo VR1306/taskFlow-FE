@@ -30,9 +30,9 @@ export const WorkspaceTrendsCard: React.FC<WorkspaceTrendsCardProps> = ({
   }));
 
   return (
-    <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+    <div className="lg:col-span-7 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
       <div>
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
           <div>
             <h2 className="text-base font-bold text-slate-900">Workspace Activity & Trends</h2>
             <p className="text-xs text-slate-500">

@@ -112,14 +112,14 @@ describe('Drawer Component', () => {
       </Drawer>
     );
 
-    expect(screen.getByTestId('drawer-panel')).toHaveClass('max-w-lg');
+    expect(screen.getByTestId('drawer-panel')).toHaveClass('sm:max-w-lg');
 
     rerender(
       <Drawer {...defaultProps} width="sm">
         <div>Content</div>
       </Drawer>
     );
-    expect(screen.getByTestId('drawer-panel')).toHaveClass('max-w-sm');
+    expect(screen.getByTestId('drawer-panel')).toHaveClass('sm:max-w-sm');
   });
 
   it('manages body overflow on open and cleanup', () => {

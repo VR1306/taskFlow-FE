@@ -79,17 +79,17 @@ export const Drawer = memo(function Drawer({
       />
 
       {/* Slide-over panel container */}
-      <div className="fixed inset-y-0 right-0 flex max-w-full pl-6 sm:pl-10">
+      <div className="fixed inset-y-0 right-0 flex max-w-full pl-0 sm:pl-10">
         <aside
           data-testid="drawer-panel"
-          className={`w-screen ${maxWidthMap[width]} bg-white shadow-2xl flex flex-col h-full overflow-hidden border-l border-slate-200/80 transform transition-transform duration-300 ease-in-out ${
+          className={`w-screen max-w-full sm:${maxWidthMap[width]} bg-white shadow-2xl flex flex-col h-full overflow-hidden border-l border-slate-200/80 transform transition-transform duration-300 ease-in-out ${
             isAnimated ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
           {/* Header */}
           {(title || showCloseButton) && (
-            <div className="flex items-start justify-between border-b border-slate-100 bg-white px-5 sm:px-6 py-4.5">
-              <div className="min-w-0 pr-4">
+            <div className="flex items-start justify-between border-b border-slate-100 bg-white px-4 sm:px-6 py-4">
+              <div className="min-w-0 pr-3 sm:pr-4">
                 {title && (
                   <h2
                     id="drawer-title"
@@ -112,7 +112,7 @@ export const Drawer = memo(function Drawer({
                   type="button"
                   onClick={onClose}
                   aria-label="Close drawer"
-                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer shrink-0"
                 >
                   <Image src="/icons/close.svg" alt="Close" width={18} height={18} />
                 </button>
@@ -121,11 +121,13 @@ export const Drawer = memo(function Drawer({
           )}
 
           {/* Body Content */}
-          <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-5">{children}</div>
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-5">
+            {children}
+          </div>
 
           {/* Sticky Action Footer */}
           {footer && (
-            <div className="border-t border-slate-100 bg-slate-50/70 px-5 sm:px-6 py-4 flex items-center justify-end gap-3">
+            <div className="border-t border-slate-100 bg-slate-50/70 px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-end gap-2.5 sm:gap-3">
               {footer}
             </div>
           )}

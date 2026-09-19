@@ -108,13 +108,13 @@ export const Pagination = memo(function Pagination({
 
   return (
     <div
-      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4 select-none transition-opacity duration-200 ${
+      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 py-4 select-none transition-opacity duration-200 ${
         disabled ? 'opacity-60' : 'opacity-100'
       } ${className}`}
       aria-label="Pagination Navigation"
     >
       {/* Left: Summary and Limit Selector */}
-      <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-slate-600">
+      <div className="flex flex-wrap items-center justify-between sm:justify-start gap-2 sm:gap-3 text-xs sm:text-sm text-slate-600 w-full sm:w-auto">
         <span>
           Showing <span className="font-bold text-slate-900">{startItem}</span> to{' '}
           <span className="font-bold text-slate-900">{endItem}</span> of{' '}
@@ -122,16 +122,17 @@ export const Pagination = memo(function Pagination({
         </span>
 
         {onLimitChange && (
-          <div className="flex items-center gap-2 border-l border-slate-200 pl-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 sm:border-l sm:border-slate-200 sm:pl-3">
             <label htmlFor="pagination-limit" className="text-slate-500 text-xs font-medium">
               Rows per page:
             </label>
             <select
               id="pagination-limit"
+              aria-label="Rows per page"
               value={limit}
               onChange={handleSelectLimit}
               disabled={disabled}
-              className="rounded-lg border border-slate-200 bg-slate-50/80 px-2.5 py-1 text-xs font-semibold text-slate-800 shadow-2xs hover:bg-white hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-hidden transition-colors cursor-pointer"
+              className="rounded-lg border border-slate-200 bg-slate-50/80 px-2 py-1 text-xs font-semibold text-slate-800 shadow-2xs hover:bg-white hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-hidden transition-colors cursor-pointer"
             >
               {limitOptions.map((opt) => (
                 <option key={opt} value={opt}>
@@ -144,14 +145,14 @@ export const Pagination = memo(function Pagination({
       </div>
 
       {/* Right: Modern Production Controls */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center justify-center sm:justify-end gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
         {/* Previous Page Button */}
         <button
           type="button"
           onClick={handlePrev}
           disabled={currentPage <= 1 || disabled}
           aria-label="Go to previous page"
-          className="inline-flex h-8.5 items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 shadow-2xs transition-all duration-200 hover:border-blue-300 hover:bg-blue-50/70 hover:text-blue-600 disabled:opacity-40 disabled:pointer-events-none cursor-pointer active:scale-95 gap-1.5"
+          className="inline-flex h-8.5 items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 shadow-2xs transition-all duration-200 hover:border-blue-300 hover:bg-blue-50/70 hover:text-blue-600 disabled:opacity-40 disabled:pointer-events-none cursor-pointer active:scale-95 gap-1.5 shrink-0"
         >
           <Image src="/icons/chevron-left.svg" alt="" width={13} height={13} />
           <span className="hidden sm:inline">Previous</span>
@@ -164,7 +165,7 @@ export const Pagination = memo(function Pagination({
               return (
                 <span
                   key={page}
-                  className="h-8.5 w-7 flex items-center justify-center text-slate-400 text-xs font-bold select-none tracking-widest"
+                  className="h-8.5 w-6 sm:w-7 flex items-center justify-center text-slate-400 text-xs font-bold select-none tracking-widest"
                 >
                   ...
                 </span>
@@ -180,7 +181,7 @@ export const Pagination = memo(function Pagination({
                 disabled={disabled}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={`Page ${page}`}
-                className={`inline-flex h-8.5 w-8.5 items-center justify-center rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer active:scale-95 ${
+                className={`inline-flex h-8.5 w-8 sm:w-8.5 items-center justify-center rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer active:scale-95 shrink-0 ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-xs border border-blue-600 font-extrabold'
                     : 'border border-slate-200 bg-white text-slate-700 shadow-2xs hover:border-blue-300 hover:bg-blue-50/70 hover:text-blue-600'
@@ -198,7 +199,7 @@ export const Pagination = memo(function Pagination({
           onClick={handleNext}
           disabled={currentPage >= totalPages || disabled}
           aria-label="Go to next page"
-          className="inline-flex h-8.5 items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 shadow-2xs transition-all duration-200 hover:border-blue-300 hover:bg-blue-50/70 hover:text-blue-600 disabled:opacity-40 disabled:pointer-events-none cursor-pointer active:scale-95 gap-1.5"
+          className="inline-flex h-8.5 items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 shadow-2xs transition-all duration-200 hover:border-blue-300 hover:bg-blue-50/70 hover:text-blue-600 disabled:opacity-40 disabled:pointer-events-none cursor-pointer active:scale-95 gap-1.5 shrink-0"
         >
           <span className="hidden sm:inline">Next</span>
           <Image src="/icons/chevron-right.svg" alt="" width={13} height={13} />

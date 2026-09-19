@@ -167,9 +167,9 @@ describe('RolesPage Component', () => {
       expect(screen.getByText('Role Management')).toBeInTheDocument();
       expect(screen.getAllByRole('button', { name: /create role/i }).length).toBeGreaterThan(0);
       expect(screen.getByText('System Administrator')).toBeInTheDocument();
-      expect(screen.getByText('RL0001')).toBeInTheDocument();
+      expect(screen.getAllByText('RL0001').length).toBeGreaterThan(0);
       expect(screen.getByText('Project Manager')).toBeInTheDocument();
-      expect(screen.getByText('RL0002')).toBeInTheDocument();
+      expect(screen.getAllByText('RL0002').length).toBeGreaterThan(0);
       expect(screen.getByText('All Roles (2)')).toBeInTheDocument();
     });
   });

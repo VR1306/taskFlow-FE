@@ -136,7 +136,7 @@ export function Table<T>({
             return (
               <td
                 key={`skeleton-td-${col.key}`}
-                className={`px-5 py-4 whitespace-nowrap ${getAlignmentClass(col.align)} ${col.className || ''}`}
+                className={`px-3 sm:px-5 py-3 sm:py-4 whitespace-nowrap ${getAlignmentClass(col.align)} ${col.className || ''}`}
               >
                 {getSkeletonCellPlaceholder(isFirstCol, isLastCol)}
               </td>
@@ -176,7 +176,7 @@ export function Table<T>({
         {columns.map((col) => (
           <td
             key={`${getKey(item, index)}-${col.key}`}
-            className={`px-5 py-4 whitespace-nowrap ${getAlignmentClass(col.align)} ${col.className || ''}`}
+            className={`px-3 sm:px-5 py-3 sm:py-4 whitespace-nowrap ${getAlignmentClass(col.align)} ${col.className || ''}`}
           >
             {col.render
               ? col.render(item, index)
@@ -188,7 +188,9 @@ export function Table<T>({
   };
 
   return (
-    <div className={`relative overflow-x-auto min-h-[160px] ${wrapperClassName}`}>
+    <div
+      className={`relative overflow-x-auto min-h-[160px] -webkit-overflow-scrolling-touch ${wrapperClassName}`}
+    >
       {/* Top Indeterminate Progress Line when updating/loading */}
       {isLoading && (
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-100 overflow-hidden z-20">
@@ -211,7 +213,7 @@ export function Table<T>({
       )}
 
       <table
-        className={`min-w-full divide-y divide-slate-100 text-sm transition-all duration-200 ${
+        className={`min-w-full divide-y divide-slate-100 text-xs sm:text-sm transition-all duration-200 ${
           isLoading && data.length > 0
             ? 'opacity-40 pointer-events-none select-none'
             : 'opacity-100'
@@ -219,13 +221,13 @@ export function Table<T>({
         aria-label={ariaLabel}
         aria-busy={isLoading}
       >
-        <thead className="bg-slate-50/80 text-slate-500 font-semibold text-xs uppercase tracking-wider">
+        <thead className="bg-slate-50/80 text-slate-500 font-semibold text-[11px] sm:text-xs uppercase tracking-wider">
           <tr>
             {columns.map((col) => (
               <th
                 key={col.key}
                 scope="col"
-                className={`px-5 py-3.5 ${getAlignmentClass(col.align)} ${col.headerClassName || ''}`}
+                className={`px-3 sm:px-5 py-3 sm:py-3.5 ${getAlignmentClass(col.align)} ${col.headerClassName || col.className || ''}`}
               >
                 {col.header}
               </th>

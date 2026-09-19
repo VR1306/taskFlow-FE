@@ -73,7 +73,7 @@ describe('UsersPage Component', () => {
       expect(screen.getByText('User Management')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /create user/i })).toBeInTheDocument();
       expect(screen.getByText('Jane Doe')).toBeInTheDocument();
-      expect(screen.getByText('jane@example.com')).toBeInTheDocument();
+      expect(screen.getAllByText('jane@example.com').length).toBeGreaterThan(0);
       expect(screen.getByText('TF0001')).toBeInTheDocument();
       expect(screen.getByText('John Smith')).toBeInTheDocument();
       expect(screen.getByText('TF0002')).toBeInTheDocument();

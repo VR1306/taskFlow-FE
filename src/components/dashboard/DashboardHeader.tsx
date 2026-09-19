@@ -16,7 +16,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onRefresh,
 }) => {
   return (
-    <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 sm:p-8 rounded-2xl border border-slate-800 text-white shadow-sm relative overflow-hidden">
+    <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-4 sm:p-8 rounded-xl sm:rounded-2xl border border-slate-800 text-white shadow-sm relative overflow-hidden">
       {/* Background ambient decorative shapes */}
       <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-1/3 -mb-8 w-48 h-48 rounded-full bg-indigo-500/10 blur-2xl pointer-events-none" />
@@ -29,22 +29,22 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             </span>
             <span className="text-xs text-slate-400">● Live Real-Time Overview</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white">
             Welcome back, {userName}!
           </h1>
-          <p className="mt-2 text-sm sm:text-base text-slate-300">
+          <p className="mt-2 text-xs sm:text-base text-slate-300">
             Manage organization members, monitor security roles, inspect granular permissions, and
             track workspace growth metrics.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 w-full md:w-auto">
           <button
             type="button"
             onClick={onRefresh}
             disabled={isLoading || isRefreshing}
             aria-label="Refresh Data"
-            className="h-11 px-4 text-sm font-semibold rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/25 text-white border border-white/20 hover:border-white/35 backdrop-blur-md transition-all duration-200 shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
+            className="w-full sm:w-auto h-11 px-4 text-sm font-semibold rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/25 text-white border border-white/20 hover:border-white/35 backdrop-blur-md transition-all duration-200 shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
           >
             <svg
               className={`w-4 h-4 text-blue-300 ${isRefreshing ? 'animate-spin' : ''}`}
@@ -62,8 +62,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <span>{isRefreshing ? 'Refreshing...' : 'Refresh Data'}</span>
           </button>
 
-          <Link href="/users">
-            <Button variant="primary" size="md" className="cursor-pointer">
+          <Link href="/users" className="w-full sm:w-auto">
+            <Button variant="primary" size="md" className="w-full sm:w-auto cursor-pointer">
               Manage Users &rarr;
             </Button>
           </Link>

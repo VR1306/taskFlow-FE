@@ -295,7 +295,7 @@ export default function RolesPage() {
         key: 'roleId',
         header: 'Role ID',
         align: 'left',
-        className: 'w-28',
+        className: 'w-28 hidden md:table-cell',
         render: (role) => (
           <button
             type="button"
@@ -314,7 +314,7 @@ export default function RolesPage() {
           const roleDisplayName = role.name || role.roleName || '';
           const roleDesc = role.description || role.roleDescription || '';
           return (
-            <div className="max-w-xs sm:max-w-sm py-0.5">
+            <div className="max-w-xs sm:max-w-sm py-0.5 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
@@ -323,6 +323,9 @@ export default function RolesPage() {
                 >
                   {roleDisplayName}
                 </button>
+                <span className="font-mono text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-md border border-blue-200/60 inline-flex md:hidden">
+                  {role.roleId || role.id}
+                </span>
                 {role.isSystem && (
                   <Badge size="sm" variant="purple">
                     System
@@ -342,6 +345,7 @@ export default function RolesPage() {
         key: 'roleType',
         header: 'Role Type',
         align: 'center',
+        className: 'hidden lg:table-cell',
         render: (role) => (
           <Badge variant={getRoleTypeBadgeVariant(role.roleType)}>
             {role.roleType || 'Custom'}
@@ -356,8 +360,8 @@ export default function RolesPage() {
           const permList = role.permissions || role.rolePermissions || [];
           const isAll = permList.includes('*');
           return (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
               {isAll ? 'Full Access (*)' : `${permList.length} granted`}
             </span>
           );
@@ -380,6 +384,7 @@ export default function RolesPage() {
         key: 'createdAt',
         header: 'Created On',
         align: 'right',
+        className: 'hidden lg:table-cell',
         render: (role) => (
           <span className="text-xs text-slate-500 font-medium" suppressHydrationWarning>
             {formatDate(role.createdAt)}
@@ -460,7 +465,7 @@ export default function RolesPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           {canCreateRole && (
             <Button
               type="button"
@@ -478,7 +483,7 @@ export default function RolesPage() {
       {/* Main Table Card */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden transition-all duration-200">
         {/* Card Top Header: Title & Search/Filter Controls */}
-        <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-slate-50/40">
+        <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-slate-50/40">
           <div className="flex items-center gap-2">
             <h2 className="text-xs sm:text-sm font-semibold text-slate-800">
               {ROLES_CONSTANTS.rolesCardTitle(totalItems > 0 ? totalItems : rolesList.length)}
@@ -492,9 +497,9 @@ export default function RolesPage() {
           </div>
 
           {/* Search & Filter Toolbar */}
-          <div className="flex items-center gap-2.5 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
             {/* Live Search Input with Instant Spinner */}
-            <div className="relative flex-1 md:w-72 lg:w-80">
+            <div className="relative w-full sm:w-64 md:w-72 lg:w-80">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                 {isSearching ? (
                   <div className="h-4 w-4 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
@@ -528,19 +533,20 @@ export default function RolesPage() {
             </div>
 
             {/* Filter & Export Controls */}
-            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start shrink-0">
               <ExportButton
                 onExportCsv={handleExportCsv}
                 onExportJson={handleExportJson}
                 disabled={rolesList.length === 0}
                 isLoading={isExporting}
+                className="flex-1 sm:flex-none justify-center"
               />
 
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsFilterDrawerOpen(true)}
-                className={`text-xs sm:text-sm font-semibold h-10 px-3.5 gap-2 border-slate-200/90 ${
+                className={`flex-1 sm:flex-none justify-center text-xs sm:text-sm font-semibold h-10 px-3.5 gap-2 border-slate-200/90 ${
                   activeFilterCount > 0
                     ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100/80 shadow-2xs'
                     : 'text-slate-700 hover:bg-slate-50'

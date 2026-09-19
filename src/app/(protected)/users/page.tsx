@@ -328,11 +328,14 @@ export default function UsersPage() {
         header: USERS_CONSTANTS.tableHeaders.user,
         align: 'left',
         render: (user) => (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <Avatar firstName={user.firstName} lastName={user.lastName} size="sm" />
             <div className="min-w-0">
               <span className="font-semibold text-slate-900 block truncate">
                 {user.firstName} {user.lastName}
+              </span>
+              <span className="text-[11px] text-slate-500 block sm:hidden truncate lowercase">
+                {user.email.toLowerCase()}
               </span>
             </div>
           </div>
@@ -342,6 +345,7 @@ export default function UsersPage() {
         key: 'email',
         header: USERS_CONSTANTS.tableHeaders.email,
         align: 'left',
+        className: 'hidden sm:table-cell',
         render: (user) => (
           <span className="text-slate-600 font-medium text-xs sm:text-sm lowercase">
             {user.email.toLowerCase()}
@@ -391,6 +395,7 @@ export default function UsersPage() {
         key: 'userId',
         header: USERS_CONSTANTS.tableHeaders.userId,
         align: 'left',
+        className: 'hidden md:table-cell',
         render: (user) => (
           <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100/90 border border-slate-200/80 rounded-md px-2 py-0.5 select-all">
             {user.userId || 'TF0001'}
@@ -431,7 +436,7 @@ export default function UsersPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <Button
             type="button"
             variant="primary"
@@ -476,7 +481,7 @@ export default function UsersPage() {
       {/* Main Content Area */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden transition-all duration-200">
         {/* Card Top Header: Title & Search/Filter Controls */}
-        <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-slate-50/40">
+        <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-slate-50/40">
           <div className="flex items-center gap-2">
             <h2 className="text-xs sm:text-sm font-semibold text-slate-800">
               {USERS_CONSTANTS.membersCardTitle(totalItems > 0 ? totalItems : users.length)}
@@ -490,9 +495,9 @@ export default function UsersPage() {
           </div>
 
           {/* Search & Filter Toolbar */}
-          <div className="flex items-center gap-2.5 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
             {/* Search Input Bar */}
-            <div className="relative flex-1 md:w-72 lg:w-80">
+            <div className="relative w-full sm:w-64 md:w-72 lg:w-80">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 {isSearching ? (
                   <div className="w-4 h-4 flex items-center justify-center">
@@ -535,12 +540,13 @@ export default function UsersPage() {
             </div>
 
             {/* Filter & Export Controls */}
-            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start shrink-0">
               <ExportButton
                 onExportCsv={handleExportCsv}
                 onExportJson={handleExportJson}
                 disabled={users.length === 0}
                 isLoading={isExporting}
+                className="flex-1 sm:flex-none justify-center"
               />
 
               <Button
@@ -548,7 +554,7 @@ export default function UsersPage() {
                 variant="outline"
                 onClick={handleOpenFilterDrawer}
                 aria-label={USERS_CONSTANTS.filterAriaLabel}
-                className={`text-xs sm:text-sm font-semibold h-10 px-3.5 gap-2 border-slate-200/90 ${
+                className={`flex-1 sm:flex-none justify-center text-xs sm:text-sm font-semibold h-10 px-3.5 gap-2 border-slate-200/90 ${
                   activeFilterCount > 0
                     ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100/80 shadow-2xs'
                     : 'text-slate-700 hover:bg-slate-50'

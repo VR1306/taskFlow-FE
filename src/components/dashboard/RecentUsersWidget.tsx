@@ -9,7 +9,7 @@ export interface RecentUsersWidgetProps {
 
 export const RecentUsersWidget: React.FC<RecentUsersWidgetProps> = ({ users = [] }) => {
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+    <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
