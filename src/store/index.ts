@@ -3,6 +3,7 @@ import authReducer from './slices/authSlice';
 import uiReducer from './slices/uiSlice';
 import usersReducer from './slices/usersSlice';
 import rolesReducer from './slices/rolesSlice';
+import dashboardReducer from './slices/dashboardSlice';
 
 export const makeStore = () => {
   return configureStore({
@@ -11,6 +12,7 @@ export const makeStore = () => {
       ui: uiReducer,
       users: usersReducer,
       roles: rolesReducer,
+      dashboard: dashboardReducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
@@ -30,4 +32,5 @@ export * from './slices/authSlice';
 export * from './slices/uiSlice';
 export * from './slices/usersSlice';
 export * from './slices/rolesSlice';
+export * from './slices/dashboardSlice';
 export * from './StoreProvider';
