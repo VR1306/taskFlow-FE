@@ -4,4 +4,5 @@ export * from './forgotPassword';
 export * from './resetPassword';
 export * from './changePassword';
 export * from './users';
+export * from './roles';
 export * from './errorPages/errorPages';

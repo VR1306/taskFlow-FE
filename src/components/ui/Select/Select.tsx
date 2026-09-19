@@ -1,12 +1,13 @@
 'use client';
 
-import React, { memo, useState, useEffect, useId } from 'react';
+import React, { memo, useId } from 'react';
 import ReactSelect, {
   Props as ReactSelectProps,
   StylesConfig,
   GroupBase,
   SingleValue,
 } from 'react-select';
+import { useMounted } from '@/helpers';
 
 export interface SelectOption<T = string> {
   value: T;
@@ -61,11 +62,7 @@ export const Select = memo(function Select<T = string>({
   ...rest
 }: CustomSelectProps<T>) {
   const generatedId = useId();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   const selectedOption: SelectOption<T> | null = options.find((opt) => opt.value === value) || null;
 

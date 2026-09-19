@@ -10,7 +10,7 @@ import {
   openChangePasswordModal,
   openLogoutModal,
 } from '@/store';
-import { useCurrentUser } from '@/helpers';
+import { useCurrentUser, useMounted } from '@/helpers';
 import { CHANGE_PASSWORD_CONSTANTS } from '@/constants';
 
 export const Header = memo(function Header() {
@@ -20,12 +20,8 @@ export const Header = memo(function Header() {
   const storageUser = useCurrentUser();
   const currentUser = reduxUser || storageUser;
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const menuContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleToggleMobile = useCallback(() => {
     dispatch(toggleMobileSidebar());
@@ -74,7 +70,11 @@ export const Header = memo(function Header() {
     };
   }, [isUserMenuOpen]);
 
-  const pageTitle = pathname.includes('/users') ? 'User Management' : 'Dashboard';
+  const pageTitle = useMemo(() => {
+    if (pathname.includes('/roles')) return 'Role Management';
+    if (pathname.includes('/users')) return 'User Management';
+    return 'Dashboard';
+  }, [pathname]);
 
   const userRoleVariant = useMemo(() => {
     switch (currentUser?.role) {

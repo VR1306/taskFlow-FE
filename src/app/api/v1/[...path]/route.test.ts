@@ -170,4 +170,32 @@ describe('BFF Route Handler (/api/v1/[...path])', () => {
     const optionsResponse = await OPTIONS();
     expect(optionsResponse.status).toBe(204);
   });
+
+  it('forwards CSV response headers and content directly without json parsing', async () => {
+    const csvData = 'ID,Name\n1,Test';
+    const mockHeaders = new Map([
+      ['content-type', 'text/csv; charset=utf-8'],
+      ['content-disposition', 'attachment; filename="users.csv"'],
+    ]);
+
+    global.fetch = jest.fn().mockResolvedValue({
+      status: 200,
+      headers: mockHeaders,
+      text: async () => csvData,
+    });
+
+    const request = new NextRequest('http://localhost:3000/api/v1/users/export?format=csv', {
+      method: 'GET',
+    });
+
+    const response = await GET(request, {
+      params: Promise.resolve({ path: ['users', 'export'] }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/csv');
+    expect(response.headers.get('content-disposition')).toBe('attachment; filename="users.csv"');
+    const text = await response.text();
+    expect(text).toBe(csvData);
+  });
 });

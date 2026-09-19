@@ -155,7 +155,7 @@ export const ViewUserDrawer = memo(function ViewUserDrawer({
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
                 {USERS_CONSTANTS.viewDrawer.joinedLabel}
               </span>
-              <p className="text-sm font-semibold text-slate-800 px-1">
+              <p className="text-sm font-semibold text-slate-800 px-1" suppressHydrationWarning>
                 {user.createdAt
                   ? formatDate(user.createdAt)
                   : USERS_CONSTANTS.viewDrawer.notAvailable}

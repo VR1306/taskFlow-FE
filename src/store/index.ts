@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './slices/authSlice';
 import uiReducer from './slices/uiSlice';
 import usersReducer from './slices/usersSlice';
+import rolesReducer from './slices/rolesSlice';
 
 export const makeStore = () => {
   return configureStore({
@@ -9,6 +10,7 @@ export const makeStore = () => {
       auth: authReducer,
       ui: uiReducer,
       users: usersReducer,
+      roles: rolesReducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
@@ -27,4 +29,5 @@ export * from './hooks';
 export * from './slices/authSlice';
 export * from './slices/uiSlice';
 export * from './slices/usersSlice';
+export * from './slices/rolesSlice';
 export * from './StoreProvider';

@@ -6,6 +6,7 @@ import Sidebar from './Sidebar';
 import authReducer from '@/store/slices/authSlice';
 import uiReducer from '@/store/slices/uiSlice';
 import usersReducer from '@/store/slices/usersSlice';
+import rolesReducer from '@/store/slices/rolesSlice';
 
 jest.mock('next/navigation', () => ({
   usePathname: () => '/users',
@@ -17,8 +18,26 @@ const createMockStore = (initialState = {}) => {
       auth: authReducer,
       ui: uiReducer,
       users: usersReducer,
+      roles: rolesReducer,
     },
-    preloadedState: initialState,
+    preloadedState: {
+      auth: {
+        user: {
+          id: '123',
+          email: 'admin@taskflow.dev',
+          firstName: 'Admin',
+          lastName: 'User',
+          role: 'Admin',
+          permissions: ['*'],
+        },
+        isAuthenticated: true,
+        isLogoutModalOpen: false,
+        isLoggingOut: false,
+        isChangePasswordModalOpen: false,
+        rememberMe: false,
+      },
+      ...initialState,
+    },
   });
 };
 
@@ -27,7 +46,7 @@ describe('Sidebar Component', () => {
     localStorage.clear();
   });
 
-  it('renders branding and module navigation links', () => {
+  it('renders branding and module navigation links including Role Management for admin', () => {
     const store = createMockStore();
     render(
       <Provider store={store}>
@@ -38,6 +57,41 @@ describe('Sidebar Component', () => {
     expect(screen.getByText('TaskFlow')).toBeInTheDocument();
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('User Management')).toBeInTheDocument();
+    expect(screen.getByText('Role Management')).toBeInTheDocument();
+  });
+
+  it('hides permission-gated links when user lacks required permission', () => {
+    const store = createMockStore({
+      auth: {
+        user: {
+          id: 'guest-1',
+          email: 'guest@example.com',
+          firstName: 'Guest',
+          lastName: 'User',
+          role: 'Guest',
+          permissions: ['users.view'],
+        },
+        token: 'mock-token',
+        refreshToken: 'mock-refresh',
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+        isLogoutModalOpen: false,
+        isChangePasswordModalOpen: false,
+        isChangePasswordLoading: false,
+        changePasswordError: null,
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Sidebar />
+      </Provider>
+    );
+
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('User Management')).toBeInTheDocument();
+    expect(screen.queryByText('Role Management')).not.toBeInTheDocument();
   });
 
   it('handles desktop collapse toggle button', () => {

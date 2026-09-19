@@ -14,3 +14,5 @@ export * from './Table';
 export * from './FilterDrawer';
 export * from './EmptyState';
 export * from './OfflineBanner';
+export * from './ExportButton';
+export * from './ActionsMenu';

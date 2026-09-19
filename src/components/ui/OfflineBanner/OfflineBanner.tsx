@@ -2,6 +2,7 @@
 
 import React, { memo, useState, useEffect, useCallback } from 'react';
 import { Image, Button } from '@/components/ui';
+import { useMounted } from '@/helpers';
 import { ERROR_PAGES_CONSTANTS } from '@/constants';
 
 export interface OfflineBannerProps {
@@ -15,12 +16,10 @@ export const OfflineBanner = memo(function OfflineBanner({
 }: OfflineBannerProps) {
   const [isOnline, setIsOnline] = useState(true);
   const [showRestoredNotice, setShowRestoredNotice] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const [isChecking, setIsChecking] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-
     const handleOnline = () => {
       setIsOnline(true);
       setShowRestoredNotice(true);

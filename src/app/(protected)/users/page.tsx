@@ -10,6 +10,7 @@ import {
   ConfirmationModal,
   Table,
   TableColumn,
+  ExportButton,
 } from '@/components/ui';
 import {
   UserActionsMenu,
@@ -18,8 +19,16 @@ import {
   EditUserDrawer,
   UserFilterDrawer,
 } from '@/components/users';
-import { getRoleBadgeClass, useDebounce } from '@/helpers';
+import {
+  getRoleBadgeClass,
+  useDebounce,
+  exportToCsv,
+  exportToJson,
+  formatDate,
+  ExportColumn,
+} from '@/helpers';
 import { USERS_CONSTANTS } from '@/constants';
+import { apiClient } from '@/services';
 import {
   useAppDispatch,
   useAppSelector,
@@ -32,6 +41,7 @@ import {
   deleteUserThunk,
   UserRecord,
   UserFilters,
+  UsersApiResponse,
 } from '@/store';
 
 export default function UsersPage() {
@@ -224,6 +234,91 @@ export default function UsersPage() {
   const users = useMemo(() => {
     return cachedPages[cacheKey]?.data || [];
   }, [cachedPages, cacheKey]);
+
+  // Export columns and handlers
+  const userExportColumns: ExportColumn<UserRecord>[] = useMemo(
+    () => [
+      {
+        header: 'User ID',
+        accessor: (u: UserRecord) => u.userId || (u._id ? String(u._id) : 'N/A'),
+      },
+      { header: 'First Name', accessor: (u: UserRecord) => u.firstName || '' },
+      { header: 'Last Name', accessor: (u: UserRecord) => u.lastName || '' },
+      {
+        header: 'Full Name',
+        accessor: (u: UserRecord) => `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+      },
+      { header: 'Email', accessor: (u: UserRecord) => u.email || '' },
+      { header: 'Role', accessor: (u: UserRecord) => u.role || 'User' },
+      {
+        header: 'Status',
+        accessor: (u: UserRecord) => (u.isActive !== false ? 'Active' : 'Inactive'),
+      },
+      {
+        header: 'Joined Date',
+        accessor: (u: UserRecord) => (u.createdAt ? formatDate(u.createdAt) : 'N/A'),
+      },
+    ],
+    []
+  );
+
+  const formatUserForJson = useCallback(
+    (u: UserRecord) => ({
+      userId: u.userId || (u._id ? String(u._id) : 'N/A'),
+      firstName: u.firstName || '',
+      lastName: u.lastName || '',
+      fullName: `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+      email: u.email || '',
+      role: u.role || 'User',
+      status: u.isActive !== false ? 'Active' : 'Inactive',
+      joinedDate: u.createdAt ? formatDate(u.createdAt) : 'N/A',
+    }),
+    []
+  );
+
+  const [isExporting, setIsExporting] = useState(false);
+
+  const fetchAllMatchingUsers = useCallback(async (): Promise<UserRecord[]> => {
+    try {
+      const queryParams = new URLSearchParams({
+        page: '1',
+        limit: '1000',
+      });
+      if (debouncedSearch) queryParams.set('search', debouncedSearch);
+      if (filters.role && filters.role !== 'all') queryParams.set('role', filters.role);
+      if (filters.status && filters.status !== 'all') queryParams.set('status', filters.status);
+
+      const response = await apiClient.get<UsersApiResponse>(
+        `/users/getAllUsers?${queryParams.toString()}`
+      );
+      if (response?.data && response.data.length > 0) {
+        return response.data;
+      }
+    } catch {
+      // Fallback to currently loaded users in store
+    }
+    return users;
+  }, [debouncedSearch, filters.role, filters.status, users]);
+
+  const handleExportCsv = useCallback(async () => {
+    try {
+      setIsExporting(true);
+      const allUsers = await fetchAllMatchingUsers();
+      exportToCsv(allUsers, 'taskflow-users-export', userExportColumns);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [fetchAllMatchingUsers, userExportColumns]);
+
+  const handleExportJson = useCallback(async () => {
+    try {
+      setIsExporting(true);
+      const allUsers = await fetchAllMatchingUsers();
+      exportToJson(allUsers, 'taskflow-users-export', formatUserForJson);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [fetchAllMatchingUsers, formatUserForJson]);
 
   // 7. Generic Table Columns Definition
   const columns: TableColumn<UserRecord>[] = useMemo(
@@ -439,31 +534,41 @@ export default function UsersPage() {
               )}
             </div>
 
-            {/* Filter Button with active count badge */}
-            <button
-              type="button"
-              onClick={handleOpenFilterDrawer}
-              aria-label={USERS_CONSTANTS.filterAriaLabel}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border transition-all duration-200 cursor-pointer shrink-0 ${
-                activeFilterCount > 0
-                  ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100/80 shadow-2xs'
-                  : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:border-slate-300 shadow-2xs'
-              }`}
-            >
-              <Image
-                src="/icons/filter.svg"
-                alt=""
-                width={15}
-                height={15}
-                className={activeFilterCount > 0 ? 'text-blue-600' : 'opacity-70'}
+            {/* Filter & Export Controls */}
+            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+              <ExportButton
+                onExportCsv={handleExportCsv}
+                onExportJson={handleExportJson}
+                disabled={users.length === 0}
+                isLoading={isExporting}
               />
-              <span>{USERS_CONSTANTS.filterButtonText}</span>
-              {activeFilterCount > 0 && (
-                <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-bold text-white bg-blue-600 rounded-full animate-in zoom-in-95 duration-150">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleOpenFilterDrawer}
+                aria-label={USERS_CONSTANTS.filterAriaLabel}
+                className={`text-xs sm:text-sm font-semibold h-10 px-3.5 gap-2 border-slate-200/90 ${
+                  activeFilterCount > 0
+                    ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100/80 shadow-2xs'
+                    : 'text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <Image
+                  src="/icons/filter.svg"
+                  alt=""
+                  width={15}
+                  height={15}
+                  className={activeFilterCount > 0 ? 'text-blue-600' : 'opacity-70'}
+                />
+                <span>{USERS_CONSTANTS.filterButtonText}</span>
+                {activeFilterCount > 0 && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[11px] font-bold text-white shadow-2xs">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
 

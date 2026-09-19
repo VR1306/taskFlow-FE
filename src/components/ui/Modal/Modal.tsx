@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useCallback, memo } from 'react';
+import React, { memo } from 'react';
 import { Image } from '@/components/ui';
+import { useDialogDismiss } from '@/helpers';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -29,27 +30,7 @@ export const Modal = memo(function Modal({
   maxWidth = 'md',
   showCloseButton = true,
 }: ModalProps) {
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    },
-    [isOpen, onClose]
-  );
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleKeyDown);
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, handleKeyDown]);
+  useDialogDismiss(isOpen, onClose);
 
   if (!isOpen) return null;
 

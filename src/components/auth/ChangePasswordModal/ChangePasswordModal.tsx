@@ -8,42 +8,13 @@ import { Modal, Input, Button, Image } from '@/components/ui';
 import { CHANGE_PASSWORD_CONSTANTS } from '@/constants';
 import { authService } from '@/services/auth';
 import { ApiError } from '@/services/api';
+import { PasswordToggle } from '@/components/auth/PasswordToggle';
 
 export interface ChangePasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
 }
-
-interface PasswordToggleProps {
-  isVisible: boolean;
-  onToggle: () => void;
-  showLabel: string;
-  hideLabel: string;
-}
-
-const PasswordToggle: React.FC<Readonly<PasswordToggleProps>> = ({
-  isVisible,
-  onToggle,
-  showLabel,
-  hideLabel,
-}) => (
-  <button
-    type="button"
-    onMouseDown={(e) => e.preventDefault()}
-    onClick={onToggle}
-    className="flex items-center justify-center p-1.5 text-slate-400 hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg transition-colors cursor-pointer"
-    aria-label={isVisible ? hideLabel : showLabel}
-  >
-    <Image
-      key={isVisible ? 'eye-off' : 'eye'}
-      src={isVisible ? '/icons/eye-off.svg' : '/icons/eye.svg'}
-      alt={isVisible ? hideLabel : showLabel}
-      width={18}
-      height={18}
-    />
-  </button>
-);
 
 const extractErrorDetails = (err: unknown): string => {
   if (err instanceof ApiError) {

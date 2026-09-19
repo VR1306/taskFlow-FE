@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo, useMemo, useCallback, useState, useEffect } from 'react';
+import React, { memo, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Image, Badge, Avatar } from '@/components/ui';
@@ -11,13 +11,14 @@ import {
   setMobileSidebarOpen,
   openLogoutModal,
 } from '@/store';
-import { useCurrentUser } from '@/helpers';
+import { useCurrentUser, hasPermission, useMounted } from '@/helpers';
 
 export interface NavItem {
   name: string;
   href: string;
   icon: string;
   badge?: string;
+  requiredPermission?: string | string[];
 }
 
 const navItems: NavItem[] = [
@@ -30,6 +31,13 @@ const navItems: NavItem[] = [
     name: 'User Management',
     href: '/users',
     icon: '/icons/users.svg',
+    requiredPermission: ['users.view', '*'],
+  },
+  {
+    name: 'Role Management',
+    href: '/roles',
+    icon: '/icons/shield-check.svg',
+    requiredPermission: ['roles.view', '*'],
   },
 ];
 
@@ -120,11 +128,7 @@ export const Sidebar = memo(function Sidebar() {
   const reduxUser = useAppSelector((state) => state.auth.user);
   const storageUser = useCurrentUser();
   const currentUser = reduxUser || storageUser;
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   const handleToggleCollapse = useCallback(() => {
     dispatch(toggleSidebar());
@@ -156,6 +160,14 @@ export const Sidebar = memo(function Sidebar() {
         return 'default';
     }
   }, [currentUser?.role]);
+
+  const visibleNavItems = useMemo(() => {
+    return navItems.filter((item) => {
+      if (!item.requiredPermission) return true;
+      if (!mounted) return true;
+      return hasPermission(currentUser, item.requiredPermission);
+    });
+  }, [currentUser, mounted]);
 
   return (
     <>
@@ -242,7 +254,7 @@ export const Sidebar = memo(function Sidebar() {
           )}
 
           <nav className="space-y-1.5" aria-label="Sidebar Navigation">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const active = isItemActive(item.href);
               return (
                 <Link

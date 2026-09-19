@@ -3,3 +3,4 @@ export * from './LoginForm';
 export * from './ForgotPasswordForm';
 export * from './ResetPasswordForm';
 export * from './ChangePasswordModal';
+export * from './PasswordToggle';

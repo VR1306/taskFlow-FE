@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, memo } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { Image } from '@/components/ui/Image';
+import { useDialogDismiss } from '@/helpers';
 
 export interface DrawerProps {
   isOpen: boolean;
@@ -10,15 +11,16 @@ export interface DrawerProps {
   description?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  width?: 'sm' | 'md' | 'lg' | 'xl';
+  width?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   showCloseButton?: boolean;
 }
 
-const maxWidthMap: Record<'sm' | 'md' | 'lg' | 'xl', string> = {
+const maxWidthMap: Record<'sm' | 'md' | 'lg' | 'xl' | '2xl', string> = {
   sm: 'max-w-sm',
   md: 'max-w-md',
   lg: 'max-w-lg',
   xl: 'max-w-xl',
+  '2xl': 'max-w-2xl',
 };
 
 export const Drawer = memo(function Drawer({
@@ -51,27 +53,7 @@ export const Drawer = memo(function Drawer({
     }
   }, [isOpen]);
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    },
-    [isOpen, onClose]
-  );
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleKeyDown);
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, handleKeyDown]);
+  useDialogDismiss(isOpen, onClose);
 
   if (!isRendered && !isOpen) return null;
 

@@ -117,6 +117,7 @@ export const formatDate = (dateString?: string | Date): string => {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
+      timeZone: 'UTC',
     });
   } catch {
     return 'N/A';
