@@ -78,15 +78,15 @@ export const ExportButton = memo(function ExportButton({
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-label={`${label} options`}
-        className="text-xs sm:text-sm font-semibold h-10 px-3.5 gap-2 border-slate-200/90 text-slate-700 hover:bg-slate-50"
+        className="text-xs sm:text-sm font-semibold h-10 px-2.5 sm:px-3.5 gap-1.5 sm:gap-2 border-slate-200/90 text-slate-700 hover:bg-slate-50 shrink-0"
       >
-        <Image src="/icons/download.svg" alt="" width={15} height={15} />
-        <span>{label}</span>
+        <Image src="/icons/download.svg" alt="" width={14} height={14} />
+        <span className="hidden min-[380px]:inline">{label}</span>
         <Image
           src="/icons/chevron-right.svg"
           alt=""
-          width={12}
-          height={12}
+          width={11}
+          height={11}
           className={`rotate-90 transition-transform duration-200 ${isOpen ? 'rotate-270' : ''}`}
         />
       </Button>

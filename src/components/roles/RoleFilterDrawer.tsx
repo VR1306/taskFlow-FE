@@ -63,6 +63,7 @@ export const RoleFilterDrawer = memo(function RoleFilterDrawer({
       onClose={onClose}
       onApply={handleApply}
       onReset={handleReset}
+      activeFilterCount={(draftRoleType ? 1 : 0) + (draftStatus ? 1 : 0)}
       title={ROLES_CONSTANTS.filterDrawer.title}
       description={ROLES_CONSTANTS.filterDrawer.description}
       applyButtonText={ROLES_CONSTANTS.filterDrawer.applyButtonText}

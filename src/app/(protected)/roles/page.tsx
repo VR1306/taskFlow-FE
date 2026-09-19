@@ -483,9 +483,9 @@ export default function RolesPage() {
       {/* Main Table Card */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden transition-all duration-200">
         {/* Card Top Header: Title & Search/Filter Controls */}
-        <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-slate-50/40">
-          <div className="flex items-center gap-2">
-            <h2 className="text-xs sm:text-sm font-semibold text-slate-800">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-slate-50/40">
+          <div className="flex items-center justify-between md:justify-start gap-2">
+            <h2 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight">
               {ROLES_CONSTANTS.rolesCardTitle(totalItems > 0 ? totalItems : rolesList.length)}
             </h2>
             {isTableLoading && (
@@ -496,10 +496,10 @@ export default function RolesPage() {
             )}
           </div>
 
-          {/* Search & Filter Toolbar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+          {/* Search & Filter Toolbar: Single cohesive row on mobile */}
+          <div className="flex items-center gap-2 w-full md:w-auto">
             {/* Live Search Input with Instant Spinner */}
-            <div className="relative w-full sm:w-64 md:w-72 lg:w-80">
+            <div className="relative flex-1 min-w-0 md:w-64 lg:w-80">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                 {isSearching ? (
                   <div className="h-4 w-4 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
@@ -507,8 +507,8 @@ export default function RolesPage() {
                   <Image
                     src="/icons/search.svg"
                     alt=""
-                    width={15}
-                    height={15}
+                    width={14}
+                    height={14}
                     className="opacity-50"
                   />
                 )}
@@ -518,49 +518,54 @@ export default function RolesPage() {
                 value={searchTerm}
                 onChange={handleSearchChange}
                 placeholder={ROLES_CONSTANTS.searchPlaceholder}
-                className="w-full rounded-xl border border-slate-200/90 bg-white py-2 pl-9 pr-8 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 shadow-2xs transition-all duration-200 focus:border-blue-600 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/15 hover:border-slate-300"
+                className="w-full rounded-xl border border-slate-200/90 bg-white py-2 pl-8.5 sm:pl-9 pr-7 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 shadow-2xs transition-all duration-200 focus:border-blue-600 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/15 hover:border-slate-300 h-10"
               />
               {searchTerm && (
                 <button
                   type="button"
                   onClick={handleClearSearch}
                   aria-label="Clear search"
-                  className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer transition-colors"
+                  className="absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400 hover:text-slate-600 cursor-pointer transition-colors"
                 >
-                  <Image src="/icons/close.svg" alt="Clear" width={14} height={14} />
+                  <Image src="/icons/close.svg" alt="Clear" width={13} height={13} />
                 </button>
               )}
             </div>
 
-            {/* Filter & Export Controls */}
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start shrink-0">
-              <ExportButton
-                onExportCsv={handleExportCsv}
-                onExportJson={handleExportJson}
-                disabled={rolesList.length === 0}
-                isLoading={isExporting}
-                className="flex-1 sm:flex-none justify-center"
-              />
+            {/* Export Button */}
+            <ExportButton
+              onExportCsv={handleExportCsv}
+              onExportJson={handleExportJson}
+              disabled={rolesList.length === 0}
+              isLoading={isExporting}
+              className="shrink-0"
+            />
 
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsFilterDrawerOpen(true)}
-                className={`flex-1 sm:flex-none justify-center text-xs sm:text-sm font-semibold h-10 px-3.5 gap-2 border-slate-200/90 ${
-                  activeFilterCount > 0
-                    ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100/80 shadow-2xs'
-                    : 'text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                <Image src="/icons/filter.svg" alt="" width={15} height={15} />
-                <span>Filter</span>
-                {activeFilterCount > 0 && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[11px] font-bold text-white shadow-2xs">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </Button>
-            </div>
+            {/* Filter Button */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsFilterDrawerOpen(true)}
+              className={`shrink-0 text-xs sm:text-sm font-semibold h-10 px-2.5 sm:px-3.5 gap-1.5 sm:gap-2 border-slate-200/90 ${
+                activeFilterCount > 0
+                  ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100/80 shadow-2xs'
+                  : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <Image
+                src="/icons/filter.svg"
+                alt=""
+                width={14}
+                height={14}
+                className={activeFilterCount > 0 ? 'text-blue-600' : 'opacity-70'}
+              />
+              <span className="hidden min-[380px]:inline">Filter</span>
+              {activeFilterCount > 0 && (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white shadow-2xs">
+                  {activeFilterCount}
+                </span>
+              )}
+            </Button>
           </div>
         </div>
 
