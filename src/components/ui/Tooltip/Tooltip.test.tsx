@@ -83,22 +83,19 @@ describe('Tooltip Component', () => {
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 
-  it('renders different positions correctly', () => {
-    const { rerender } = render(
-      <Tooltip content="Bottom tip" position="bottom">
+  it('renders portal in document.body with fixed positioning', () => {
+    render(
+      <Tooltip content="Portal tip" position="bottom">
         <button type="button">Position test</button>
       </Tooltip>
     );
 
     const button = screen.getByRole('button', { name: 'Position test' });
     fireEvent.mouseEnter(button);
-    expect(screen.getByRole('tooltip')).toHaveClass('top-full');
 
-    rerender(
-      <Tooltip content="Left tip" position="left">
-        <button type="button">Position test</button>
-      </Tooltip>
-    );
-    expect(screen.getByRole('tooltip')).toHaveClass('right-full');
+    const tooltip = screen.getByRole('tooltip');
+    expect(tooltip).toBeInTheDocument();
+    expect(tooltip).toHaveClass('fixed');
+    expect(tooltip).toHaveClass('z-[9999]');
   });
 });

@@ -198,7 +198,11 @@ const buildRoleTableColumns = ({
             )}
           </div>
           {Boolean(roleDesc) && (
-            <Tooltip content={roleDesc} maxWidth="max-w-md">
+            <Tooltip
+              content={roleDesc}
+              maxWidth="max-w-md"
+              triggerClassName="block w-full min-w-0 max-w-full"
+            >
               <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 leading-relaxed truncate cursor-default">
                 {roleDesc}
               </p>
