@@ -362,4 +362,36 @@ describe('RolesPage Component', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('renders tooltips for role name, description, and permissions with ellipses', async () => {
+    const store = createMockStore();
+
+    render(
+      <Provider store={store}>
+        <RolesPage />
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Project Manager')).toBeInTheDocument();
+    });
+
+    // Check description with ellipsis line clamp
+    const descriptionElement = screen.getByText('Oversees development sprint cycles');
+    expect(descriptionElement).toBeInTheDocument();
+    expect(descriptionElement).toHaveClass('line-clamp-1');
+    expect(descriptionElement).toHaveClass('truncate');
+
+    // Hover over description to trigger tooltip
+    fireEvent.mouseEnter(descriptionElement);
+    const tooltips = screen.getAllByRole('tooltip');
+    expect(tooltips.length).toBeGreaterThan(0);
+    const matchingDescriptions = screen.getAllByText('Oversees development sprint cycles');
+    expect(matchingDescriptions).toHaveLength(2);
+
+    // Hover over permissions count badge
+    const permBadge = screen.getByText('2 granted');
+    fireEvent.mouseEnter(permBadge);
+    expect(screen.getByText('Granted permissions (2): users.view, roles.view')).toBeInTheDocument();
+  });
 });

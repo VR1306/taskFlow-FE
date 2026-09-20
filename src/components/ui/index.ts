@@ -16,3 +16,4 @@ export * from './EmptyState';
 export * from './OfflineBanner';
 export * from './ExportButton';
 export * from './ActionsMenu';
+export * from './Tooltip';
