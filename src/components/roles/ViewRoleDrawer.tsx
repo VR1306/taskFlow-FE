@@ -48,7 +48,7 @@ export const ViewRoleDrawer = memo(function ViewRoleDrawer({
       onClose={onClose}
       title={ROLES_CONSTANTS.viewDrawer.title}
       description={ROLES_CONSTANTS.viewDrawer.description}
-      width="2xl"
+      width="xl"
       footer={
         <div className="flex w-full items-center justify-end gap-3">
           <Button

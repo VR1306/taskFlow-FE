@@ -16,11 +16,11 @@ export interface DrawerProps {
 }
 
 const maxWidthMap: Record<'sm' | 'md' | 'lg' | 'xl' | '2xl', string> = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-xl',
-  '2xl': 'max-w-2xl',
+  sm: 'sm:max-w-sm',
+  md: 'sm:max-w-md',
+  lg: 'sm:max-w-lg',
+  xl: 'sm:max-w-xl',
+  '2xl': 'sm:max-w-2xl',
 };
 
 export const Drawer = memo(function Drawer({
@@ -82,7 +82,7 @@ export const Drawer = memo(function Drawer({
       <div className="fixed inset-y-0 right-0 flex max-w-full pl-0 sm:pl-10">
         <aside
           data-testid="drawer-panel"
-          className={`w-screen max-w-full sm:${maxWidthMap[width]} bg-white shadow-2xl flex flex-col h-full overflow-hidden border-l border-slate-200/80 transform transition-transform duration-300 ease-in-out ${
+          className={`w-screen max-w-full ${maxWidthMap[width]} bg-white shadow-2xl flex flex-col h-full overflow-hidden border-l border-slate-200/80 transform transition-transform duration-300 ease-in-out ${
             isAnimated ? 'translate-x-0' : 'translate-x-full'
           }`}
         >

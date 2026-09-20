@@ -80,7 +80,7 @@ export const EditRoleDrawer = memo(function EditRoleDrawer({
       onClose={onClose}
       title={ROLES_CONSTANTS.editDrawer.title}
       description={ROLES_CONSTANTS.editDrawer.description}
-      width="2xl"
+      width="xl"
       footer={
         <RoleDrawerFooter
           onClose={onClose}
