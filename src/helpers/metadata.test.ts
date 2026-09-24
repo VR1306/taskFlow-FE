@@ -52,3 +52,30 @@ describe('constructMetadata Helper', () => {
     });
   });
 });
+
+it('publishes a canonical URL and custom social image', () => {
+  const metadata = constructMetadata({
+    title: 'Projects',
+    canonicalUrl: 'https://example.com/projects',
+    image: '/projects.png',
+    keywords: ['projects'],
+  });
+  expect(metadata.alternates).toEqual({ canonical: 'https://example.com/projects' });
+  expect(metadata.openGraph).toMatchObject({
+    url: 'https://example.com/projects',
+    images: [{ url: '/projects.png' }],
+  });
+  expect(metadata.keywords).toEqual(['projects']);
+});
+
+it('uses the local metadata base when the site URL is empty', () => {
+  const originalUrl = SITE_CONFIG.siteUrl;
+  SITE_CONFIG.siteUrl = '';
+  try {
+    expect(constructMetadata({ title: 'Preview' }).metadataBase?.toString()).toBe(
+      'http://localhost:3000/'
+    );
+  } finally {
+    SITE_CONFIG.siteUrl = originalUrl;
+  }
+});

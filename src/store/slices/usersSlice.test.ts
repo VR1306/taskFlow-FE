@@ -308,4 +308,58 @@ describe('usersSlice Redux Reducer & Async Thunks', () => {
     expect(result.type).toBe('users/deleteUser/fulfilled');
     expect(apiClient.delete).toHaveBeenCalledWith('/users/deleteUser/usr-1');
   });
+  it.each([new Error('Offline'), null])(
+    'createUserThunk propagates request failures: %j',
+    async (error) => {
+      jest.mocked(apiClient.post).mockRejectedValue(error);
+      const dispatch = jest.fn();
+      const result = await createUserThunk({
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        email: 'ada@example.com',
+        role: 'Developer',
+      })(dispatch, () => ({ users: initialUsersState }), undefined);
+      expect(result.payload).toBe(error instanceof Error ? 'Offline' : 'Failed to create user');
+      let state = initialUsersState;
+      for (const [action] of dispatch.mock.calls) state = usersReducer(state, action);
+      expect(state.isActionLoading).toBe(false);
+      expect(state.error).toBe(error instanceof Error ? 'Offline' : 'Failed to create user');
+    }
+  );
+
+  it.each([new Error('Offline'), null])(
+    'updateUserThunk propagates request failures: %j',
+    async (error) => {
+      jest.mocked(apiClient.put).mockRejectedValue(error);
+      const dispatch = jest.fn();
+      const result = await updateUserThunk({ id: 'user-1' })(
+        dispatch,
+        () => ({ users: initialUsersState }),
+        undefined
+      );
+      expect(result.payload).toBe(error instanceof Error ? 'Offline' : 'Failed to update user');
+      let state = initialUsersState;
+      for (const [action] of dispatch.mock.calls) state = usersReducer(state, action);
+      expect(state.isActionLoading).toBe(false);
+      expect(state.error).toBe(error instanceof Error ? 'Offline' : 'Failed to update user');
+    }
+  );
+
+  it.each([new Error('Offline'), null])(
+    'deleteUserThunk propagates request failures: %j',
+    async (error) => {
+      jest.mocked(apiClient.delete).mockRejectedValue(error);
+      const dispatch = jest.fn();
+      const result = await deleteUserThunk('user-1')(
+        dispatch,
+        () => ({ users: initialUsersState }),
+        undefined
+      );
+      expect(result.payload).toBe(error instanceof Error ? 'Offline' : 'Failed to delete user');
+      let state = initialUsersState;
+      for (const [action] of dispatch.mock.calls) state = usersReducer(state, action);
+      expect(state.isActionLoading).toBe(false);
+      expect(state.error).toBe(error instanceof Error ? 'Offline' : 'Failed to delete user');
+    }
+  );
 });

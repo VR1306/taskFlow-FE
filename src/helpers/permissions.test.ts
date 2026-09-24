@@ -14,22 +14,16 @@ describe('Permissions Helper & Hooks', () => {
       expect(hasPermission(undefined, 'users.view')).toBe(false);
     });
 
-    it('returns true for SuperAdmin role unconditionally', () => {
-      const superAdminUser: AuthUser = {
+    it('returns true for Taskflow Admin role unconditionally', () => {
+      const taskflowAdminUser: AuthUser = {
         id: '1',
         email: 'super@example.com',
-        firstName: 'Super',
+        firstName: 'Taskflow',
         lastName: 'Admin',
-        role: 'SuperAdmin',
+        role: 'Taskflow Admin',
         permissions: [],
       };
-      expect(hasPermission(superAdminUser, 'any.permission')).toBe(true);
-
-      const superAdminSpaced: AuthUser = {
-        ...superAdminUser,
-        role: 'Super Admin',
-      };
-      expect(hasPermission(superAdminSpaced, 'any.permission')).toBe(true);
+      expect(hasPermission(taskflowAdminUser, 'any.permission')).toBe(true);
     });
 
     it('returns true if user has universal wildcard permission "*"', () => {
@@ -38,22 +32,22 @@ describe('Permissions Helper & Hooks', () => {
         email: 'wild@example.com',
         firstName: 'Wild',
         lastName: 'Card',
-        role: 'Manager',
+        role: 'Developer',
         permissions: ['*'],
       };
       expect(hasPermission(wildcardUser, 'tasks.delete')).toBe(true);
     });
 
-    it('returns true for Admin role by default', () => {
-      const adminUser: AuthUser = {
+    it('returns true for Project Manager role by default', () => {
+      const projectManagerUser: AuthUser = {
         id: '3',
-        email: 'admin@example.com',
-        firstName: 'System',
-        lastName: 'Admin',
-        role: 'Admin',
+        email: 'pm@example.com',
+        firstName: 'Project',
+        lastName: 'Manager',
+        role: 'Project Manager',
         permissions: [],
       };
-      expect(hasPermission(adminUser, 'users.create')).toBe(true);
+      expect(hasPermission(projectManagerUser, 'users.create')).toBe(true);
     });
 
     it('checks specific single permission string for custom user', () => {
@@ -81,6 +75,30 @@ describe('Permissions Helper & Hooks', () => {
       };
       expect(hasPermission(customUser, ['users.edit', 'users.view'])).toBe(true);
       expect(hasPermission(customUser, ['users.create', 'users.delete'])).toBe(false);
+    });
+
+    it('treats a missing permissions array as empty for a non-admin user', () => {
+      const userWithoutPermissions: AuthUser = {
+        id: '6',
+        email: 'noperm@example.com',
+        firstName: 'No',
+        lastName: 'Perm',
+        role: 'Custom',
+      };
+      expect(hasPermission(userWithoutPermissions, 'users.view')).toBe(false);
+    });
+
+    it('allows Project Manager to use permissions outside the default set when explicitly granted', () => {
+      const projectManagerWithExtra: AuthUser = {
+        id: '7',
+        email: 'pm2@example.com',
+        firstName: 'PM',
+        lastName: 'Two',
+        role: 'Project Manager',
+        permissions: ['custom.special'],
+      };
+      expect(hasPermission(projectManagerWithExtra, 'custom.special')).toBe(true);
+      expect(hasPermission(projectManagerWithExtra, 'another.missing')).toBe(false);
     });
   });
 
@@ -115,25 +133,20 @@ describe('Permissions Helper & Hooks', () => {
   });
 
   describe('getRoleTypeBadgeVariant()', () => {
-    it('returns purple for SuperAdmin / Super Admin', () => {
-      expect(getRoleTypeBadgeVariant('SuperAdmin')).toBe('purple');
-      expect(getRoleTypeBadgeVariant('Super Admin')).toBe('purple');
+    it('returns purple for Taskflow Admin', () => {
+      expect(getRoleTypeBadgeVariant('Taskflow Admin')).toBe('purple');
     });
 
-    it('returns primary for Admin', () => {
-      expect(getRoleTypeBadgeVariant('Admin')).toBe('primary');
+    it('returns primary for Project Manager', () => {
+      expect(getRoleTypeBadgeVariant('Project Manager')).toBe('primary');
     });
 
-    it('returns warning for Manager', () => {
-      expect(getRoleTypeBadgeVariant('Manager')).toBe('warning');
+    it('returns success for Developer', () => {
+      expect(getRoleTypeBadgeVariant('Developer')).toBe('success');
     });
 
-    it('returns success for User', () => {
-      expect(getRoleTypeBadgeVariant('User')).toBe('success');
-    });
-
-    it('returns default for Guest', () => {
-      expect(getRoleTypeBadgeVariant('Guest')).toBe('default');
+    it('returns warning for QA', () => {
+      expect(getRoleTypeBadgeVariant('QA')).toBe('warning');
     });
 
     it('returns primary for Custom or fallback', () => {

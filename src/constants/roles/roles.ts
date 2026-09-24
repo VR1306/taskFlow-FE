@@ -12,11 +12,10 @@ export const ROLES_CONSTANTS = {
     'You do not have permission to view or manage organizational roles. Please contact a workspace administrator.',
 
   roleTypeOptions: [
-    { value: 'Super Admin', label: 'Super Admin' },
-    { value: 'Admin', label: 'Admin' },
-    { value: 'Manager', label: 'Manager' },
-    { value: 'User', label: 'User' },
-    { value: 'Guest', label: 'Guest' },
+    { value: 'Taskflow Admin', label: 'Taskflow Admin' },
+    { value: 'Project Manager', label: 'Project Manager' },
+    { value: 'Developer', label: 'Developer' },
+    { value: 'QA', label: 'QA' },
     { value: 'Custom', label: 'Custom' },
   ],
 
@@ -67,7 +66,7 @@ export const ROLES_CONSTANTS = {
     roleTypeLabel: 'Role Type',
     roleTypePlaceholder: 'All Role Types',
     statusLabel: 'Role Status',
-    statusPlaceholder: 'All Statuses',
+    statusPlaceholder: 'All Status',
     applyButtonText: 'Apply Filters',
     resetButtonText: 'Reset Filters',
   },

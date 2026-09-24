@@ -4,6 +4,9 @@ import uiReducer from './slices/uiSlice';
 import usersReducer from './slices/usersSlice';
 import rolesReducer from './slices/rolesSlice';
 import dashboardReducer from './slices/dashboardSlice';
+import notificationsReducer from './slices/notificationsSlice';
+import projectsReducer from './slices/projectsSlice';
+import tasksReducer from './slices/tasksSlice';
 
 export const makeStore = () => {
   return configureStore({
@@ -13,6 +16,9 @@ export const makeStore = () => {
       users: usersReducer,
       roles: rolesReducer,
       dashboard: dashboardReducer,
+      notifications: notificationsReducer,
+      projects: projectsReducer,
+      tasks: tasksReducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
@@ -33,4 +39,7 @@ export * from './slices/uiSlice';
 export * from './slices/usersSlice';
 export * from './slices/rolesSlice';
 export * from './slices/dashboardSlice';
+export * from './slices/notificationsSlice';
+export * from './slices/projectsSlice';
+export * from './slices/tasksSlice';
 export * from './StoreProvider';

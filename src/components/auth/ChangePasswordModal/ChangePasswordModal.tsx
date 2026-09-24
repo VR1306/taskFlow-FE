@@ -26,9 +26,6 @@ const extractErrorDetails = (err: unknown): string => {
       errorObj.message || errorObj.error || CHANGE_PASSWORD_CONSTANTS.errors.defaultSubmitError
     );
   }
-  if (err instanceof Error) {
-    return err.message;
-  }
   return CHANGE_PASSWORD_CONSTANTS.errors.defaultSubmitError;
 };
 
@@ -135,9 +132,7 @@ const ChangePasswordFormContent: React.FC<Readonly<ChangePasswordFormContentProp
               <Image src="/icons/check.svg" alt="Success" width={16} height={16} />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-bold text-emerald-900">
-                {successMessage || CHANGE_PASSWORD_CONSTANTS.successTitle}
-              </p>
+              <p className="text-sm font-bold text-emerald-900">{successMessage}</p>
               <p className="text-xs text-emerald-700 mt-1 leading-relaxed">
                 {CHANGE_PASSWORD_CONSTANTS.successSubtitle}
               </p>

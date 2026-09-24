@@ -78,7 +78,7 @@ export const ViewUserDrawer = memo(function ViewUserDrawer({
               </h3>
               <p className="text-xs text-slate-500 truncate mt-0.5 lowercase">{user.email}</p>
               <div className="mt-2 flex items-center gap-2">
-                <Badge variant={user.role === 'SuperAdmin' ? 'purple' : 'primary'}>
+                <Badge variant={user.role === 'Taskflow Admin' ? 'purple' : 'primary'}>
                   {user.role}
                 </Badge>
                 <span

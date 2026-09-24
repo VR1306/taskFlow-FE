@@ -174,6 +174,65 @@ describe('ForgotPasswordForm Component', () => {
     });
   });
 
+  it('displays the default error message when authService.forgotPassword rejects with a non-Error value', async () => {
+    (authService.forgotPassword as jest.Mock).mockRejectedValue('plain string rejection');
+
+    render(<ForgotPasswordForm />);
+
+    const emailInput = screen.getByPlaceholderText(FORGOT_PASSWORD_CONSTANTS.emailPlaceholder);
+    const submitBtn = screen.getByRole('button', {
+      name: FORGOT_PASSWORD_CONSTANTS.submitButtonText,
+    });
+
+    fireEvent.change(emailInput, { target: { value: 'notfound@taskflow.io' } });
+
+    await waitFor(() => {
+      expect(submitBtn).not.toBeDisabled();
+    });
+
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        FORGOT_PASSWORD_CONSTANTS.errors.defaultSubmitError
+      );
+    });
+  });
+
+  it('ignores a resend click while the cooldown timer is still active', async () => {
+    jest.useFakeTimers();
+    (authService.forgotPassword as jest.Mock).mockResolvedValue({
+      success: true,
+      message: 'Success',
+    });
+
+    render(<ForgotPasswordForm />);
+
+    const emailInput = screen.getByPlaceholderText(FORGOT_PASSWORD_CONSTANTS.emailPlaceholder);
+    const submitBtn = screen.getByRole('button', {
+      name: FORGOT_PASSWORD_CONSTANTS.submitButtonText,
+    });
+
+    fireEvent.change(emailInput, { target: { value: 'user@taskflow.io' } });
+    await waitFor(() => expect(submitBtn).not.toBeDisabled());
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(FORGOT_PASSWORD_CONSTANTS.successTitle)).toBeInTheDocument();
+    });
+
+    const resendBtn = screen.getByRole('button', {
+      name: `${FORGOT_PASSWORD_CONSTANTS.resendButtonText} (1:30)`,
+    });
+    expect(resendBtn).toBeDisabled();
+
+    // Attempting to trigger resend while still on cooldown must be a no-op
+    fireEvent.click(resendBtn);
+    expect(authService.forgotPassword).toHaveBeenCalledTimes(1);
+
+    jest.useRealTimers();
+  });
+
   it('allows returning to form and changing email when clicking "Try with a different email address"', async () => {
     (authService.forgotPassword as jest.Mock).mockResolvedValue({
       success: true,
@@ -207,5 +266,54 @@ describe('ForgotPasswordForm Component', () => {
       );
       expect(updatedEmailInput).toHaveValue('user@taskflow.io');
     });
+  });
+
+  it.each([
+    { error: new Error('Resend network failure'), message: 'Resend network failure' },
+    {
+      error: 'plain string rejection',
+      message: FORGOT_PASSWORD_CONSTANTS.errors.defaultResendError,
+    },
+  ])('displays a server error alert when resend fails: $message', async ({ error, message }) => {
+    jest.useFakeTimers();
+    (authService.forgotPassword as jest.Mock)
+      .mockResolvedValueOnce({ success: true, message: 'Success' })
+      .mockRejectedValueOnce(error);
+
+    render(<ForgotPasswordForm />);
+
+    const emailInput = screen.getByPlaceholderText(FORGOT_PASSWORD_CONSTANTS.emailPlaceholder);
+    const submitBtn = screen.getByRole('button', {
+      name: FORGOT_PASSWORD_CONSTANTS.submitButtonText,
+    });
+
+    fireEvent.change(emailInput, { target: { value: 'user@taskflow.io' } });
+
+    await waitFor(() => {
+      expect(submitBtn).not.toBeDisabled();
+    });
+
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(FORGOT_PASSWORD_CONSTANTS.successTitle)).toBeInTheDocument();
+    });
+
+    // Advance well past the cooldown (overshooting so the interval tick also
+    // exercises the already-at-zero branch) so the resend button becomes enabled
+    act(() => {
+      jest.advanceTimersByTime(95000);
+    });
+
+    const resendBtn = screen.getByRole('button', {
+      name: FORGOT_PASSWORD_CONSTANTS.resendButtonText,
+    });
+    fireEvent.click(resendBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(message);
+    });
+
+    jest.useRealTimers();
   });
 });

@@ -46,6 +46,7 @@ import {
 
 export default function UsersPage() {
   const dispatch = useAppDispatch();
+
   const {
     cachedPages,
     currentPage,
@@ -224,8 +225,7 @@ export default function UsersPage() {
   }, []);
 
   const handleConfirmDelete = useCallback(async () => {
-    if (!selectedUserForDelete) return;
-    await dispatch(deleteUserThunk(selectedUserForDelete._id));
+    await dispatch(deleteUserThunk(selectedUserForDelete!._id));
     setSelectedUserForDelete(null);
   }, [dispatch, selectedUserForDelete]);
 
@@ -425,7 +425,7 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header section with modern Title and sleek '+ Create User' button */}
+      {/* Header section with modern Title and sleek action button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">

@@ -30,9 +30,7 @@ function computeArcSlice(
   index: number,
   startAngle: number,
   endAngle: number,
-  center: number,
-  radius: number,
-  innerRadius: number,
+  { center, radius, innerRadius }: { center: number; radius: number; innerRadius: number },
   total: number
 ): ComputedSlice {
   const sliceAngle = endAngle - startAngle;
@@ -101,7 +99,9 @@ function buildSlices(
     const endAngle = currentAngle + sliceAngle;
     currentAngle = endAngle;
 
-    slices.push(computeArcSlice(item, i, startAngle, endAngle, center, radius, innerRadius, total));
+    slices.push(
+      computeArcSlice(item, i, startAngle, endAngle, { center, radius, innerRadius }, total)
+    );
   }
 
   return slices;

@@ -7,6 +7,8 @@ export interface DashboardSummary {
   customRoles: number;
   activeRoles: number;
   totalPermissions: number;
+  totalProjects: number;
+  totalTasks: number;
 }
 
 export interface RoleDistributionItem {
@@ -64,11 +66,19 @@ export interface RecentRoleItem {
   createdAt: string;
 }
 
+export interface TaskStatusDistributionItem {
+  status: string;
+  count: number;
+  percentage: number;
+  color: string;
+}
+
 export interface DashboardStats {
   summary: DashboardSummary;
   usersByRole: RoleDistributionItem[];
   usersByStatus: StatusDistributionItem[];
   rolesByType: RoleTypeDistributionItem[];
+  tasksByStatus: TaskStatusDistributionItem[];
   userRegistrationTrends: RegistrationTrendItem[];
   rolePermissionsDistribution: RolePermissionItem[];
   recentUsers: RecentUserItem[];

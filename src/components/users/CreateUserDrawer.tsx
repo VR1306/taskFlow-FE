@@ -31,7 +31,7 @@ export const CreateUserDrawer = memo(function CreateUserDrawer({
       firstName: '',
       lastName: '',
       email: '',
-      role: 'User',
+      role: 'Developer',
     },
   });
 
@@ -50,7 +50,7 @@ export const CreateUserDrawer = memo(function CreateUserDrawer({
         firstName: '',
         lastName: '',
         email: '',
-        role: 'User',
+        role: 'Developer',
       });
       setApiError(null);
       setIsSubmitting(false);
@@ -62,27 +62,21 @@ export const CreateUserDrawer = memo(function CreateUserDrawer({
       setApiError(null);
       setIsSubmitting(true);
 
-      try {
-        const resultAction = await dispatch(
-          createUserThunk({
-            firstName: data.firstName.trim(),
-            lastName: data.lastName.trim(),
-            email: data.email.trim().toLowerCase(),
-            role: data.role,
-          })
-        );
+      const resultAction = await dispatch(
+        createUserThunk({
+          firstName: data.firstName.trim(),
+          lastName: data.lastName.trim(),
+          email: data.email.trim().toLowerCase(),
+          role: data.role,
+        })
+      );
 
-        if (createUserThunk.fulfilled.match(resultAction)) {
-          onClose();
-        } else {
-          setApiError(
-            (resultAction.payload as string) || USERS_CONSTANTS.createDrawer.defaultError
-          );
-        }
-      } catch (err: unknown) {
-        setApiError(err instanceof Error ? err.message : USERS_CONSTANTS.createDrawer.defaultError);
-      } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
+
+      if (createUserThunk.fulfilled.match(resultAction)) {
+        onClose();
+      } else {
+        setApiError((resultAction.payload as string) || USERS_CONSTANTS.createDrawer.defaultError);
       }
     },
     [dispatch, onClose]
@@ -225,7 +219,7 @@ export const CreateUserDrawer = memo(function CreateUserDrawer({
               control={control}
               rules={{ required: USERS_CONSTANTS.validation.roleRequired }}
               render={({ field }) => (
-                <Select<'Admin' | 'Manager' | 'User'>
+                <Select<'Project Manager' | 'Developer' | 'QA'>
                   id="create-role"
                   options={CREATE_ROLE_OPTIONS}
                   value={field.value}

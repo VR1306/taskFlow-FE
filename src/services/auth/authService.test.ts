@@ -84,6 +84,20 @@ describe('Auth Service', () => {
     expect(result).toEqual(mockResponse);
   });
 
+  it('calls apiClient.post for logout without a refresh token', async () => {
+    const mockResponse = {
+      success: true,
+      message: 'Logged out successfully',
+    };
+
+    (apiClient.post as jest.Mock).mockResolvedValue(mockResponse);
+
+    const result = await authService.logout();
+
+    expect(apiClient.post).toHaveBeenCalledWith('/auth/logout', {}, { skipAuthRefresh: true });
+    expect(result).toEqual(mockResponse);
+  });
+
   it('calls apiClient.post with trimmed email for forgotPassword', async () => {
     const mockResponse = {
       success: true,

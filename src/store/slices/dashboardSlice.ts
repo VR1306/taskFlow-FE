@@ -20,13 +20,13 @@ const initialState: DashboardState = {
 
 export const fetchDashboardStats = createAsyncThunk(
   'dashboard/fetchDashboardStats',
-  async (isRefresh: boolean | undefined = false, { rejectWithValue }) => {
+  async (isRefresh: boolean | undefined, { rejectWithValue }) => {
     try {
       const response = await dashboardService.getDashboardStats();
       if (!response?.success || !response?.data) {
         return rejectWithValue(response?.message || 'Failed to fetch dashboard statistics.');
       }
-      return { stats: response.data, isRefresh };
+      return { stats: response.data, isRefresh: isRefresh ?? false };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to fetch dashboard statistics.';
       return rejectWithValue(message);

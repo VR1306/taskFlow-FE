@@ -33,8 +33,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             Welcome back, {userName}!
           </h1>
           <p className="mt-2 text-xs sm:text-base text-slate-300">
-            Manage organization members, monitor security roles, inspect granular permissions, and
-            track workspace growth metrics.
+            Manage team members, monitor security roles, inspect granular permissions, and track
+            workspace growth metrics.
           </p>
         </div>
 

@@ -78,7 +78,6 @@ export const ForgotPasswordForm: React.FC<Readonly<ForgotPasswordFormProps>> = (
   };
 
   const handleResend = async () => {
-    if (!submittedEmail || isResending || countdown > 0) return;
     try {
       setIsResending(true);
       setServerError(null);

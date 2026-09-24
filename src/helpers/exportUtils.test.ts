@@ -94,6 +94,19 @@ describe('exportUtils', () => {
       expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
     });
 
+    it('does not double-append .csv when the filename already has the extension', () => {
+      const data = [{ name: 'Test User', role: 'Admin' }];
+      const columns = [
+        { header: 'Name', accessor: 'name' as const },
+        { header: 'Role', accessor: 'role' as const },
+      ];
+
+      exportToCsv(data, 'users-export.csv', columns);
+
+      expect(window.URL.createObjectURL).toHaveBeenCalled();
+      expect(clickMock).toHaveBeenCalled();
+    });
+
     it('triggers JSON download with .json appended', () => {
       const data = [{ name: 'Test User', role: 'Admin' }];
 

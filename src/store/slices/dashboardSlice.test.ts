@@ -31,12 +31,21 @@ describe('dashboardSlice', () => {
       customRoles: 1,
       activeRoles: 4,
       totalPermissions: 28,
+      totalProjects: 2,
+      totalTasks: 15,
     },
     usersByRole: [
-      { role: 'SuperAdmin', label: 'Super Admin', count: 2, percentage: 20, color: '#6366f1' },
+      {
+        role: 'Taskflow Admin',
+        label: 'Taskflow Admin',
+        count: 2,
+        percentage: 20,
+        color: '#6366f1',
+      },
     ],
     usersByStatus: [{ status: 'Active', count: 8, percentage: 80, color: '#10b981' }],
     rolesByType: [{ type: 'System', count: 3, percentage: 75, color: '#8b5cf6' }],
+    tasksByStatus: [{ status: 'Todo', count: 5, percentage: 33.3, color: '#94a3b8' }],
     userRegistrationTrends: [{ month: 'Sep', year: 2026, count: 5 }],
     rolePermissionsDistribution: [{ roleName: 'Super Admin', permissionsCount: 28, usersCount: 2 }],
     recentUsers: [],
@@ -107,6 +116,15 @@ describe('dashboardSlice', () => {
     expect(state.error).toBe('Server error');
   });
 
+  it('falls back to a generic error message on fetchDashboardStats.rejected without a payload', () => {
+    const action = {
+      type: fetchDashboardStats.rejected.type,
+      payload: undefined,
+    };
+    const state = dashboardReducer(initialDashboardState, action);
+    expect(state.error).toBe('Failed to load dashboard data.');
+  });
+
   it('fetchDashboardStats thunk calls dashboardService successfully', async () => {
     (dashboardService.getDashboardStats as jest.Mock).mockResolvedValue({
       success: true,
@@ -115,6 +133,19 @@ describe('dashboardSlice', () => {
 
     const dispatch = jest.fn();
     const thunk = fetchDashboardStats(false);
+    const result = await thunk(dispatch, () => ({}), undefined);
+
+    expect(result.payload).toEqual({ stats: mockStats, isRefresh: false });
+  });
+
+  it('fetchDashboardStats thunk defaults isRefresh to false when not provided', async () => {
+    (dashboardService.getDashboardStats as jest.Mock).mockResolvedValue({
+      success: true,
+      data: mockStats,
+    });
+
+    const dispatch = jest.fn();
+    const thunk = fetchDashboardStats(undefined);
     const result = await thunk(dispatch, () => ({}), undefined);
 
     expect(result.payload).toEqual({ stats: mockStats, isRefresh: false });
@@ -131,5 +162,40 @@ describe('dashboardSlice', () => {
     const result = await thunk(dispatch, () => ({}), undefined);
 
     expect(result.payload).toBe('Failed to load stats');
+  });
+
+  it('fetchDashboardStats thunk rejects with error message when the service throws', async () => {
+    (dashboardService.getDashboardStats as jest.Mock).mockRejectedValue(
+      new Error('Network unreachable')
+    );
+
+    const dispatch = jest.fn();
+    const thunk = fetchDashboardStats(false);
+    const result = await thunk(dispatch, () => ({}), undefined);
+
+    expect(result.payload).toBe('Network unreachable');
+  });
+
+  it('fetchDashboardStats thunk falls back to a generic message for non-Error throws', async () => {
+    (dashboardService.getDashboardStats as jest.Mock).mockRejectedValue('not-an-error');
+
+    const dispatch = jest.fn();
+    const thunk = fetchDashboardStats(false);
+    const result = await thunk(dispatch, () => ({}), undefined);
+
+    expect(result.payload).toBe('Failed to fetch dashboard statistics.');
+  });
+
+  it('fetchDashboardStats thunk falls back to a generic message when the response has no data and no message', async () => {
+    (dashboardService.getDashboardStats as jest.Mock).mockResolvedValue({
+      success: true,
+      data: null,
+    });
+
+    const dispatch = jest.fn();
+    const thunk = fetchDashboardStats(false);
+    const result = await thunk(dispatch, () => ({}), undefined);
+
+    expect(result.payload).toBe('Failed to fetch dashboard statistics.');
   });
 });

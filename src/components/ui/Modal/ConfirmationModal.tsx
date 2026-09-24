@@ -36,7 +36,13 @@ export const ConfirmationModal = memo(function ConfirmationModal({
   const resolvedIcon = iconSrc || defaultIcon;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="sm" showCloseButton={!isLoading}>
+    <Modal
+      ariaLabel={title}
+      isOpen={isOpen}
+      onClose={onClose}
+      maxWidth="sm"
+      showCloseButton={!isLoading}
+    >
       <div className="flex flex-col items-center text-center p-2">
         {/* Modal Icon */}
         <div

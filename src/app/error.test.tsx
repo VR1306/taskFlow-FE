@@ -32,4 +32,9 @@ describe('ErrorBoundary 500 Component', () => {
 
     expect(mockReset).toHaveBeenCalledTimes(1);
   });
+  it('uses the default description for errors without messages or references', () => {
+    render(<ErrorBoundary error={new Error('')} reset={jest.fn()} />);
+    expect(screen.getByText(ERROR_PAGES_CONSTANTS.serverError.description)).toBeInTheDocument();
+    expect(screen.queryByText(/Error Reference:/)).not.toBeInTheDocument();
+  });
 });

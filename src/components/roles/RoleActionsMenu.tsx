@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo, useMemo, useCallback } from 'react';
+import React, { memo, useMemo } from 'react';
 import { ActionsMenu, ActionMenuItem } from '@/components/ui';
 import { RoleRecord } from '@/types';
 
@@ -22,19 +22,8 @@ export const RoleActionsMenu = memo(function RoleActionsMenu({
   canDelete = true,
 }: Readonly<RoleActionsMenuProps>) {
   const roleDisplayName = role.name || role.roleName || 'Role';
-  const roleIdentifier = role.roleId || role.id || role._id || '';
   const isProtectedSystemRole =
-    role.isSystem || role.roleType === 'Super Admin' || roleDisplayName === 'Super Admin';
-
-  const handleCopyRoleId = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (typeof navigator !== 'undefined' && navigator.clipboard && roleIdentifier) {
-        navigator.clipboard.writeText(roleIdentifier);
-      }
-    },
-    [roleIdentifier]
-  );
+    role.isSystem || role.roleType === 'Taskflow Admin' || roleDisplayName === 'Taskflow Admin';
 
   const menuItems = useMemo<(ActionMenuItem | false | undefined)[]>(() => {
     return [
@@ -43,12 +32,6 @@ export const RoleActionsMenu = memo(function RoleActionsMenu({
         label: 'View Details',
         icon: '/icons/eye.svg',
         onClick: () => onView(role),
-      },
-      Boolean(roleIdentifier) && {
-        key: 'copy-id',
-        label: 'Copy Role ID',
-        icon: '/icons/bolt.svg',
-        onClick: handleCopyRoleId,
       },
       Boolean(canEdit && onEdit && !isProtectedSystemRole) && {
         key: 'edit',
@@ -65,17 +48,7 @@ export const RoleActionsMenu = memo(function RoleActionsMenu({
         hasDividerBefore: true,
       },
     ];
-  }, [
-    role,
-    roleIdentifier,
-    isProtectedSystemRole,
-    onView,
-    onEdit,
-    onDelete,
-    canEdit,
-    canDelete,
-    handleCopyRoleId,
-  ]);
+  }, [role, isProtectedSystemRole, onView, onEdit, onDelete, canEdit, canDelete]);
 
   return (
     <div className="relative inline-block text-left">

@@ -15,17 +15,6 @@ import {
   RecentRolesWidget,
 } from '@/components/dashboard';
 
-const DEFAULT_SUMMARY = {
-  totalUsers: 0,
-  activeUsers: 0,
-  inactiveUsers: 0,
-  totalRoles: 0,
-  systemRoles: 0,
-  customRoles: 0,
-  activeRoles: 0,
-  totalPermissions: 0,
-};
-
 export default function DashboardPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -71,7 +60,13 @@ export default function DashboardPage() {
 
     return (
       <>
-        <SummaryStatsSection summary={stats?.summary || DEFAULT_SUMMARY} />
+        {/*
+          `stats` is guaranteed to be non-null here: reaching this branch requires
+          `hasNoData` to be false, which (given the guards above) is only possible
+          when `stats` is truthy. The non-null assertion documents that invariant
+          without introducing an unreachable fallback branch.
+        */}
+        <SummaryStatsSection summary={stats!.summary} />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <UserDistributionCard

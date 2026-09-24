@@ -28,6 +28,12 @@ const navItems: NavItem[] = [
     icon: '/icons/dashboard.svg',
   },
   {
+    name: 'Projects',
+    href: '/projects',
+    icon: '/icons/building.svg',
+    requiredPermission: ['projects.view', '*'],
+  },
+  {
     name: 'User Management',
     href: '/users',
     icon: '/icons/users.svg',
@@ -152,9 +158,9 @@ export const Sidebar = memo(function Sidebar() {
 
   const userRoleVariant = useMemo<'purple' | 'primary' | 'default'>(() => {
     switch (currentUser?.role) {
-      case 'SuperAdmin':
+      case 'Taskflow Admin':
         return 'purple';
-      case 'Admin':
+      case 'Project Manager':
         return 'primary';
       default:
         return 'default';

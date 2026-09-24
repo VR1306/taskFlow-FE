@@ -6,10 +6,13 @@ import Header from './Header';
 import authReducer from '@/store/slices/authSlice';
 import uiReducer from '@/store/slices/uiSlice';
 import usersReducer from '@/store/slices/usersSlice';
+
+import notificationsReducer from '@/store/slices/notificationsSlice';
 import { CHANGE_PASSWORD_CONSTANTS } from '@/constants';
 
+let mockPathname = '/users';
 jest.mock('next/navigation', () => ({
-  usePathname: () => '/users',
+  usePathname: () => mockPathname,
 }));
 
 const mockUser = {
@@ -17,7 +20,7 @@ const mockUser = {
   firstName: 'John',
   lastName: 'Doe',
   email: 'john.doe@example.com',
-  role: 'SuperAdmin',
+  role: 'Taskflow Admin',
 };
 
 const createMockStore = (initialState = {}) => {
@@ -26,6 +29,7 @@ const createMockStore = (initialState = {}) => {
       auth: authReducer,
       ui: uiReducer,
       users: usersReducer,
+      notifications: notificationsReducer,
     },
     preloadedState: initialState,
   });
@@ -34,6 +38,7 @@ const createMockStore = (initialState = {}) => {
 describe('Header Component', () => {
   beforeEach(() => {
     localStorage.clear();
+    mockPathname = '/users';
   });
 
   it('renders title and user status', () => {
@@ -56,7 +61,7 @@ describe('Header Component', () => {
 
     expect(screen.getByText('User Management')).toBeInTheDocument();
     expect(screen.getByText('John Doe')).toBeInTheDocument();
-    expect(screen.getByText('SuperAdmin')).toBeInTheDocument();
+    expect(screen.getByText('Taskflow Admin')).toBeInTheDocument();
   });
 
   it('handles mobile menu hamburger click', () => {
@@ -224,5 +229,53 @@ describe('Header Component', () => {
 
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(screen.queryByRole('menu', { name: /user account actions/i })).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['/notifications', 'Notifications'],
+    ['/roles', 'Role Management'],
+    ['/projects', 'Projects'],
+    ['/settings', 'Dashboard'],
+  ])('resolves the page title %s -> %s', (path, expectedTitle) => {
+    const store = createMockStore({
+      auth: {
+        user: mockUser,
+        isAuthenticated: true,
+        isLogoutModalOpen: false,
+        isLoggingOut: false,
+        isChangePasswordModalOpen: false,
+        rememberMe: false,
+      },
+    });
+
+    // Header is memoized with no props, so a fresh mount per pathname is required
+    mockPathname = path;
+    render(
+      <Provider store={store}>
+        <Header />
+      </Provider>
+    );
+    expect(screen.getByText(expectedTitle)).toBeInTheDocument();
+  });
+
+  it('applies the primary badge variant for a Project Manager role', () => {
+    const store = createMockStore({
+      auth: {
+        user: { ...mockUser, role: 'Project Manager' },
+        isAuthenticated: true,
+        isLogoutModalOpen: false,
+        isLoggingOut: false,
+        isChangePasswordModalOpen: false,
+        rememberMe: false,
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Header />
+      </Provider>
+    );
+
+    expect(screen.getByText('Project Manager')).toBeInTheDocument();
   });
 });

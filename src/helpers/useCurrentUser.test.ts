@@ -1,4 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
+import React from 'react';
+import { renderToString } from 'react-dom/server';
 import { useCurrentUser } from './useCurrentUser';
 import { AuthUser } from '@/types';
 
@@ -51,5 +53,14 @@ describe('useCurrentUser hook', () => {
     });
 
     expect(result.current).toEqual(mockUser);
+  });
+
+  it('uses the null server snapshot when rendered on the server', () => {
+    const ServerComponent = () => {
+      const user = useCurrentUser();
+      return React.createElement('div', null, user ? 'has-user' : 'no-user');
+    };
+    const html = renderToString(React.createElement(ServerComponent));
+    expect(html).toContain('no-user');
   });
 });

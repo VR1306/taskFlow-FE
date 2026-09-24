@@ -30,12 +30,12 @@ describe('rolesService', () => {
         page: 2,
         limit: 25,
         search: 'Manager',
-        roleType: 'Admin',
+        roleType: 'Project Manager',
         status: 'Active',
       });
 
       expect(apiClient.get).toHaveBeenCalledWith(
-        '/roles?page=2&limit=25&search=Manager&roleType=Admin&status=Active'
+        '/roles?page=2&limit=25&search=Manager&roleType=Project+Manager&status=Active'
       );
     });
 
@@ -91,7 +91,7 @@ describe('rolesService', () => {
       const payload = {
         roleName: 'QA Engineer',
         roleDescription: 'Quality Assurance',
-        roleType: 'User' as const,
+        roleType: 'Developer' as const,
         rolePermissions: ['tasks.view'],
         status: 'Active' as const,
       };

@@ -80,6 +80,20 @@ describe('Input Component', () => {
     expect(screen.getByTestId('trailing-action')).toBeInTheDocument();
   });
 
+  it('does not render the label/right-action row when neither label nor rightAction is provided', () => {
+    const { container } = render(<TestWrapper />);
+
+    expect(container.querySelector('label')).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('you@company.com')).toBeInTheDocument();
+  });
+
+  it('renders the right action row even when no label is provided', () => {
+    const { container } = render(<TestWrapper rightAction={<a href="/forgot">Forgot?</a>} />);
+
+    expect(screen.getByText('Forgot?')).toBeInTheDocument();
+    expect(container.querySelector('label')).not.toBeInTheDocument();
+  });
+
   it('renders and works within FormProvider without explicit control prop', () => {
     const FormProviderWrapper: React.FC = () => {
       const methods = useForm<FormValues>({

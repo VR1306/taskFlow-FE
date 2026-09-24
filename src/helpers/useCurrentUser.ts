@@ -5,14 +5,16 @@ import { AuthUser } from '@/types';
 
 const USER_STORAGE_KEY = 'taskflow_user';
 
+// Note: subscribeStorage/getSnapshot are only ever invoked by React's client-side
+// dispatcher (after hydration), where `window` is always defined. Server-side
+// rendering exclusively uses getServerSnapshot below, so no `typeof window`
+// guard is needed here.
 const subscribeStorage = (callback: () => void) => {
-  if (typeof window === 'undefined') return () => {};
   window.addEventListener('storage', callback);
   return () => window.removeEventListener('storage', callback);
 };
 
 const getSnapshot = (): string | null => {
-  if (typeof window === 'undefined') return null;
   try {
     return localStorage.getItem(USER_STORAGE_KEY);
   } catch {

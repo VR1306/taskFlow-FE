@@ -61,4 +61,22 @@ describe('PublicLayout Component', () => {
       expect(screen.queryByTestId('auth-form-content')).not.toBeInTheDocument();
     });
   });
+
+  it('falls back to the "users" module when no default module is resolved', async () => {
+    authStorage.setTokens('valid-jwt-token');
+    jest.spyOn(authStorage, 'getDefaultModule').mockReturnValue('');
+
+    render(
+      <PublicLayout>
+        <div data-testid="auth-form-content">
+          <h1>Sign In</h1>
+        </div>
+      </PublicLayout>
+    );
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/users');
+      expect(screen.queryByTestId('auth-form-content')).not.toBeInTheDocument();
+    });
+  });
 });

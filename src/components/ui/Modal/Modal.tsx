@@ -8,6 +8,7 @@ export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
+  ariaLabel?: string;
   description?: string;
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
@@ -25,6 +26,7 @@ export const Modal = memo(function Modal({
   isOpen,
   onClose,
   title,
+  ariaLabel,
   description,
   children,
   maxWidth = 'md',
@@ -39,6 +41,7 @@ export const Modal = memo(function Modal({
       open
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-transparent border-none w-full h-full max-w-none max-h-none m-0"
       aria-modal="true"
+      aria-label={ariaLabel}
       aria-labelledby={title ? 'modal-title' : undefined}
       aria-describedby={description ? 'modal-description' : undefined}
     >

@@ -72,4 +72,18 @@ describe('Pagination Component', () => {
 
     expect(defaultProps.onLimitChange).toHaveBeenCalledWith(20);
   });
+
+  it('leaves a singular itemLabel unchanged when it does not end with "s"', () => {
+    const { container } = render(
+      <Pagination
+        {...defaultProps}
+        totalItems={1}
+        totalPages={1}
+        currentPage={1}
+        itemLabel="data"
+      />
+    );
+
+    expect(container.textContent).toContain('data');
+  });
 });

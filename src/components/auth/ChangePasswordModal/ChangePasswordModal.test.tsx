@@ -192,6 +192,32 @@ describe('ChangePasswordModal Component', () => {
     expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('submits successfully and shows default successTitle when response has no message', async () => {
+    (authService.changePassword as jest.Mock).mockResolvedValueOnce({
+      success: true,
+    });
+
+    render(<ChangePasswordModal {...defaultProps} />);
+
+    fireEvent.change(screen.getByLabelText(/^current password/i, { selector: 'input' }), {
+      target: { value: 'CurrentPass@123' },
+    });
+    fireEvent.change(screen.getByLabelText(/^new password/i, { selector: 'input' }), {
+      target: { value: 'NewPassword@123' },
+    });
+    fireEvent.change(screen.getByLabelText(/^confirm new password/i, { selector: 'input' }), {
+      target: { value: 'NewPassword@123' },
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', { name: CHANGE_PASSWORD_CONSTANTS.submitButtonText })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(CHANGE_PASSWORD_CONSTANTS.successTitle)).toBeInTheDocument();
+    });
+  });
+
   it('displays API error alert when request fails with ApiError', async () => {
     (authService.changePassword as jest.Mock).mockRejectedValueOnce(
       new ApiError('Current password is incorrect', 401)
@@ -245,6 +271,32 @@ describe('ChangePasswordModal Component', () => {
     });
   });
 
+  it('falls back to the default success title when the API response has no message', async () => {
+    (authService.changePassword as jest.Mock).mockResolvedValueOnce({ success: true });
+
+    render(<ChangePasswordModal {...defaultProps} />);
+
+    fireEvent.change(screen.getByLabelText(/^current password/i, { selector: 'input' }), {
+      target: { value: 'CurrentPass@123' },
+    });
+    fireEvent.change(screen.getByLabelText(/^new password/i, { selector: 'input' }), {
+      target: { value: 'NewPassword@123' },
+    });
+    fireEvent.change(screen.getByLabelText(/^confirm new password/i, { selector: 'input' }), {
+      target: { value: 'NewPassword@123' },
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', { name: CHANGE_PASSWORD_CONSTANTS.submitButtonText })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(CHANGE_PASSWORD_CONSTANTS.successTitle, { selector: 'p' })
+      ).toBeInTheDocument();
+    });
+  });
+
   it('calls onClose when Cancel button is clicked', () => {
     render(<ChangePasswordModal {...defaultProps} />);
 
@@ -255,4 +307,24 @@ describe('ChangePasswordModal Component', () => {
 
     expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });
+});
+
+it.each([
+  { error: new Error('Network unavailable'), message: 'Network unavailable' },
+  { error: {}, message: CHANGE_PASSWORD_CONSTANTS.errors.defaultSubmitError },
+  { error: null, message: CHANGE_PASSWORD_CONSTANTS.errors.defaultSubmitError },
+])('handles password-change failures: $message', async ({ error, message }) => {
+  jest.mocked(authService.changePassword).mockRejectedValueOnce(error);
+  render(<ChangePasswordModal isOpen onClose={jest.fn()} />);
+  fireEvent.change(screen.getByLabelText(/^current password/i, { selector: 'input' }), {
+    target: { value: 'CurrentPass@123' },
+  });
+  fireEvent.change(screen.getByLabelText(/^new password/i, { selector: 'input' }), {
+    target: { value: 'NewPassword@123' },
+  });
+  fireEvent.change(screen.getByLabelText(/^confirm new password/i, { selector: 'input' }), {
+    target: { value: 'NewPassword@123' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: CHANGE_PASSWORD_CONSTANTS.submitButtonText }));
+  expect(await screen.findByRole('alert')).toHaveTextContent(message);
 });

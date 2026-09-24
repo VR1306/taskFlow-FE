@@ -263,6 +263,33 @@ describe('LoginForm Component', () => {
     });
   });
 
+  it('shows the default error message when signIn rejects with a non-Error value', async () => {
+    (authService.signIn as jest.Mock).mockRejectedValue('unexpected rejection');
+
+    render(<LoginForm />);
+
+    const emailInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.emailPlaceholder);
+    const passwordInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.passwordPlaceholder);
+    const submitBtn = screen.getByRole('button', {
+      name: LOGIN_CONSTANTS.submitButtonText,
+    });
+
+    fireEvent.change(emailInput, { target: { value: 'user@taskflow.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
+
+    await waitFor(() => {
+      expect(submitBtn).not.toBeDisabled();
+    });
+
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        LOGIN_CONSTANTS.errors.defaultSubmitError
+      );
+    });
+  });
+
   it('toggles password visibility between text and password on icon click', () => {
     render(<LoginForm />);
 
@@ -273,6 +300,12 @@ describe('LoginForm Component', () => {
       name: LOGIN_CONSTANTS.showPasswordText,
     });
     expect(toggleButton).toBeInTheDocument();
+
+    // Mouse down on the toggle should not steal focus from the input
+    const mouseDownEvent = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+    const preventDefaultSpy = jest.spyOn(mouseDownEvent, 'preventDefault');
+    fireEvent(toggleButton, mouseDownEvent);
+    expect(preventDefaultSpy).toHaveBeenCalledTimes(1);
 
     // Click to show password
     fireEvent.click(toggleButton);

@@ -56,7 +56,7 @@ export const RecentUsersWidget: React.FC<RecentUsersWidgetProps> = ({ users = []
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                <Badge variant={user.role === 'SuperAdmin' ? 'purple' : 'info'} size="sm">
+                <Badge variant={user.role === 'Taskflow Admin' ? 'purple' : 'info'} size="sm">
                   {user.role}
                 </Badge>
                 <span

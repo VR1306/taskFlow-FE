@@ -160,7 +160,7 @@ export const RoleFormFields = memo(function RoleFormFields({
               id={typeSelectId}
               options={roleTypeSelectOptions}
               value={roleType}
-              onChange={(val) => onRoleTypeChange(val as RoleType)}
+              onChange={onRoleTypeChange as (val: string) => void}
               placeholder={ROLES_CONSTANTS.createDrawer.typePlaceholder}
               isDisabled={isDisabled || isRoleTypeDisabled}
             />

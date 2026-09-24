@@ -78,10 +78,14 @@ export const resolvePostLoginRedirect = (options: {
  */
 export const getRoleBadgeClass = (role?: string): string => {
   switch (role) {
-    case 'SuperAdmin':
+    case 'Taskflow Admin':
       return 'bg-purple-50 text-purple-700 border-purple-200';
-    case 'Admin':
+    case 'Project Manager':
       return 'bg-blue-50 text-blue-700 border-blue-200';
+    case 'Developer':
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    case 'QA':
+      return 'bg-amber-50 text-amber-700 border-amber-200';
     default:
       return 'bg-slate-50 text-slate-700 border-slate-200';
   }
@@ -106,19 +110,60 @@ export const formatCountdown = (seconds: number): string => {
 };
 
 /**
- * Formats an ISO date string into a localized human-readable date (e.g., Jan 1, 2026)
+ * Formats an ISO date string into a human-readable date (e.g., Jan 1, 2026).
+ * Uses a pure deterministic implementation to avoid SSR/client hydration mismatches
+ * caused by differing ICU data between Node.js and the browser.
  */
+const MONTH_NAMES = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
+
 export const formatDate = (dateString?: string | Date): string => {
   if (!dateString) return 'N/A';
   try {
     const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
     if (Number.isNaN(date.getTime())) return 'N/A';
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      timeZone: 'UTC',
-    });
+    const month = MONTH_NAMES[date.getUTCMonth()];
+    const day = date.getUTCDate();
+    const year = date.getUTCFullYear();
+    return `${month} ${day}, ${year}`;
+  } catch {
+    return 'N/A';
+  }
+};
+
+/**
+ * Formats a date into a relative time description (e.g., "Just now", "5m ago", "2h ago", "3d ago")
+ */
+export const formatRelativeTime = (dateString?: string | Date): string => {
+  if (!dateString) return 'N/A';
+  try {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    if (Number.isNaN(date.getTime())) return 'N/A';
+
+    const now = Date.now();
+    const diffSeconds = Math.floor((now - date.getTime()) / 1000);
+
+    if (diffSeconds < 60) return 'Just now';
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    return formatDate(date);
   } catch {
     return 'N/A';
   }

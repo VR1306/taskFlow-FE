@@ -14,7 +14,7 @@ const config = {
   },
   collectCoverage: true,
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
+  coverageReporters: ['text', 'lcov', 'html', 'json', 'json-summary'],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
@@ -22,6 +22,14 @@ const config = {
     '!src/types/**',
     '!src/app/layout.tsx',
   ],
+  coverageThreshold: {
+    global: {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+  },
 };
 
 export default createJestConfig(config);

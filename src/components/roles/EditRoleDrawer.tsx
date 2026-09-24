@@ -50,29 +50,25 @@ export const EditRoleDrawer = memo(function EditRoleDrawer({
       const payload = getFormData();
       if (!payload) return;
 
-      try {
-        const resultAction = await dispatch(
-          updateRoleThunk({
-            id: role._id || role.id || '',
-            data: payload,
-          })
-        );
+      const resultAction = await dispatch(
+        updateRoleThunk({
+          id: role._id || role.id || '',
+          data: payload,
+        })
+      );
 
-        if (updateRoleThunk.fulfilled.match(resultAction)) {
-          onClose();
-          onSuccess?.();
-        } else {
-          setApiError((resultAction.payload as string) || ROLES_CONSTANTS.editDrawer.defaultError);
-        }
-      } catch (err) {
-        setApiError(err instanceof Error ? err.message : ROLES_CONSTANTS.editDrawer.defaultError);
+      if (updateRoleThunk.fulfilled.match(resultAction)) {
+        onClose();
+        onSuccess?.();
+      } else {
+        setApiError((resultAction.payload as string) || ROLES_CONSTANTS.editDrawer.defaultError);
       }
     },
     [dispatch, role, getFormData, onClose, onSuccess, setApiError]
   );
 
   const roleDisplayName = role?.name || role?.roleName || '';
-  const isSuperAdmin = roleDisplayName === 'Super Admin';
+  const isSuperAdmin = roleDisplayName === 'Taskflow Admin';
 
   return (
     <Drawer

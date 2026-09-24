@@ -152,6 +152,91 @@ export async function apiRequest<T>(
   return data as T;
 }
 
+/**
+ * Uploads a FormData payload (e.g. a file attachment). The multipart boundary is set
+ * automatically by the browser, so Content-Type is intentionally left unset here.
+ */
+export async function apiUpload<T>(
+  endpoint: string,
+  formData: FormData,
+  options: Readonly<RequestOptions> = {}
+): Promise<T> {
+  const baseUrl = getBaseUrl();
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${baseUrl}${cleanEndpoint}`;
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    ...(options.headers as Record<string, string> | undefined),
+  };
+
+  if (!options.skipAuthToken && !headers.Authorization) {
+    const token = authStorage.getToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  const response = await fetch(url, { method: 'POST', headers, body: formData });
+
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+
+  if (!response.ok) {
+    const errorPayload = data as ApiErrorResponse | null;
+    throw new ApiError(
+      errorPayload?.message || `Request failed with status ${response.status}`,
+      response.status,
+      errorPayload?.errors,
+      data
+    );
+  }
+
+  return data as T;
+}
+
+/**
+ * Downloads a binary response (e.g. a task attachment) as a Blob for preview or save.
+ */
+export async function apiDownloadBlob(
+  endpoint: string,
+  options: Readonly<RequestOptions> = {}
+): Promise<Blob> {
+  const baseUrl = getBaseUrl();
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${baseUrl}${cleanEndpoint}`;
+
+  const headers: Record<string, string> = {
+    ...(options.headers as Record<string, string> | undefined),
+  };
+
+  if (!options.skipAuthToken && !headers.Authorization) {
+    const token = authStorage.getToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  const response = await fetch(url, { method: 'GET', headers });
+
+  if (!response.ok) {
+    let message = `Request failed with status ${response.status}`;
+    try {
+      const errorPayload = (await response.json()) as ApiErrorResponse;
+      message = errorPayload?.message || message;
+    } catch {
+      // Response body wasn't JSON — keep the generic message
+    }
+    throw new ApiError(message, response.status);
+  }
+
+  return response.blob();
+}
+
 export const apiClient = {
   get: <T>(endpoint: string, options?: Readonly<RequestOptions>) =>
     apiRequest<T>(endpoint, { ...options, method: 'GET' }),
@@ -159,8 +244,14 @@ export const apiClient = {
     apiRequest<T>(endpoint, { ...options, method: 'POST', body }),
   put: <T>(endpoint: string, body?: unknown, options?: Readonly<RequestOptions>) =>
     apiRequest<T>(endpoint, { ...options, method: 'PUT', body }),
+  patch: <T>(endpoint: string, body?: unknown, options?: Readonly<RequestOptions>) =>
+    apiRequest<T>(endpoint, { ...options, method: 'PATCH', body }),
   delete: <T>(endpoint: string, options?: Readonly<RequestOptions>) =>
     apiRequest<T>(endpoint, { ...options, method: 'DELETE' }),
+  upload: <T>(endpoint: string, formData: FormData, options?: Readonly<RequestOptions>) =>
+    apiUpload<T>(endpoint, formData, options),
+  downloadBlob: (endpoint: string, options?: Readonly<RequestOptions>) =>
+    apiDownloadBlob(endpoint, options),
 };
 
 export default apiClient;

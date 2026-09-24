@@ -31,7 +31,7 @@ export const DynamicPermissionsSelector = memo(function DynamicPermissionsSelect
 
   // Flattened system permission IDs
   const allPermissionIds = useMemo(
-    () => (permissionsCatalogue || []).flatMap((mod) => (mod.permissions || []).map((p) => p.id)),
+    () => permissionsCatalogue.flatMap((mod) => (mod.permissions || []).map((p) => p.id)),
     [permissionsCatalogue]
   );
 
@@ -72,13 +72,12 @@ export const DynamicPermissionsSelector = memo(function DynamicPermissionsSelect
 
   // Master Toggle: Select all or Deselect all
   const handleToggleAll = useCallback(() => {
-    if (disabled || isReadOnly) return;
     if (isAllSelected) {
       onChange([]);
     } else {
       onChange([...allPermissionIds]);
     }
-  }, [disabled, isReadOnly, isAllSelected, allPermissionIds, onChange]);
+  }, [isAllSelected, allPermissionIds, onChange]);
 
   // Filter modules based on search & action filter
   const filteredCatalogue = useMemo(() => {
@@ -235,9 +234,10 @@ export const DynamicPermissionsSelector = memo(function DynamicPermissionsSelect
       ) : (
         <div className="space-y-4">
           {filteredCatalogue.map((module) => {
-            const rawModule =
-              permissionsCatalogue.find((m) => m.moduleKey === module.moduleKey) || module;
-            const fullModulePermIds = (rawModule.permissions || []).map((p) => p.id);
+            // `rawModule` always resolves: `module` is itself derived from `permissionsCatalogue`,
+            // so a matching entry (with the full, unfiltered permissions list) is always found.
+            const rawModule = permissionsCatalogue.find((m) => m.moduleKey === module.moduleKey)!;
+            const fullModulePermIds = rawModule.permissions.map((p) => p.id);
             const selectedInModule = fullModulePermIds.filter((id) =>
               selectedPermissions.includes(id)
             );

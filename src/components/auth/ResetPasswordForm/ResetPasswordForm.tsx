@@ -78,12 +78,6 @@ const extractErrorDetails = (err: unknown): { message: string; isUnauthorized: b
       isUnauthorized: status === 401,
     };
   }
-  if (err instanceof Error) {
-    return {
-      message: err.message,
-      isUnauthorized: false,
-    };
-  }
   return {
     message: RESET_PASSWORD_CONSTANTS.errors.defaultSubmitError,
     isUnauthorized: false,

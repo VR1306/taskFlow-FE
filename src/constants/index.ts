@@ -5,4 +5,7 @@ export * from './resetPassword';
 export * from './changePassword';
 export * from './users';
 export * from './roles';
+export * from './notifications';
+export * from './projects';
+export * from './tasks';
 export * from './errorPages/errorPages';

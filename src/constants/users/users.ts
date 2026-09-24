@@ -1,22 +1,22 @@
 import { SelectOption } from '@/components/ui/Select';
 
-export type CreateUserRole = 'Admin' | 'Manager' | 'User';
-export type EditUserRole = 'SuperAdmin' | 'Admin' | 'Manager' | 'User';
+export type CreateUserRole = 'Project Manager' | 'Developer' | 'QA';
+export type EditUserRole = 'Taskflow Admin' | 'Project Manager' | 'Developer' | 'QA';
 
 export const CREATE_ROLE_OPTIONS: SelectOption<CreateUserRole>[] = [
-  { value: 'User', label: 'User (Standard Workspace Access)' },
-  { value: 'Manager', label: 'Manager (Project & Team Lead Access)' },
-  { value: 'Admin', label: 'Admin (Full Administrative Access)' },
+  { value: 'Developer', label: 'Developer (Standard Workspace Access)' },
+  { value: 'QA', label: 'QA (Quality & Verification Access)' },
+  { value: 'Project Manager', label: 'Project Manager (Project & Team Lead Access)' },
 ];
 
 export const STANDARD_ROLE_OPTIONS: SelectOption<EditUserRole>[] = [
-  { value: 'User', label: 'User (Standard Workspace Access)' },
-  { value: 'Manager', label: 'Manager (Project & Team Lead Access)' },
-  { value: 'Admin', label: 'Admin (Full Administrative Access)' },
+  { value: 'Developer', label: 'Developer (Standard Workspace Access)' },
+  { value: 'QA', label: 'QA (Quality & Verification Access)' },
+  { value: 'Project Manager', label: 'Project Manager (Project & Team Lead Access)' },
 ];
 
-export const SUPERADMIN_ROLE_OPTIONS: SelectOption<'SuperAdmin'>[] = [
-  { value: 'SuperAdmin', label: 'SuperAdmin (Master Workspace Owner)' },
+export const TASKFLOW_ADMIN_ROLE_OPTIONS: SelectOption<'Taskflow Admin'>[] = [
+  { value: 'Taskflow Admin', label: 'Taskflow Admin (Full Workspace Access)' },
 ];
 
 export const STATUS_OPTIONS: SelectOption<boolean>[] = [
@@ -26,14 +26,14 @@ export const STATUS_OPTIONS: SelectOption<boolean>[] = [
 
 export const FILTER_ROLE_OPTIONS: SelectOption<string>[] = [
   { value: 'all', label: 'All Roles' },
-  { value: 'SuperAdmin', label: 'SuperAdmin' },
-  { value: 'Admin', label: 'Admin' },
-  { value: 'Manager', label: 'Manager' },
-  { value: 'User', label: 'User' },
+  { value: 'Taskflow Admin', label: 'Taskflow Admin' },
+  { value: 'Project Manager', label: 'Project Manager' },
+  { value: 'Developer', label: 'Developer' },
+  { value: 'QA', label: 'QA' },
 ];
 
 export const FILTER_STATUS_OPTIONS: SelectOption<string>[] = [
-  { value: 'all', label: 'All Statuses' },
+  { value: 'all', label: 'All Status' },
   { value: 'Active', label: 'Active (Full Access)' },
   { value: 'Inactive', label: 'Inactive (Suspended)' },
 ];
@@ -41,7 +41,7 @@ export const FILTER_STATUS_OPTIONS: SelectOption<string>[] = [
 export const USERS_CONSTANTS = {
   // Page Header & Labels
   pageTitle: 'User Management',
-  pageSubtitle: 'Manage team members, roles, and access permissions across your organization.',
+  pageSubtitle: 'Manage team members, roles, and access permissions across your workspace.',
   createUserButtonText: 'Create User',
   filterButtonText: 'Filter',
   filterAriaLabel: 'Open user filter drawer',

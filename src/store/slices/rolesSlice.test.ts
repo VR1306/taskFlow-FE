@@ -41,7 +41,7 @@ describe('rolesSlice Redux Reducer & Async Thunks', () => {
     roleName: 'System Administrator',
     roleDescription: 'Full access',
     rolePermissions: ['*'],
-    roleType: 'Admin' as const,
+    roleType: 'Project Manager' as const,
     status: 'Active' as const,
     isSystem: true,
     userCount: 2,
@@ -98,9 +98,9 @@ describe('rolesSlice Redux Reducer & Async Thunks', () => {
     };
     const state = rolesReducer(
       populatedState,
-      setRolesFilters({ roleType: 'Admin', status: 'Active' })
+      setRolesFilters({ roleType: 'Project Manager', status: 'Active' })
     );
-    expect(state.filters).toEqual({ roleType: 'Admin', status: 'Active' });
+    expect(state.filters).toEqual({ roleType: 'Project Manager', status: 'Active' });
     expect(state.currentPage).toBe(1);
   });
 
@@ -108,7 +108,7 @@ describe('rolesSlice Redux Reducer & Async Thunks', () => {
     const populatedState: RolesState = {
       ...initialRolesState,
       currentPage: 5,
-      filters: { roleType: 'User' },
+      filters: { roleType: 'Developer' },
     };
     const state = rolesReducer(populatedState, clearRolesFilters());
     expect(state.filters).toEqual({});
@@ -312,12 +312,12 @@ describe('rolesSlice Redux Reducer & Async Thunks', () => {
             fromCache: false,
           },
           'req-1',
-          { page: 1, search: 'Test', roleType: 'Admin', status: 'Active' }
+          { page: 1, search: 'Test', roleType: 'Project Manager', status: 'Active' }
         )
       );
       expect(state.isLoading).toBe(false);
       expect(state.search).toBe('Test');
-      expect(state.filters.roleType).toBe('Admin');
+      expect(state.filters.roleType).toBe('Project Manager');
       expect(state.filters.status).toBe('Active');
       expect(state.cachedPages['1-10-Test--']).toBeDefined();
 
@@ -335,7 +335,7 @@ describe('rolesSlice Redux Reducer & Async Thunks', () => {
       const payload = {
         roleName: 'Support',
         roleDescription: 'Support agent',
-        roleType: 'User' as const,
+        roleType: 'Developer' as const,
         rolePermissions: ['tasks.view'],
         status: 'Active' as const,
       };
@@ -429,4 +429,79 @@ describe('rolesSlice Redux Reducer & Async Thunks', () => {
       expect(state.error).toBe('Cannot delete system role');
     });
   });
+  it.each([new Error('Offline'), null])(
+    'fetchRoles propagates request failures: %j',
+    async (error) => {
+      jest.mocked(rolesService.getRoles).mockRejectedValue(error);
+      const dispatch = jest.fn();
+      const result = await fetchRoles(undefined)(
+        dispatch,
+        () => ({ roles: initialRolesState }),
+        undefined
+      );
+      expect(result.payload).toBe(
+        error instanceof Error ? 'Offline' : 'Failed to fetch roles from server.'
+      );
+      let state = initialRolesState;
+      for (const [action] of dispatch.mock.calls) state = rolesReducer(state, action);
+      expect(state.isActionLoading).toBe(false);
+      expect(state.error).toBe(
+        error instanceof Error ? 'Offline' : 'Failed to fetch roles from server.'
+      );
+    }
+  );
+
+  it.each([new Error('Offline'), null])(
+    'createRoleThunk propagates request failures: %j',
+    async (error) => {
+      jest.mocked(rolesService.createRole).mockRejectedValue(error);
+      const dispatch = jest.fn();
+      const result = await createRoleThunk({ name: 'Role' })(
+        dispatch,
+        () => ({ roles: initialRolesState }),
+        undefined
+      );
+      expect(result.payload).toBe(error instanceof Error ? 'Offline' : 'Failed to create role.');
+      let state = initialRolesState;
+      for (const [action] of dispatch.mock.calls) state = rolesReducer(state, action);
+      expect(state.isActionLoading).toBe(false);
+      expect(state.error).toBe(error instanceof Error ? 'Offline' : 'Failed to create role.');
+    }
+  );
+
+  it.each([new Error('Offline'), null])(
+    'updateRoleThunk propagates request failures: %j',
+    async (error) => {
+      jest.mocked(rolesService.updateRole).mockRejectedValue(error);
+      const dispatch = jest.fn();
+      const result = await updateRoleThunk({ id: 'role-1', data: {} })(
+        dispatch,
+        () => ({ roles: initialRolesState }),
+        undefined
+      );
+      expect(result.payload).toBe(error instanceof Error ? 'Offline' : 'Failed to update role.');
+      let state = initialRolesState;
+      for (const [action] of dispatch.mock.calls) state = rolesReducer(state, action);
+      expect(state.isActionLoading).toBe(false);
+      expect(state.error).toBe(error instanceof Error ? 'Offline' : 'Failed to update role.');
+    }
+  );
+
+  it.each([new Error('Offline'), null])(
+    'deleteRoleThunk propagates request failures: %j',
+    async (error) => {
+      jest.mocked(rolesService.deleteRole).mockRejectedValue(error);
+      const dispatch = jest.fn();
+      const result = await deleteRoleThunk('role-1')(
+        dispatch,
+        () => ({ roles: initialRolesState }),
+        undefined
+      );
+      expect(result.payload).toBe(error instanceof Error ? 'Offline' : 'Failed to delete role.');
+      let state = initialRolesState;
+      for (const [action] of dispatch.mock.calls) state = rolesReducer(state, action);
+      expect(state.isActionLoading).toBe(false);
+      expect(state.error).toBe(error instanceof Error ? 'Offline' : 'Failed to delete role.');
+    }
+  );
 });

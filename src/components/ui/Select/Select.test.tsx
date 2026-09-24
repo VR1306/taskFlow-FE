@@ -1,6 +1,12 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Select, SelectOption } from './Select';
+import * as helpers from '@/helpers';
+
+jest.mock('@/helpers', () => ({
+  ...jest.requireActual('@/helpers'),
+  useMounted: jest.fn(() => true),
+}));
 
 describe('Select Component', () => {
   const options: SelectOption<string>[] = [
@@ -82,5 +88,31 @@ describe('Select Component', () => {
     );
 
     expect(container.querySelector('.custom-select-wrapper')).toBeInTheDocument();
+  });
+
+  it('does not target document.body for the menu portal before the component has mounted', () => {
+    (helpers.useMounted as jest.Mock).mockReturnValueOnce(false);
+
+    render(
+      <Select id="test-select-unmounted" options={options} onChange={jest.fn()} value="admin" />
+    );
+
+    // Still renders the control normally, just without a menu portal target yet.
+    expect(screen.getByText('Administrator')).toBeInTheDocument();
+  });
+
+  it('applies focused/error control styles and highlights a non-selected option', () => {
+    render(<Select id="test-select-focus" options={options} isError={true} onChange={jest.fn()} />);
+
+    const combobox = screen.getByRole('combobox');
+    fireEvent.focus(combobox);
+    fireEvent.mouseDown(combobox);
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+    fireEvent.keyDown(combobox, { key: 'ArrowDown' });
+
+    expect(screen.getByText('Administrator')).toBeInTheDocument();
+    expect(screen.getByText('Standard User')).toBeInTheDocument();
   });
 });

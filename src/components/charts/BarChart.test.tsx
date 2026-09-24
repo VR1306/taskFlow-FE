@@ -30,7 +30,7 @@ describe('BarChart Component', () => {
     fireEvent.mouseEnter(febColumn);
 
     expect(screen.getAllByText('Feb')).toHaveLength(2);
-    expect(screen.getAllByText('25')).toHaveLength(2);
+    expect(screen.getByText('25')).toBeInTheDocument();
 
     fireEvent.mouseLeave(febColumn);
   });
@@ -53,4 +53,34 @@ describe('BarChart Component', () => {
     expect(screen.getByText('Permissions')).toBeInTheDocument();
     expect(screen.getByText('Users')).toBeInTheDocument();
   });
+});
+
+it.each([
+  { value: 3, ceiling: 5 },
+  { value: 8, ceiling: 10 },
+  { value: 17, ceiling: 20 },
+  { value: 40, ceiling: 50 },
+  { value: 75, ceiling: 100 },
+  { value: 230, ceiling: 300 },
+])('scales the axis to $ceiling for $value', ({ value, ceiling }) => {
+  render(<BarChart data={[{ label: 'Current', value }]} showGrid={false} />);
+  expect(screen.getByText(String(ceiling))).toBeInTheDocument();
+});
+
+it('supports mixed series and default secondary labels on hover', () => {
+  render(
+    <BarChart
+      data={[
+        { label: 'First', value: 2, secondaryValue: 0, secondaryColor: '#ff0000' },
+        { label: 'Second', value: 4, secondaryValue: 3 },
+        { label: 'Third', value: 1 },
+      ]}
+    />
+  );
+  fireEvent.mouseEnter(screen.getByTestId('bar-column-first'));
+  expect(screen.getByText(/Secondary:/)).toBeInTheDocument();
+  fireEvent.mouseLeave(screen.getByTestId('bar-column-first'));
+  expect(screen.queryByText(/Secondary:/)).not.toBeInTheDocument();
+  fireEvent.mouseEnter(screen.getByTestId('bar-column-third'));
+  expect(screen.queryByText(/Secondary:/)).not.toBeInTheDocument();
 });

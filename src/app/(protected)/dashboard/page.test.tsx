@@ -37,7 +37,13 @@ const mockDashboardStats = {
     totalPermissions: 28,
   },
   usersByRole: [
-    { role: 'SuperAdmin', label: 'Super Admin', count: 2, percentage: 16.7, color: '#6366f1' },
+    {
+      role: 'Taskflow Admin',
+      label: 'Taskflow Admin',
+      count: 2,
+      percentage: 16.7,
+      color: '#6366f1',
+    },
     { role: 'Admin', label: 'Admin', count: 3, percentage: 25.0, color: '#3b82f6' },
     { role: 'User', label: 'User', count: 7, percentage: 58.3, color: '#10b981' },
   ],
@@ -68,7 +74,7 @@ const mockDashboardStats = {
       userId: 'TF0001',
       name: 'Vijayaraghavan K',
       email: 'vijay@test.com',
-      role: 'SuperAdmin',
+      role: 'Taskflow Admin',
       isActive: true,
       createdAt: '2026-09-18T10:00:00.000Z',
     },
@@ -175,6 +181,12 @@ describe('DashboardPage Component', () => {
 
     expect(screen.getByText('Active')).toBeInTheDocument();
     expect(screen.getByText('Inactive')).toBeInTheDocument();
+
+    // Toggle back to By Role
+    const byRoleBtn = screen.getByRole('button', { name: 'By Role' });
+    fireEvent.click(byRoleBtn);
+
+    expect(screen.getAllByText('Super Admin').length).toBeGreaterThan(0);
   });
 
   it('allows toggling between Bar Chart views (Registrations vs Role Permissions)', async () => {
@@ -193,6 +205,12 @@ describe('DashboardPage Component', () => {
 
     expect(screen.getByText('Permissions')).toBeInTheDocument();
     expect(screen.getByText('Assigned Users')).toBeInTheDocument();
+
+    // Switch back to Registrations
+    const registrationsBtn = screen.getByRole('button', { name: 'Registrations' });
+    fireEvent.click(registrationsBtn);
+
+    expect(screen.getByText('Sep')).toBeInTheDocument();
   });
 
   it('renders recent members and recent roles lists', async () => {

@@ -45,19 +45,13 @@ export const CreateRoleDrawer = memo(function CreateRoleDrawer({
       const payload = getFormData();
       if (!payload) return;
 
-      try {
-        const resultAction = await dispatch(createRoleThunk(payload));
+      const resultAction = await dispatch(createRoleThunk(payload));
 
-        if (createRoleThunk.fulfilled.match(resultAction)) {
-          onClose();
-          onSuccess?.();
-        } else {
-          setApiError(
-            (resultAction.payload as string) || ROLES_CONSTANTS.createDrawer.defaultError
-          );
-        }
-      } catch (err) {
-        setApiError(err instanceof Error ? err.message : ROLES_CONSTANTS.createDrawer.defaultError);
+      if (createRoleThunk.fulfilled.match(resultAction)) {
+        onClose();
+        onSuccess?.();
+      } else {
+        setApiError((resultAction.payload as string) || ROLES_CONSTANTS.createDrawer.defaultError);
       }
     },
     [dispatch, getFormData, onClose, onSuccess, setApiError]

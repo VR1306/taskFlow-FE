@@ -2,11 +2,10 @@ import React from 'react';
 
 export const DashboardSkeleton: React.FC = () => {
   return (
-    <div
-      role="status"
+    <output
       aria-label="Loading workspace dashboard"
       data-testid="dashboard-skeleton"
-      className="space-y-6 animate-pulse"
+      className="block space-y-6 animate-pulse"
     >
       {/* 4 Stat Cards Skeletons */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -125,6 +124,6 @@ export const DashboardSkeleton: React.FC = () => {
           </div>
         ))}
       </div>
-    </div>
+    </output>
   );
 };

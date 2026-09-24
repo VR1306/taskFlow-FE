@@ -54,4 +54,12 @@ describe('Loader Component', () => {
 
     expect(screen.getByRole('status')).toHaveClass('my-custom-loader');
   });
+
+  it('falls back to the md size dimensions for an unrecognized size value', () => {
+    render(<Loader size={'huge' as unknown as never} />);
+
+    const svg = screen.getByRole('img', { name: /loading/i });
+    expect(svg).toHaveAttribute('width', '40');
+    expect(svg).toHaveAttribute('height', '40');
+  });
 });

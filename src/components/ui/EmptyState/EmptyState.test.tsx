@@ -69,4 +69,38 @@ describe('EmptyState Component', () => {
     expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
     expect(screen.getByTestId('custom-btn')).toBeInTheDocument();
   });
+
+  it('renders image when icon is passed as string path or iconSrc', () => {
+    const { container, rerender } = render(<EmptyState icon="/icons/building.svg" />);
+    // Should render an img element with src="/icons/building.svg" and NOT raw text
+    const img = container.querySelector('img');
+    expect(img).toBeInTheDocument();
+    expect(screen.queryByText('/icons/building.svg')).not.toBeInTheDocument();
+
+    rerender(<EmptyState iconSrc="/icons/building.svg" />);
+    const img2 = container.querySelector('img');
+    expect(img2).toBeInTheDocument();
+    expect(screen.queryByText('/icons/building.svg')).not.toBeInTheDocument();
+  });
+
+  it('falls back to the no-data variant and md size config for unknown values', () => {
+    render(
+      <EmptyState
+        variant={'not-a-real-variant' as unknown as never}
+        size={'not-a-real-size' as unknown as never}
+      />
+    );
+
+    // Falls back to the 'no-data' variant defaults
+    expect(screen.getByText('No Records Found')).toBeInTheDocument();
+    // Falls back to the 'md' size classes on the title element
+    expect(screen.getByText('No Records Found')).toHaveClass('text-base');
+  });
+
+  it('sets a generic aria-label when the title is not a plain string', () => {
+    render(<EmptyState title={<span>Rich Title</span>} />);
+
+    expect(screen.getByRole('region', { name: 'Empty state' })).toBeInTheDocument();
+    expect(screen.getByText('Rich Title')).toBeInTheDocument();
+  });
 });

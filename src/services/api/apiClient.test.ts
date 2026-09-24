@@ -207,4 +207,88 @@ describe('API Client', () => {
       expect.objectContaining({ method: 'DELETE' })
     );
   });
+
+  it('provides a helper method for PATCH', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    });
+
+    await apiClient.patch('/partial-update', { status: 'archived' });
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/partial-update'),
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'archived' }),
+      })
+    );
+  });
+
+  describe('upload()', () => {
+    it('uploads FormData without forcing a Content-Type header', async () => {
+      authStorage.setAuthSession('my-jwt-token', {
+        id: '1',
+        firstName: 'Alice',
+        lastName: 'Smith',
+        email: 'alice@example.com',
+      });
+
+      const mockResponse = { success: true, data: { id: 'att-1' } };
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 201,
+        json: async () => mockResponse,
+      });
+
+      const formData = new FormData();
+      formData.append('file', new Blob(['content']), 'a.png');
+
+      const result = await apiClient.upload('/tasks/ENG-1/attachments', formData);
+
+      expect(result).toEqual(mockResponse);
+      const [, options] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(options.body).toBe(formData);
+      expect(options.headers['Content-Type']).toBeUndefined();
+      expect(options.headers.Authorization).toBe('Bearer my-jwt-token');
+    });
+
+    it('throws ApiError with backend message on failed upload', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({ success: false, message: 'File too large' }),
+      });
+
+      await expect(apiClient.upload('/tasks/ENG-1/attachments', new FormData())).rejects.toThrow(
+        'File too large'
+      );
+    });
+  });
+
+  describe('downloadBlob()', () => {
+    it('returns a Blob for a successful binary response', async () => {
+      const mockBlob = new Blob(['binary-content']);
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        blob: async () => mockBlob,
+      });
+
+      const result = await apiClient.downloadBlob('/tasks/ENG-1/attachments/att-1');
+      expect(result).toBe(mockBlob);
+    });
+
+    it('throws ApiError with backend message when download fails', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: async () => ({ success: false, message: 'Attachment not found' }),
+      });
+
+      await expect(apiClient.downloadBlob('/tasks/ENG-1/attachments/missing')).rejects.toThrow(
+        'Attachment not found'
+      );
+    });
+  });
 });

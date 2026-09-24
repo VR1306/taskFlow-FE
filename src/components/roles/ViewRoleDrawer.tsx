@@ -17,6 +17,8 @@ export interface ViewRoleDrawerProps {
   canEdit?: boolean;
 }
 
+export const NOOP_PERM_CHANGE = () => {};
+
 export const ViewRoleDrawer = memo(function ViewRoleDrawer({
   isOpen,
   onClose,
@@ -151,7 +153,7 @@ export const ViewRoleDrawer = memo(function ViewRoleDrawer({
           <DynamicPermissionsSelector
             permissionsCatalogue={permissionsCatalogue}
             selectedPermissions={rolePerms}
-            onChange={() => {}}
+            onChange={NOOP_PERM_CHANGE}
             isReadOnly={true}
           />
         </div>

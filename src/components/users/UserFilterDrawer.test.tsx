@@ -55,4 +55,74 @@ describe('UserFilterDrawer Component', () => {
     expect(defaultProps.onReset).toHaveBeenCalledTimes(1);
     expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('falls back to defaults and applies undefined filters when neither currentFilters nor filters are provided', () => {
+    render(
+      <UserFilterDrawer
+        isOpen={true}
+        onClose={defaultProps.onClose}
+        onApply={defaultProps.onApply}
+        onReset={defaultProps.onReset}
+      />
+    );
+
+    // No active filter badge should be shown since both selects default to 'all'
+    expect(screen.getByText('All Roles')).toBeInTheDocument();
+    expect(screen.getByText('All Status')).toBeInTheDocument();
+
+    const applyBtn = screen.getByRole('button', {
+      name: USERS_CONSTANTS.filterDrawer.applyButtonText,
+    });
+    fireEvent.click(applyBtn);
+
+    expect(defaultProps.onApply).toHaveBeenCalledWith({
+      role: undefined,
+      status: undefined,
+    });
+  });
+
+  it('reads from the deprecated "filters" prop when "currentFilters" is not provided', () => {
+    render(
+      <UserFilterDrawer
+        isOpen={true}
+        onClose={defaultProps.onClose}
+        filters={{ role: 'QA', status: 'Inactive' }}
+        onApply={defaultProps.onApply}
+        onReset={defaultProps.onReset}
+      />
+    );
+
+    expect(screen.getByText('2 active')).toBeInTheDocument();
+  });
+
+  it('updates selected role and status when select values change', () => {
+    render(
+      <UserFilterDrawer
+        isOpen={true}
+        onClose={defaultProps.onClose}
+        onApply={defaultProps.onApply}
+        onReset={defaultProps.onReset}
+      />
+    );
+
+    // Change role
+    fireEvent.mouseDown(screen.getByText('All Roles'));
+    fireEvent.click(screen.getByText('Developer'));
+
+    // Change status
+    fireEvent.mouseDown(screen.getByText('All Status'));
+    fireEvent.click(screen.getByText('Active (Full Access)'));
+
+    expect(screen.getByText('2 active')).toBeInTheDocument();
+
+    const applyBtn = screen.getByRole('button', {
+      name: USERS_CONSTANTS.filterDrawer.applyButtonText,
+    });
+    fireEvent.click(applyBtn);
+
+    expect(defaultProps.onApply).toHaveBeenCalledWith({
+      role: 'Developer',
+      status: 'Active',
+    });
+  });
 });

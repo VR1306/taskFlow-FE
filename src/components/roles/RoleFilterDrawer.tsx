@@ -53,7 +53,7 @@ export const RoleFilterDrawer = memo(function RoleFilterDrawer({
   ];
 
   const statusOptionsWithAll = [
-    { value: '', label: 'All Statuses' },
+    { value: '', label: 'All Status' },
     ...ROLES_CONSTANTS.statusOptions,
   ];
 
@@ -78,7 +78,7 @@ export const RoleFilterDrawer = memo(function RoleFilterDrawer({
           <Select
             options={roleTypeOptionsWithAll}
             value={draftRoleType}
-            onChange={(val) => setDraftRoleType(val)}
+            onChange={setDraftRoleType}
             placeholder={ROLES_CONSTANTS.filterDrawer.roleTypePlaceholder}
           />
         </div>
@@ -91,7 +91,7 @@ export const RoleFilterDrawer = memo(function RoleFilterDrawer({
           <Select
             options={statusOptionsWithAll}
             value={draftStatus}
-            onChange={(val) => setDraftStatus(val)}
+            onChange={setDraftStatus}
             placeholder={ROLES_CONSTANTS.filterDrawer.statusPlaceholder}
           />
         </div>

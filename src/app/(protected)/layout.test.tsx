@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import ProtectedLayout from './layout';
@@ -203,5 +203,107 @@ describe('ProtectedLayout Component', () => {
     fireEvent.click(cancelBtn);
 
     expect(store.getState().auth.isChangePasswordModalOpen).toBe(false);
+  });
+
+  it('applies the collapsed sidebar padding class when the sidebar is collapsed', async () => {
+    authStorage.setTokens('valid-jwt-token');
+    const store = createMockStore({
+      ui: {
+        sidebarCollapsed: true,
+        mobileSidebarOpen: false,
+      },
+    });
+
+    const { container } = render(
+      <Provider store={store}>
+        <ProtectedLayout>
+          <div data-testid="child-content">Content</div>
+        </ProtectedLayout>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('child-content')).toBeInTheDocument();
+    });
+
+    const mainArea = container.querySelector('.md\\:pl-20');
+    expect(mainArea).toBeInTheDocument();
+  });
+
+  it('triggers checkAuth on popstate and pageshow events and unmounts cleanly', async () => {
+    authStorage.setTokens('valid-jwt-token');
+    const store = createMockStore();
+
+    const { unmount } = render(
+      <Provider store={store}>
+        <ProtectedLayout>
+          <div>Child</div>
+        </ProtectedLayout>
+      </Provider>
+    );
+
+    // Dispatch events while authenticated
+    act(() => {
+      window.dispatchEvent(new Event('popstate'));
+      window.dispatchEvent(new Event('pageshow'));
+    });
+
+    // Clear token and dispatch popstate to trigger redirect
+    authStorage.clearAuthSession();
+    act(() => {
+      window.dispatchEvent(new Event('popstate'));
+    });
+    expect(mockReplace).toHaveBeenCalledWith('/auth/login');
+
+    unmount();
+  });
+
+  it('handles logout when refreshToken is absent and when logout service rejects', async () => {
+    authStorage.setTokens('valid-jwt-token');
+    jest.spyOn(authStorage, 'getRefreshToken').mockReturnValue('');
+    const store = createMockStore();
+
+    render(
+      <Provider store={store}>
+        <ProtectedLayout>
+          <div>Child</div>
+        </ProtectedLayout>
+      </Provider>
+    );
+
+    const signOutBtn = screen.getAllByRole('button', { name: /sign out/i })[0];
+    fireEvent.click(signOutBtn);
+
+    const confirmBtn = screen.getByRole('button', { name: 'Sign Out' });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/auth/login');
+    });
+  });
+
+  it('handles logout when authService.logout rejects', async () => {
+    authStorage.setTokens('valid-jwt-token');
+    jest.spyOn(authStorage, 'getRefreshToken').mockReturnValue('some-token');
+    jest.spyOn(authService, 'logout').mockRejectedValue(new Error('Network error'));
+    const store = createMockStore();
+
+    render(
+      <Provider store={store}>
+        <ProtectedLayout>
+          <div>Child</div>
+        </ProtectedLayout>
+      </Provider>
+    );
+
+    const signOutBtn = screen.getAllByRole('button', { name: /sign out/i })[0];
+    fireEvent.click(signOutBtn);
+
+    const confirmBtn = screen.getByRole('button', { name: 'Sign Out' });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/auth/login');
+    });
   });
 });

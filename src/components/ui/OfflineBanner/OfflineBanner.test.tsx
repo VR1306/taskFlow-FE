@@ -2,6 +2,12 @@ import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { OfflineBanner } from './OfflineBanner';
 import { ERROR_PAGES_CONSTANTS } from '@/constants';
+import * as helpers from '@/helpers';
+
+jest.mock('@/helpers', () => ({
+  ...jest.requireActual('@/helpers'),
+  useMounted: jest.fn(() => true),
+}));
 
 describe('OfflineBanner Component', () => {
   beforeEach(() => {
@@ -18,6 +24,13 @@ describe('OfflineBanner Component', () => {
   });
 
   it('renders nothing when client is online and no restored event has fired', () => {
+    const { container } = render(<OfflineBanner />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('renders nothing before the component has mounted on the client', () => {
+    (helpers.useMounted as jest.Mock).mockReturnValueOnce(false);
+
     const { container } = render(<OfflineBanner />);
     expect(container.firstChild).toBeNull();
   });
@@ -79,5 +92,18 @@ describe('OfflineBanner Component', () => {
     fireEvent.click(checkBtn);
 
     expect(screen.getByText(ERROR_PAGES_CONSTANTS.offline.restoredText)).toBeInTheDocument();
+  });
+
+  it('dismisses restored notice when dismiss button is clicked', () => {
+    render(<OfflineBanner />);
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+    });
+    expect(screen.getByText(ERROR_PAGES_CONSTANTS.offline.restoredText)).toBeInTheDocument();
+
+    const dismissBtn = screen.getByRole('button', { name: /dismiss notice/i });
+    fireEvent.click(dismissBtn);
+
+    expect(screen.queryByText(ERROR_PAGES_CONSTANTS.offline.restoredText)).not.toBeInTheDocument();
   });
 });

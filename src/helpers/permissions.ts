@@ -4,7 +4,7 @@ import { useCurrentUser } from './useCurrentUser';
 
 /**
  * Evaluates whether a user holds the required functional permission.
- * SuperAdmin accounts possess universal administrative rights (*).
+ * Taskflow Admin accounts possess universal administrative rights (*).
  */
 export const hasPermission = (
   user: Readonly<AuthUser> | null | undefined,
@@ -13,7 +13,7 @@ export const hasPermission = (
   if (!user) return false;
 
   const role = user.role?.trim();
-  if (role === 'SuperAdmin' || role === 'Super Admin') {
+  if (role === 'Taskflow Admin') {
     return true;
   }
 
@@ -22,16 +22,33 @@ export const hasPermission = (
     return true;
   }
 
-  if (role === 'Admin') {
-    // Admin has default access to user/role/task management unless restricted
-    return true;
+  const requested = Array.isArray(requiredPermission) ? requiredPermission : [requiredPermission];
+
+  if (role === 'Project Manager') {
+    // Project Manager has default operational access to team, tasks, and reporting
+    const projectManagerDefaultPerms = new Set([
+      'users.view',
+      'users.create',
+      'users.update',
+      'roles.view',
+      'tasks.view',
+      'tasks.create',
+      'tasks.update',
+      'tasks.delete',
+      'analytics.view',
+      'analytics.export',
+      'settings.view',
+    ]);
+    if (
+      requested.some(
+        (perm) => projectManagerDefaultPerms.has(perm) || userPermissions.includes(perm)
+      )
+    ) {
+      return true;
+    }
   }
 
-  if (Array.isArray(requiredPermission)) {
-    return requiredPermission.some((perm) => userPermissions.includes(perm));
-  }
-
-  return userPermissions.includes(requiredPermission);
+  return requested.some((perm) => userPermissions.includes(perm));
 };
 
 /**
@@ -47,17 +64,14 @@ export const usePermission = (requiredPermission: string | string[]): boolean =>
  */
 export const getRoleTypeBadgeVariant = (roleType?: string): BadgeVariant => {
   switch (roleType?.trim()) {
-    case 'Super Admin':
-    case 'SuperAdmin':
+    case 'Taskflow Admin':
       return 'purple';
-    case 'Admin':
+    case 'Project Manager':
       return 'primary';
-    case 'Manager':
-      return 'warning';
-    case 'User':
+    case 'Developer':
       return 'success';
-    case 'Guest':
-      return 'default';
+    case 'QA':
+      return 'warning';
     case 'Custom':
     default:
       return 'primary';

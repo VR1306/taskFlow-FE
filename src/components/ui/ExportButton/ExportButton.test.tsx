@@ -82,4 +82,12 @@ describe('ExportButton', () => {
     fireEvent.click(screen.getByRole('button', { name: /export options/i }));
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
+
+  it('does not open when isLoading is true', () => {
+    render(
+      <ExportButton onExportCsv={mockExportCsv} onExportJson={mockExportJson} isLoading={true} />
+    );
+    fireEvent.click(screen.getByRole('button', { name: /export options/i }));
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
 });

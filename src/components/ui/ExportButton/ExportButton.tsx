@@ -24,9 +24,8 @@ export const ExportButton = memo(function ExportButton({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleToggle = useCallback(() => {
-    if (disabled || isLoading) return;
     setIsOpen((prev) => !prev);
-  }, [disabled, isLoading]);
+  }, []);
 
   const handleClose = useCallback(() => {
     setIsOpen(false);

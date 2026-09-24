@@ -3,6 +3,7 @@
 import React, { memo, useCallback, useMemo, useState, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Image, Avatar, Badge } from '@/components/ui';
+import { NotificationDropdown } from '@/components/notifications';
 import {
   useAppDispatch,
   useAppSelector,
@@ -71,16 +72,18 @@ export const Header = memo(function Header() {
   }, [isUserMenuOpen]);
 
   const pageTitle = useMemo(() => {
+    if (pathname.includes('/notifications')) return 'Notifications';
     if (pathname.includes('/roles')) return 'Role Management';
     if (pathname.includes('/users')) return 'User Management';
+    if (pathname.includes('/projects')) return 'Projects';
     return 'Dashboard';
   }, [pathname]);
 
   const userRoleVariant = useMemo(() => {
     switch (currentUser?.role) {
-      case 'SuperAdmin':
+      case 'Taskflow Admin':
         return 'purple';
-      case 'Admin':
+      case 'Project Manager':
         return 'primary';
       default:
         return 'default';
@@ -107,111 +110,120 @@ export const Header = memo(function Header() {
         </div>
       </div>
 
-      {/* Right: Interactive User profile status pill & Action Menu */}
-      <div className="relative shrink-0" ref={menuContainerRef}>
+      {/* Right: Notification Dropdown & Interactive User profile status pill & Action Menu */}
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {mounted && currentUser && (
           <>
-            <button
-              type="button"
-              onClick={handleToggleUserMenu}
-              aria-label="User account menu"
-              aria-expanded={isUserMenuOpen}
-              aria-haspopup="menu"
-              className={`flex items-center gap-1.5 sm:gap-2 rounded-full border px-2 sm:px-3 py-1 sm:py-1.5 shadow-2xs transition-all duration-150 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 ${
-                isUserMenuOpen
-                  ? 'border-blue-400 bg-blue-50/60 ring-2 ring-blue-500/15'
-                  : 'border-slate-200/80 bg-slate-50/80 hover:bg-slate-100/90 hover:border-slate-300'
-              }`}
-            >
-              <Avatar
-                firstName={currentUser.firstName}
-                lastName={currentUser.lastName}
-                size="xs"
-                colorScheme="blue"
-              />
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-800 hidden md:inline truncate max-w-[120px]">
-                  {currentUser.firstName} {currentUser.lastName}
-                </span>
-                {currentUser.role && (
-                  <span className="hidden sm:inline-flex">
-                    <Badge size="sm" variant={userRoleVariant}>
-                      {currentUser.role}
-                    </Badge>
-                  </span>
-                )}
-              </div>
-              <div
-                className={`text-slate-400 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`}
-              >
-                <Image
-                  src="/icons/chevron-right.svg"
-                  alt=""
-                  width={13}
-                  height={13}
-                  className="rotate-90"
-                />
-              </div>
-            </button>
-
-            {/* Dropdown Action Menu */}
-            {isUserMenuOpen && (
-              <div
-                role="menu"
-                aria-orientation="vertical"
-                aria-label="User account actions"
-                className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-200/90 bg-white p-2 shadow-xl backdrop-blur-md z-50 transition-all duration-150 animate-in fade-in zoom-in-95"
-              >
-                {/* User Identity Info */}
-                <div className="flex items-center gap-2.5 p-2.5 bg-slate-50/80 rounded-xl border border-slate-100">
-                  <Avatar
-                    firstName={currentUser.firstName}
-                    lastName={currentUser.lastName}
-                    size="sm"
-                    colorScheme="blue"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-slate-900 leading-tight">
-                      {currentUser.firstName} {currentUser.lastName}
-                    </p>
-                    <p className="truncate text-[11px] text-slate-500">{currentUser.email}</p>
-                    {currentUser.role && (
-                      <div className="mt-1">
-                        <Badge size="sm" variant={userRoleVariant}>
-                          {currentUser.role}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="my-1.5 border-t border-slate-100" />
-
-                {/* Change Password Menu Item */}
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={handleOpenChangePassword}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors cursor-pointer text-left"
-                >
-                  <Image src="/icons/lock.svg" alt="" width={16} height={16} />
-                  <span>{CHANGE_PASSWORD_CONSTANTS.actionMenuItemText}</span>
-                </button>
-
-                {/* Sign Out Menu Item */}
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={handleOpenLogout}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer text-left"
-                >
-                  <Image src="/icons/logout-danger.svg" alt="" width={16} height={16} />
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            )}
+            {/* Notification Dropdown Bell */}
+            <NotificationDropdown />
           </>
         )}
+
+        <div className="relative shrink-0" ref={menuContainerRef}>
+          {mounted && currentUser && (
+            <>
+              <button
+                type="button"
+                onClick={handleToggleUserMenu}
+                aria-label="User account menu"
+                aria-expanded={isUserMenuOpen}
+                aria-haspopup="menu"
+                className={`flex items-center gap-1.5 sm:gap-2 rounded-full border px-2 sm:px-3 py-1 sm:py-1.5 shadow-2xs transition-all duration-150 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 ${
+                  isUserMenuOpen
+                    ? 'border-blue-400 bg-blue-50/60 ring-2 ring-blue-500/15'
+                    : 'border-slate-200/80 bg-slate-50/80 hover:bg-slate-100/90 hover:border-slate-300'
+                }`}
+              >
+                <Avatar
+                  firstName={currentUser.firstName}
+                  lastName={currentUser.lastName}
+                  size="xs"
+                  colorScheme="blue"
+                />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-800 hidden md:inline truncate max-w-[120px]">
+                    {currentUser.firstName} {currentUser.lastName}
+                  </span>
+                  {currentUser.role && (
+                    <span className="hidden sm:inline-flex">
+                      <Badge size="sm" variant={userRoleVariant}>
+                        {currentUser.role}
+                      </Badge>
+                    </span>
+                  )}
+                </div>
+                <div
+                  className={`text-slate-400 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`}
+                >
+                  <Image
+                    src="/icons/chevron-right.svg"
+                    alt=""
+                    width={13}
+                    height={13}
+                    className="rotate-90"
+                  />
+                </div>
+              </button>
+
+              {/* Dropdown Action Menu */}
+              {isUserMenuOpen && (
+                <div
+                  role="menu"
+                  aria-orientation="vertical"
+                  aria-label="User account actions"
+                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-200/90 bg-white p-2 shadow-xl backdrop-blur-md z-50 transition-all duration-150 animate-in fade-in zoom-in-95"
+                >
+                  {/* User Identity Info */}
+                  <div className="flex items-center gap-2.5 p-2.5 bg-slate-50/80 rounded-xl border border-slate-100">
+                    <Avatar
+                      firstName={currentUser.firstName}
+                      lastName={currentUser.lastName}
+                      size="sm"
+                      colorScheme="blue"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-bold text-slate-900 leading-tight">
+                        {currentUser.firstName} {currentUser.lastName}
+                      </p>
+                      <p className="truncate text-[11px] text-slate-500">{currentUser.email}</p>
+                      {currentUser.role && (
+                        <div className="mt-1">
+                          <Badge size="sm" variant={userRoleVariant}>
+                            {currentUser.role}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="my-1.5 border-t border-slate-100" />
+
+                  {/* Change Password Menu Item */}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleOpenChangePassword}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors cursor-pointer text-left"
+                  >
+                    <Image src="/icons/lock.svg" alt="" width={16} height={16} />
+                    <span>{CHANGE_PASSWORD_CONSTANTS.actionMenuItemText}</span>
+                  </button>
+
+                  {/* Sign Out Menu Item */}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleOpenLogout}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer text-left"
+                  >
+                    <Image src="/icons/logout-danger.svg" alt="" width={16} height={16} />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </header>
   );

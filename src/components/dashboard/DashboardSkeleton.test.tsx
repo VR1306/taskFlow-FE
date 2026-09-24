@@ -8,7 +8,7 @@ describe('DashboardSkeleton Component', () => {
 
     const skeleton = screen.getByTestId('dashboard-skeleton');
     expect(skeleton).toBeInTheDocument();
-    expect(skeleton).toHaveAttribute('role', 'status');
+    expect(screen.getByRole('status')).toBe(skeleton);
     expect(skeleton).toHaveAttribute('aria-label', 'Loading workspace dashboard');
   });
 });

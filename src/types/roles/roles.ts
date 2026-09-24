@@ -1,4 +1,4 @@
-export type RoleType = 'Super Admin' | 'Admin' | 'Manager' | 'User' | 'Guest' | 'Custom';
+export type RoleType = 'Taskflow Admin' | 'Project Manager' | 'Developer' | 'QA' | 'Custom';
 
 export interface PermissionItem {
   id: string;

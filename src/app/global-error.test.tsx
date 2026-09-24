@@ -29,4 +29,9 @@ describe('GlobalError Root Component', () => {
 
     expect(mockReset).toHaveBeenCalledTimes(1);
   });
+  it('uses the default description for errors without messages or references', () => {
+    render(<GlobalError error={new Error('')} reset={jest.fn()} />);
+    expect(screen.getByText(ERROR_PAGES_CONSTANTS.globalError.description)).toBeInTheDocument();
+    expect(screen.queryByText(/Error Reference:/)).not.toBeInTheDocument();
+  });
 });

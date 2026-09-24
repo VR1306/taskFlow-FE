@@ -142,7 +142,7 @@ export const EmptyState = memo(function EmptyState({
 
   const displayTitle = title ?? config.defaultTitle;
   const displayDescription = description ?? config.defaultDescription;
-  const activeIconSrc = iconSrc || config.defaultIconSrc;
+  const activeIconSrc = iconSrc || (typeof icon === 'string' ? icon : config.defaultIconSrc);
 
   return (
     <section
@@ -153,7 +153,9 @@ export const EmptyState = memo(function EmptyState({
       <div
         className={`flex items-center justify-center border transition-transform duration-200 ${sizeConfig.iconWrapper} ${config.iconBadgeBg}`}
       >
-        {icon ?? (
+        {React.isValidElement(icon) ? (
+          icon
+        ) : (
           <Image
             src={activeIconSrc}
             alt=""

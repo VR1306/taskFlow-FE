@@ -125,6 +125,7 @@ export const BarChart: React.FC<BarChartProps> = ({
               const secHeightPercent = item.secondaryValue
                 ? Math.min(100, Math.max(4, (item.secondaryValue / yCeiling) * 100))
                 : 0;
+              const maxBarHeightPercent = Math.max(heightPercent, secHeightPercent);
               const isHovered = hoveredIndex === index;
 
               return (
@@ -135,9 +136,14 @@ export const BarChart: React.FC<BarChartProps> = ({
                   onMouseLeave={() => setHoveredIndex(null)}
                   data-testid={`bar-column-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                 >
-                  {/* Floating Tooltip */}
+                  {/* Floating Tooltip positioned dynamically based on bar height */}
                   {isHovered && (
-                    <div className="absolute -top-11 z-30 bg-slate-900 text-white text-[11px] py-1.5 px-2.5 rounded-lg shadow-lg pointer-events-none whitespace-nowrap flex flex-col items-center transform -translate-y-1 animate-in fade-in zoom-in-95 duration-150">
+                    <div
+                      style={{
+                        bottom: `calc(${maxBarHeightPercent}% + 10px)`,
+                      }}
+                      className="absolute z-30 bg-slate-900 text-white text-[11px] py-1.5 px-2.5 rounded-lg shadow-xl pointer-events-none whitespace-nowrap flex flex-col items-center left-1/2 -translate-x-1/2 animate-in fade-in zoom-in-95 duration-150"
+                    >
                       <span className="font-semibold">{item.label}</span>
                       <span className="text-slate-200">
                         {valueLabel}: <strong className="text-white">{item.value}</strong>
@@ -149,7 +155,7 @@ export const BarChart: React.FC<BarChartProps> = ({
                           </>
                         )}
                       </span>
-                      <div className="w-2 h-2 bg-slate-900 rotate-45 absolute -bottom-1" />
+                      <div className="w-2 h-2 bg-slate-900 rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2" />
                     </div>
                   )}
 
@@ -163,13 +169,7 @@ export const BarChart: React.FC<BarChartProps> = ({
                         backgroundColor: item.color || '#3b82f6',
                         opacity: hoveredIndex === null || isHovered ? 1 : 0.65,
                       }}
-                    >
-                      {isHovered && (
-                        <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-700">
-                          {item.value}
-                        </div>
-                      )}
-                    </div>
+                    />
 
                     {/* Secondary Bar if present */}
                     {hasSecondary && item.secondaryValue !== undefined && (

@@ -43,6 +43,7 @@ import {
   deleteRoleThunk,
 } from '@/store';
 import { RoleRecord, RoleFilters } from '@/types';
+import { rolesService } from '@/services';
 
 // Helper functions extracted outside the component
 const getRoleIdString = (role: RoleRecord, fallback = 'N/A'): string => {
@@ -587,8 +588,7 @@ export default function RolesPage() {
   );
 
   const handleConfirmDelete = useCallback(async () => {
-    if (!selectedRoleForDelete) return;
-    const roleId = selectedRoleForDelete.id || selectedRoleForDelete._id;
+    const roleId = selectedRoleForDelete?.id || selectedRoleForDelete?._id;
     if (!roleId) return;
 
     await dispatch(deleteRoleThunk(roleId));
@@ -605,7 +605,6 @@ export default function RolesPage() {
 
   // Fetch all matching records for bulk export
   const fetchAllMatchingRoles = useCallback(async (): Promise<RoleRecord[]> => {
-    const { rolesService } = await import('@/services/roles');
     const response = await rolesService.getRoles({
       page: 1,
       limit: 1000,
@@ -798,23 +797,26 @@ export default function RolesPage() {
       />
 
       {/* Edit Role Drawer */}
-      <EditRoleDrawer
-        isOpen={Boolean(selectedRoleForEdit)}
-        onClose={() => setSelectedRoleForEdit(null)}
-        role={selectedRoleForEdit}
-        onSuccess={() => {
-          dispatch(
-            fetchRoles({
-              page: currentPage,
-              limit,
-              search: debouncedSearch,
-              roleType: filters.roleType,
-              status: filters.status,
-              forceRefresh: true,
-            })
-          );
-        }}
-      />
+      {selectedRoleForEdit && (
+        <EditRoleDrawer
+          key={getRoleIdString(selectedRoleForEdit)}
+          isOpen={Boolean(selectedRoleForEdit)}
+          onClose={() => setSelectedRoleForEdit(null)}
+          role={selectedRoleForEdit}
+          onSuccess={() => {
+            dispatch(
+              fetchRoles({
+                page: currentPage,
+                limit,
+                search: debouncedSearch,
+                roleType: filters.roleType,
+                status: filters.status,
+                forceRefresh: true,
+              })
+            );
+          }}
+        />
+      )}
 
       {/* View Role Drawer */}
       <ViewRoleDrawer

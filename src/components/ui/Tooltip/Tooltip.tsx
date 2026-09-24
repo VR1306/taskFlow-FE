@@ -59,9 +59,8 @@ export const Tooltip = memo(function Tooltip({
   const calculatePosition = useCallback(() => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
-    const tooltipEl = tooltipRef.current;
-    const tooltipWidth = tooltipEl ? tooltipEl.offsetWidth : 240;
-    const tooltipHeight = tooltipEl ? tooltipEl.offsetHeight : 38;
+    const tooltipWidth = tooltipRef.current?.offsetWidth || 240;
+    const tooltipHeight = tooltipRef.current?.offsetHeight || 38;
 
     let targetPlacement = position;
     const spaceTop = rect.top;
@@ -114,10 +113,9 @@ export const Tooltip = memo(function Tooltip({
   }, [position]);
 
   const showTooltip = useCallback(() => {
-    if (disabled || !content) return;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setIsVisible(true);
-  }, [disabled, content]);
+  }, []);
 
   const hideTooltip = useCallback(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);

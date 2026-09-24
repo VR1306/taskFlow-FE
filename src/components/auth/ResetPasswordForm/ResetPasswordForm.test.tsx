@@ -275,3 +275,40 @@ describe('ResetPasswordForm Component', () => {
     expect(confirmInput).toHaveAttribute('type', 'text');
   });
 });
+
+it.each([
+  { error: new Error('Connection failed'), message: 'Connection failed', unauthorized: false },
+  {
+    error: { message: 'Expired link', statusCode: 401 },
+    message: 'Expired link',
+    unauthorized: true,
+  },
+  { error: {}, message: RESET_PASSWORD_CONSTANTS.errors.defaultSubmitError, unauthorized: false },
+  { error: null, message: RESET_PASSWORD_CONSTANTS.errors.defaultSubmitError, unauthorized: false },
+])('shows safe reset errors for $message', async ({ error, message, unauthorized }) => {
+  render(
+    <ResetPasswordForm
+      token="reset-token"
+      email="person@example.com"
+      onSubmit={async () => {
+        throw error;
+      }}
+    />
+  );
+  fireEvent.change(screen.getByPlaceholderText(RESET_PASSWORD_CONSTANTS.passwordPlaceholder), {
+    target: { value: 'NewStrongPassword@123' },
+  });
+  fireEvent.change(
+    screen.getByPlaceholderText(RESET_PASSWORD_CONSTANTS.confirmPasswordPlaceholder),
+    { target: { value: 'NewStrongPassword@123' } }
+  );
+  const submit = screen.getByRole('button', { name: RESET_PASSWORD_CONSTANTS.submitButtonText });
+  await waitFor(() => expect(submit).toBeEnabled());
+  fireEvent.click(submit);
+  expect(await screen.findByRole('alert')).toHaveTextContent(message);
+  const recovery = screen.queryByRole('link', {
+    name: new RegExp(RESET_PASSWORD_CONSTANTS.requestNewLinkText, 'i'),
+  });
+  if (unauthorized) expect(recovery).toBeInTheDocument();
+  else expect(recovery).not.toBeInTheDocument();
+});

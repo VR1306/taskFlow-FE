@@ -131,4 +131,34 @@ describe('AuthSideBanner Component', () => {
     expect(screen.getByText('5x Boost')).toBeInTheDocument();
     expect(screen.getByAltText('Custom Banner')).toBeInTheDocument();
   });
+
+  it('falls back to the first highlight when the active index no longer exists after highlights shrink', () => {
+    const twoHighlights: WorkflowHighlight[] = [
+      {
+        id: 'h1',
+        tag: 'Tag One',
+        quote: 'Quote one text for testing purposes.',
+        author: 'Author One',
+        role: 'Role One',
+      },
+      {
+        id: 'h2',
+        tag: 'Tag Two',
+        quote: 'Quote two text for testing purposes.',
+        author: 'Author Two',
+        role: 'Role Two',
+      },
+    ];
+
+    const { rerender } = render(<AuthSideBanner highlights={twoHighlights} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /next highlight/i }));
+    expect(screen.getByText('Tag Two')).toBeInTheDocument();
+
+    // Shrink the highlights array while activeIndex still points past its bounds
+    rerender(<AuthSideBanner highlights={[twoHighlights[0]]} />);
+
+    expect(screen.getByText('Author One')).toBeInTheDocument();
+    expect(screen.getByText('Role One')).toBeInTheDocument();
+  });
 });
