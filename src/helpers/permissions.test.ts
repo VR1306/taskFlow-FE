@@ -169,6 +169,17 @@ describe('Permissions Helper & Hooks', () => {
       expect(resolveLandingPageForUser(null)).toBe('/dashboard');
       expect(resolveLandingPageForUser(undefined)).toBe('/dashboard');
     });
+
+    it('falls back to /dashboard if NAV_ITEMS contains no entry without requiredPermission', () => {
+      jest.isolateModules(() => {
+        jest.doMock('@/constants', () => ({
+          NAV_ITEMS: [{ name: 'Gated', href: '/gated', requiredPermission: ['gated.view'] }],
+        }));
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { resolveLandingPageForUser: resolveWithNoFallback } = require('./permissions');
+        expect(resolveWithNoFallback(null)).toBe('/dashboard');
+      });
+    });
   });
 
   describe('usePermission() hook', () => {

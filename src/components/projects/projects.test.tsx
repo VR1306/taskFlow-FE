@@ -10,6 +10,7 @@ import authReducer from '@/store/slices/authSlice';
 import projectsReducer from '@/store/slices/projectsSlice';
 import { projectsService } from '@/services';
 import { Project } from '@/types';
+import { PROJECTS_CONSTANTS } from '@/constants';
 
 jest.mock('@/services');
 
@@ -630,5 +631,12 @@ describe('ProjectGrid', () => {
     );
     fireEvent.click(screen.getByText('Engineering'));
     expect(onOpenBoard).toHaveBeenCalledWith(mockProject);
+  });
+
+  it('formats project constants messages and text', () => {
+    expect(PROJECTS_CONSTANTS.archivedSection.showButtonText(5)).toBe('Show Archived Projects (5)');
+    expect(PROJECTS_CONSTANTS.deleteModal.message('Test')).toContain('Test');
+    expect(PROJECTS_CONSTANTS.archiveModal.message('Test')).toContain('Test');
+    expect(PROJECTS_CONSTANTS.restoreModal.message('Test')).toContain('Test');
   });
 });

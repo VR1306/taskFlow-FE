@@ -6,7 +6,10 @@ import projectsReducer, {
   clearProjectFilters,
   invalidateProjectsCache,
   clearProjectsError,
+  setArchivedProjectCurrentPage,
+  setArchivedProjectLimit,
   fetchProjects,
+  fetchArchivedProjects,
   fetchMemberCandidates,
   createProjectThunk,
   updateProjectThunk,
@@ -115,6 +118,20 @@ describe('projectsSlice Redux Reducer & Async Thunks', () => {
       const populated = { ...initialProjectsState, error: 'boom' };
       const state = projectsReducer(populated, clearProjectsError());
       expect(state.error).toBeNull();
+    });
+
+    it('handles setArchivedProjectCurrentPage', () => {
+      const state = projectsReducer(initialProjectsState, setArchivedProjectCurrentPage(4));
+      expect(state.archivedCurrentPage).toBe(4);
+    });
+
+    it('handles setArchivedProjectLimit and resets archivedCurrentPage to 1', () => {
+      const state = projectsReducer(
+        { ...initialProjectsState, archivedCurrentPage: 3 },
+        setArchivedProjectLimit(24)
+      );
+      expect(state.archivedLimit).toBe(24);
+      expect(state.archivedCurrentPage).toBe(1);
     });
   });
 
@@ -302,6 +319,137 @@ describe('projectsSlice Redux Reducer & Async Thunks', () => {
         fetchProjects.fulfilled(payload, 'req-1', { status: '' })
       );
       expect(state.filters.status).toBeUndefined();
+    });
+  });
+
+  describe('fetchArchivedProjects thunk & reducers', () => {
+    it('fetches archived projects with explicit params', async () => {
+      (projectsService.getProjects as jest.Mock).mockResolvedValue({
+        success: true,
+        data: [mockProject],
+        pagination: mockPagination,
+      });
+
+      const dispatch = jest.fn();
+      const getState = () => ({ projects: initialProjectsState });
+
+      const result = await fetchArchivedProjects({
+        page: 2,
+        limit: 10,
+        search: '  legacy  ',
+      })(dispatch, getState, undefined);
+
+      expect(projectsService.getProjects).toHaveBeenCalledWith({
+        page: 2,
+        limit: 10,
+        search: 'legacy',
+        status: 'archived',
+      });
+      expect(result.payload).toEqual({
+        data: [mockProject],
+        pagination: mockPagination,
+      });
+    });
+
+    it('fetches archived projects using state defaults when no params passed, and computes pagination fallback', async () => {
+      (projectsService.getProjects as jest.Mock).mockResolvedValue({
+        success: true,
+        data: [mockProject],
+      });
+
+      const dispatch = jest.fn();
+      const getState = () => ({
+        projects: {
+          ...initialProjectsState,
+          archivedCurrentPage: 1,
+          archivedLimit: 12,
+          search: 'all',
+        },
+      });
+
+      const result = await fetchArchivedProjects()(dispatch, getState, undefined);
+
+      expect(projectsService.getProjects).toHaveBeenCalledWith({
+        page: 1,
+        limit: 12,
+        search: 'all',
+        status: 'archived',
+      });
+      expect(result.payload).toEqual({
+        data: [mockProject],
+        pagination: {
+          totalItems: 1,
+          totalPages: 1,
+          currentPage: 1,
+          limit: 12,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      });
+    });
+
+    it('handles fetchArchivedProjects failure with Error', async () => {
+      (projectsService.getProjects as jest.Mock).mockRejectedValue(
+        new Error('Archived fetch error')
+      );
+
+      const dispatch = jest.fn();
+      const getState = () => ({ projects: initialProjectsState });
+
+      const result = await fetchArchivedProjects()(dispatch, getState, undefined);
+      expect(result.payload).toBe('Archived fetch error');
+    });
+
+    it('handles fetchArchivedProjects failure with non-Error', async () => {
+      (projectsService.getProjects as jest.Mock).mockRejectedValue('Unknown string');
+
+      const dispatch = jest.fn();
+      const getState = () => ({ projects: initialProjectsState });
+
+      const result = await fetchArchivedProjects()(dispatch, getState, undefined);
+      expect(result.payload).toBe('Failed to fetch archived projects.');
+    });
+
+    it('handles fetchArchivedProjects.pending', () => {
+      const state = projectsReducer(
+        { ...initialProjectsState, archivedError: 'old error' },
+        fetchArchivedProjects.pending('req-1', undefined)
+      );
+      expect(state.isArchivedLoading).toBe(true);
+      expect(state.archivedError).toBeNull();
+    });
+
+    it('handles fetchArchivedProjects.fulfilled', () => {
+      const state = projectsReducer(
+        { ...initialProjectsState, isArchivedLoading: true },
+        fetchArchivedProjects.fulfilled(
+          { data: [mockProject], pagination: mockPagination },
+          'req-1',
+          undefined
+        )
+      );
+      expect(state.isArchivedLoading).toBe(false);
+      expect(state.archivedItems).toEqual([mockProject]);
+      expect(state.archivedTotalItems).toBe(mockPagination.totalItems);
+      expect(state.archivedTotalPages).toBe(mockPagination.totalPages);
+      expect(state.archivedCurrentPage).toBe(mockPagination.currentPage);
+      expect(state.archivedLimit).toBe(mockPagination.limit);
+    });
+
+    it('handles fetchArchivedProjects.rejected with and without payload', () => {
+      const stateWithPayload = projectsReducer(
+        { ...initialProjectsState, isArchivedLoading: true },
+        fetchArchivedProjects.rejected(null, 'req-1', undefined, 'Custom error')
+      );
+      expect(stateWithPayload.isArchivedLoading).toBe(false);
+      expect(stateWithPayload.archivedError).toBe('Custom error');
+
+      const stateWithoutPayload = projectsReducer(
+        { ...initialProjectsState, isArchivedLoading: true },
+        fetchArchivedProjects.rejected(null, 'req-1', undefined)
+      );
+      expect(stateWithoutPayload.isArchivedLoading).toBe(false);
+      expect(stateWithoutPayload.archivedError).toBe('Failed to fetch archived projects');
     });
   });
 

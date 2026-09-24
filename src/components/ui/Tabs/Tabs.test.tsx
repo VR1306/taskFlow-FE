@@ -87,6 +87,11 @@ describe('Tabs Component', () => {
 
     // Unrelated key ignored
     fireEvent.keyDown(activeTab, { key: 'Escape' });
+
+    // KeyDown on disabled tab returns early without changing tab
+    const disabledTab = screen.getByRole('tab', { name: /disabled tab/i });
+    fireEvent.keyDown(disabledTab, { key: 'ArrowRight' });
+    expect(handleChange).toHaveBeenCalledTimes(6);
   });
 
   it('renders tabs with icon', () => {

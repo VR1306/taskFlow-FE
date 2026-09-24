@@ -186,7 +186,7 @@ export const Tabs = memo(function Tabs<K extends string = string>({
             tabIndex={isActive ? 0 : -1}
             disabled={isDisabled}
             onClick={() => !isDisabled && onChange(item.key)}
-            onKeyDown={(e) => !isDisabled && handleKeyDown(e, item.key)}
+            onKeyDown={(e) => handleKeyDown(e, item.key)}
             data-testid={item.testId || `tab-${item.key}`}
             className={`flex items-center justify-center transition-all duration-200 ease-out select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30 ${
               fullWidth ? 'flex-1' : ''
