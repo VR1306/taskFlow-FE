@@ -156,8 +156,7 @@ export default function ProjectsPage() {
   );
 
   const handleDeleteConfirm = useCallback(async () => {
-    if (!deleteProject) return;
-    const identifier = deleteProject.projectId || deleteProject.id || '';
+    const identifier = deleteProject?.projectId || deleteProject?.id || '';
     setDeleteError(null);
     const resultAction = await dispatch(deleteProjectThunk(identifier));
     if (deleteProjectThunk.fulfilled.match(resultAction)) {
@@ -171,11 +170,16 @@ export default function ProjectsPage() {
   }, [deleteProject, dispatch, handleRefresh]);
 
   const isRestoring = archiveToggleProject?.status === 'archived';
+  const toggleProjectName = archiveToggleProject?.name || '';
+  const archiveModalMessage =
+    archiveError ||
+    (isRestoring
+      ? PROJECTS_CONSTANTS.restoreModal.message(toggleProjectName)
+      : PROJECTS_CONSTANTS.archiveModal.message(toggleProjectName));
 
   const handleArchiveToggleConfirm = useCallback(async () => {
-    if (!archiveToggleProject) return;
-    const identifier = archiveToggleProject.projectId || archiveToggleProject.id || '';
-    const targetStatus = archiveToggleProject.status === 'archived' ? 'active' : 'archived';
+    const identifier = archiveToggleProject?.projectId || archiveToggleProject?.id || '';
+    const targetStatus = archiveToggleProject?.status === 'archived' ? 'active' : 'archived';
     setArchiveError(null);
     const resultAction = await dispatch(
       updateProjectThunk({ id: identifier, data: { status: targetStatus } })
@@ -401,12 +405,7 @@ export default function ProjectsPage() {
             ? PROJECTS_CONSTANTS.restoreModal.title
             : PROJECTS_CONSTANTS.archiveModal.title
         }
-        message={
-          archiveError ||
-          (isRestoring
-            ? PROJECTS_CONSTANTS.restoreModal.message(archiveToggleProject?.name || '')
-            : PROJECTS_CONSTANTS.archiveModal.message(archiveToggleProject?.name || ''))
-        }
+        message={archiveModalMessage}
         confirmText={
           isRestoring
             ? PROJECTS_CONSTANTS.restoreModal.confirmButtonText

@@ -388,6 +388,36 @@ describe('projectsSlice Redux Reducer & Async Thunks', () => {
       });
     });
 
+    it('defaults totalPages to 1 when there is no pagination and no archived data', async () => {
+      (projectsService.getProjects as jest.Mock).mockResolvedValue({
+        data: [],
+      });
+
+      const dispatch = jest.fn();
+      const getState = () => ({
+        projects: {
+          ...initialProjectsState,
+          archivedCurrentPage: 1,
+          archivedLimit: 10,
+          search: '',
+        },
+      });
+
+      const result = await fetchArchivedProjects()(dispatch, getState, undefined);
+
+      expect(result.payload).toEqual({
+        data: [],
+        pagination: {
+          totalItems: 0,
+          totalPages: 1,
+          currentPage: 1,
+          limit: 10,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      });
+    });
+
     it('handles fetchArchivedProjects failure with Error', async () => {
       (projectsService.getProjects as jest.Mock).mockRejectedValue(
         new Error('Archived fetch error')

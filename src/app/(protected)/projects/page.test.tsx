@@ -542,6 +542,159 @@ describe('ProjectsPage Component', () => {
     });
   });
 
+  it('allows cancelling the archive confirmation modal', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      success: true,
+      pagination: {
+        totalItems: 1,
+        totalPages: 1,
+        currentPage: 1,
+        limit: 12,
+        hasNextPage: false,
+        hasPrevPage: false,
+      },
+      data: [
+        {
+          _id: 'proj-1',
+          projectId: 'PRJ0001',
+          key: 'ENG',
+          name: 'Engineering',
+          description: 'Core platform team',
+          status: 'active',
+        },
+      ],
+    });
+
+    const store = createMockStore();
+    render(
+      <Provider store={store}>
+        <ProjectsPage />
+      </Provider>
+    );
+
+    expect(await screen.findByText('Engineering')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /actions for engineering/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /^archive project$/i }));
+
+    expect(screen.getByText(/archive "Engineering"/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/archive "Engineering"/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it('handles archive failure with specific error and fallback to default error', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      success: true,
+      pagination: {
+        totalItems: 1,
+        totalPages: 1,
+        currentPage: 1,
+        limit: 12,
+        hasNextPage: false,
+        hasPrevPage: false,
+      },
+      data: [
+        {
+          _id: 'proj-1',
+          projectId: 'PRJ0001',
+          key: 'ENG',
+          name: 'Engineering',
+          status: 'active',
+        },
+      ],
+    });
+    (apiClient.put as jest.Mock).mockRejectedValueOnce(new Error('Cannot archive project'));
+
+    const store = createMockStore();
+    render(
+      <Provider store={store}>
+        <ProjectsPage />
+      </Provider>
+    );
+
+    expect(await screen.findByText('Engineering')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /actions for engineering/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /^archive project$/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Archive Project' }));
+
+    expect(await screen.findByText('Cannot archive project')).toBeInTheDocument();
+
+    (apiClient.put as jest.Mock).mockRejectedValueOnce(new Error(''));
+    fireEvent.click(screen.getByRole('button', { name: 'Archive Project' }));
+    expect(await screen.findByText('Failed to archive project.')).toBeInTheDocument();
+  });
+
+  it('handles restore failure with default error fallback', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      success: true,
+      pagination: {
+        totalItems: 1,
+        totalPages: 1,
+        currentPage: 1,
+        limit: 12,
+        hasNextPage: false,
+        hasPrevPage: false,
+      },
+      data: [
+        {
+          _id: 'proj-archived',
+          projectId: 'PRJ0002',
+          key: 'ARC',
+          name: 'Archived Project',
+          status: 'archived',
+        },
+      ],
+    });
+    (apiClient.put as jest.Mock).mockRejectedValueOnce(new Error(''));
+
+    const store = createMockStore();
+    render(
+      <Provider store={store}>
+        <ProjectsPage />
+      </Provider>
+    );
+
+    expect(await screen.findByText('Archived Project')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /actions for archived project/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /restore project/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Restore Project' }));
+
+    expect(await screen.findByText('Failed to restore project.')).toBeInTheDocument();
+  });
+
+  it('displays search empty description in archived tab when search query matches nothing', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      success: true,
+      pagination: {
+        totalItems: 0,
+        totalPages: 1,
+        currentPage: 1,
+        limit: 12,
+        hasNextPage: false,
+        hasPrevPage: false,
+      },
+      data: [],
+    });
+
+    const store = createMockStore();
+    render(
+      <Provider store={store}>
+        <ProjectsPage />
+      </Provider>
+    );
+
+    fireEvent.click(await screen.findByRole('tab', { name: /archived projects/i }));
+
+    const searchInput = screen.getByPlaceholderText(/search archived projects/i);
+    fireEvent.change(searchInput, { target: { value: 'NoMatch' } });
+
+    expect(
+      await screen.findByText('No archived projects match your current search.')
+    ).toBeInTheDocument();
+  });
+
   it('shows a delete error and allows cancelling without closing the modal state incorrectly', async () => {
     (apiClient.get as jest.Mock).mockResolvedValue({
       success: true,
@@ -867,6 +1020,89 @@ describe('ProjectsPage Component', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Delete Permanently' }));
     await waitFor(() => {
       expect(apiClient.delete).toHaveBeenCalledWith('/projects/proj-id-only');
+    });
+  });
+
+  it('handles archive on a project with id only and no projectId', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      success: true,
+      pagination: {
+        totalItems: 1,
+        totalPages: 1,
+        currentPage: 1,
+        limit: 12,
+        hasNextPage: false,
+        hasPrevPage: false,
+      },
+      data: [
+        {
+          id: 'proj-archive-id-only',
+          key: 'AIO',
+          name: 'Archive ID Only',
+          status: 'active',
+        },
+      ],
+    });
+    (apiClient.put as jest.Mock).mockResolvedValue({ success: true });
+
+    const store = createMockStore();
+    render(
+      <Provider store={store}>
+        <ProjectsPage />
+      </Provider>
+    );
+
+    expect(await screen.findByText('Archive ID Only')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /actions for archive id only/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /^archive project$/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Archive Project' }));
+
+    await waitFor(() => {
+      expect(apiClient.put).toHaveBeenCalledWith(
+        '/projects/proj-archive-id-only',
+        expect.objectContaining({ status: 'archived' })
+      );
+    });
+  });
+
+  it('handles archive on a project without projectId or id with fallback to empty string', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      success: true,
+      pagination: {
+        totalItems: 1,
+        totalPages: 1,
+        currentPage: 1,
+        limit: 12,
+        hasNextPage: false,
+        hasPrevPage: false,
+      },
+      data: [
+        {
+          _id: 'proj-no-id',
+          name: 'No Id Archive Project',
+          status: 'active',
+        },
+      ],
+    });
+    (apiClient.put as jest.Mock).mockResolvedValue({ success: true });
+
+    const store = createMockStore();
+    render(
+      <Provider store={store}>
+        <ProjectsPage />
+      </Provider>
+    );
+
+    expect(await screen.findByText('No Id Archive Project')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /actions for no id archive project/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /^archive project$/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Archive Project' }));
+
+    await waitFor(() => {
+      expect(apiClient.put).toHaveBeenCalledWith(
+        '/projects/',
+        expect.objectContaining({ status: 'archived' })
+      );
     });
   });
 });
