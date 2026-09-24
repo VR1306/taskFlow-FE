@@ -1,9 +1,24 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { LOGIN_CONSTANTS } from '@/constants';
 import { authService } from '@/services/auth';
 import { authStorage } from '@/helpers';
+import authReducer from '@/store/slices/authSlice';
+
+const createTestStore = () => configureStore({ reducer: { auth: authReducer } });
+
+const renderLoginForm = (props?: React.ComponentProps<typeof LoginForm>) => {
+  const store = createTestStore();
+  const utils = render(
+    <Provider store={store}>
+      <LoginForm {...props} />
+    </Provider>
+  );
+  return { store, ...utils };
+};
 
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
@@ -33,7 +48,7 @@ describe('LoginForm Component', () => {
   });
 
   it('renders all form elements, labels, and footer correctly', () => {
-    render(<LoginForm />);
+    renderLoginForm();
 
     // Header & Brand
     expect(screen.getByText(LOGIN_CONSTANTS.brandName)).toBeInTheDocument();
@@ -56,7 +71,7 @@ describe('LoginForm Component', () => {
   it('pre-fills email and rememberMe checkbox when stored in authStorage', async () => {
     authStorage.setRememberedCredentials(true, 'remembered.user@taskflow.io');
 
-    render(<LoginForm />);
+    renderLoginForm();
 
     await waitFor(() => {
       const emailInput = screen.getByPlaceholderText(
@@ -71,7 +86,7 @@ describe('LoginForm Component', () => {
   });
 
   it('keeps the submit button disabled when fields are empty or invalid', async () => {
-    render(<LoginForm />);
+    renderLoginForm();
 
     const submitBtn = screen.getByRole('button', {
       name: LOGIN_CONSTANTS.submitButtonText,
@@ -99,7 +114,7 @@ describe('LoginForm Component', () => {
 
   it('enables submit button only when valid email and password are typed, and submits successfully with custom onSubmit', async () => {
     const handleSubmitMock = jest.fn();
-    render(<LoginForm onSubmit={handleSubmitMock} />);
+    renderLoginForm({ onSubmit: handleSubmitMock });
 
     const submitBtn = screen.getByRole('button', {
       name: LOGIN_CONSTANTS.submitButtonText,
@@ -147,7 +162,7 @@ describe('LoginForm Component', () => {
       user: { id: '1', email: 'user@taskflow.com', firstName: 'Alex', lastName: 'R' },
     });
 
-    render(<LoginForm />);
+    const { store } = renderLoginForm();
 
     const emailInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.emailPlaceholder);
     const passwordInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.passwordPlaceholder);
@@ -174,6 +189,18 @@ describe('LoginForm Component', () => {
       });
       expect(mockReplace).toHaveBeenCalledWith('/users');
     });
+
+    // Redux must be hydrated with the logged-in user synchronously on login,
+    // since nothing re-runs StoreProvider's storage-hydration effect on this
+    // client-side navigation — components gated on state.auth.user (like the
+    // notifications bell) would otherwise stay stale until a full page reload.
+    expect(store.getState().auth.user).toEqual({
+      id: '1',
+      email: 'user@taskflow.com',
+      firstName: 'Alex',
+      lastName: 'R',
+    });
+    expect(store.getState().auth.isAuthenticated).toBe(true);
   });
 
   it('redirects to searchParams redirect url when available', async () => {
@@ -186,7 +213,7 @@ describe('LoginForm Component', () => {
       user: { id: '1', email: 'user@taskflow.com', firstName: 'Alex', lastName: 'R' },
     });
 
-    render(<LoginForm />);
+    renderLoginForm();
 
     const emailInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.emailPlaceholder);
     const passwordInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.passwordPlaceholder);
@@ -216,7 +243,7 @@ describe('LoginForm Component', () => {
       user: { id: '1', email: 'user@taskflow.com', firstName: 'Alex', lastName: 'R' },
     });
 
-    render(<LoginForm />);
+    renderLoginForm();
 
     const emailInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.emailPlaceholder);
     const passwordInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.passwordPlaceholder);
@@ -241,7 +268,7 @@ describe('LoginForm Component', () => {
   it('displays server error alert when authService.signIn fails', async () => {
     (authService.signIn as jest.Mock).mockRejectedValue(new Error('Invalid credentials'));
 
-    render(<LoginForm />);
+    renderLoginForm();
 
     const emailInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.emailPlaceholder);
     const passwordInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.passwordPlaceholder);
@@ -266,7 +293,7 @@ describe('LoginForm Component', () => {
   it('shows the default error message when signIn rejects with a non-Error value', async () => {
     (authService.signIn as jest.Mock).mockRejectedValue('unexpected rejection');
 
-    render(<LoginForm />);
+    renderLoginForm();
 
     const emailInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.emailPlaceholder);
     const passwordInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.passwordPlaceholder);
@@ -291,7 +318,7 @@ describe('LoginForm Component', () => {
   });
 
   it('toggles password visibility between text and password on icon click', () => {
-    render(<LoginForm />);
+    renderLoginForm();
 
     const passwordInput = screen.getByPlaceholderText(LOGIN_CONSTANTS.passwordPlaceholder);
     expect(passwordInput).toHaveAttribute('type', 'password');

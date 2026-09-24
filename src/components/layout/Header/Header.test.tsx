@@ -13,6 +13,7 @@ import { CHANGE_PASSWORD_CONSTANTS } from '@/constants';
 let mockPathname = '/users';
 jest.mock('next/navigation', () => ({
   usePathname: () => mockPathname,
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
 
 const mockUser = {

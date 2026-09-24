@@ -1,11 +1,18 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import LoginPage, { metadata } from '@/app/(public)/auth/login/page';
 import { LOGIN_CONSTANTS } from '@/constants';
+import authReducer from '@/store/slices/authSlice';
 
 describe('LoginPage Component', () => {
   it('renders LoginForm inside LoginPage', () => {
-    render(<LoginPage />);
+    render(
+      <Provider store={configureStore({ reducer: { auth: authReducer } })}>
+        <LoginPage />
+      </Provider>
+    );
 
     expect(screen.getByText(LOGIN_CONSTANTS.title)).toBeInTheDocument();
     expect(screen.getByText(LOGIN_CONSTANTS.subtitle)).toBeInTheDocument();

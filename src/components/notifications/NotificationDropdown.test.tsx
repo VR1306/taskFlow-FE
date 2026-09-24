@@ -6,8 +6,14 @@ import { NotificationDropdown } from './NotificationDropdown';
 import authReducer from '@/store/slices/authSlice';
 import notificationsReducer from '@/store/slices/notificationsSlice';
 import { notificationsService } from '@/services';
+import type { NotificationItem } from '@/types';
 
 jest.mock('@/services');
+
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush, replace: jest.fn() }),
+}));
 
 const mockUser = {
   id: 'usr-1',
@@ -42,7 +48,10 @@ const mockNotification = {
   createdAt: new Date().toISOString(),
 };
 
-const createMockStore = (initialNotifs = [mockNotification], unreadCount = 1) => {
+const createMockStore = (
+  initialNotifs: NotificationItem[] = [mockNotification],
+  unreadCount = 1
+) => {
   return configureStore({
     reducer: {
       auth: authReducer,
@@ -76,6 +85,7 @@ const createMockStore = (initialNotifs = [mockNotification], unreadCount = 1) =>
 describe('NotificationDropdown Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPush.mockClear();
     jest
       .mocked(notificationsService.getNotifications)
       .mockImplementation(() => new Promise(() => {}));
@@ -130,6 +140,36 @@ describe('NotificationDropdown Component', () => {
 
     expect(notificationsService.markAsRead).toHaveBeenCalledWith('NT0001');
   });
+  it('navigates to the notification link and closes the dropdown when a linked notification is clicked', () => {
+    (notificationsService.markAsRead as jest.Mock).mockResolvedValue({ success: true });
+    const linked = { ...mockNotification, link: '/projects/proj-1?taskId=task-1' };
+    render(
+      <Provider store={createMockStore([linked])}>
+        <NotificationDropdown />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    fireEvent.click(screen.getByText('New Member Onboarded'));
+
+    expect(mockPush).toHaveBeenCalledWith('/projects/proj-1?taskId=task-1');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('marks a read notification as read without navigating when it has no link', () => {
+    render(
+      <Provider store={createMockStore([{ ...mockNotification, link: undefined }])}>
+        <NotificationDropdown />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
+    fireEvent.click(screen.getByText('New Member Onboarded'));
+
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
   it.each(['Escape', 'outside'])('closes the dropdown on %s', (trigger) => {
     render(
       <Provider store={createMockStore()}>

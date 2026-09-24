@@ -10,6 +10,7 @@ import { Input, Button, Checkbox, Image } from '@/components/ui';
 import { LOGIN_CONSTANTS } from '@/constants';
 import { authService } from '@/services/auth';
 import { authStorage, resolvePostLoginRedirect } from '@/helpers';
+import { useAppDispatch, setCredentials } from '@/store';
 
 export interface LoginFormProps {
   onSubmit?: (data: LoginFormData) => Promise<void> | void;
@@ -19,6 +20,7 @@ export interface LoginFormProps {
 export const LoginForm: React.FC<Readonly<LoginFormProps>> = ({ onSubmit, className = '' }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const dispatch = useAppDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -70,6 +72,11 @@ export const LoginForm: React.FC<Readonly<LoginFormProps>> = ({ onSubmit, classN
           response.refreshToken,
           response.defaultModule || 'users'
         );
+        // Hydrate Redux immediately — the app never remounts StoreProvider's
+        // one-time storage-hydration effect on this client-side navigation, so
+        // without this, state.auth.user (and anything gated on it, like the
+        // notifications bell) would stay stale until a full page reload.
+        dispatch(setCredentials({ user: response.user, rememberMe: Boolean(data.rememberMe) }));
 
         const destination = resolvePostLoginRedirect({
           redirectParam: searchParams?.get('redirect'),

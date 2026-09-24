@@ -38,19 +38,21 @@ jest.mock('@/components/tasks', () => {
 });
 
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
 let mockParams: Record<string, string | undefined> = { projectId: 'proj-1' };
+let mockSearchParams = new URLSearchParams();
 
 jest.mock('next/navigation', () => ({
   useParams: () => mockParams,
   useRouter: () => ({
     push: mockPush,
-    replace: jest.fn(),
+    replace: mockReplace,
     prefetch: jest.fn(),
     back: jest.fn(),
     forward: jest.fn(),
     refresh: jest.fn(),
   }),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => mockSearchParams,
   usePathname: () => '/projects/proj-1',
 }));
 
@@ -95,7 +97,9 @@ describe('ProjectBoardPage Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockParams = { projectId: 'proj-1' };
+    mockSearchParams = new URLSearchParams();
     mockPush.mockClear();
+    mockReplace.mockClear();
     localStorage.clear();
     localStorage.setItem(
       'taskflow_user',
@@ -467,6 +471,37 @@ describe('ProjectBoardPage Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Engineering')).toBeInTheDocument();
     });
+  });
+
+  it('opens the deep-linked task from ?taskId= once the board loads, then clears it from the URL', async () => {
+    mockSearchParams = new URLSearchParams('taskId=task-1');
+    const store = createMockStore();
+    render(
+      <Provider store={store}>
+        <ProjectBoardPage />
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('ENG-1: Fix login bug')).toBeInTheDocument();
+    });
+    expect(mockReplace).toHaveBeenCalledWith('/projects/proj-1');
+  });
+
+  it('does not open a drawer when the deep-linked ?taskId= does not match any board task', async () => {
+    mockSearchParams = new URLSearchParams('taskId=does-not-exist');
+    const store = createMockStore();
+    render(
+      <Provider store={store}>
+        <ProjectBoardPage />
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Fix login bug')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('ENG-1: Fix login bug')).not.toBeInTheDocument();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('does nothing when projectId is undefined', async () => {

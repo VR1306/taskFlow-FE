@@ -2,6 +2,7 @@
 
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Image, Badge } from '@/components/ui';
 import {
   useAppDispatch,
@@ -13,9 +14,11 @@ import {
 } from '@/store';
 import { formatRelativeTime, useMounted } from '@/helpers';
 import { NotificationItem } from '@/types';
+import { NOTIFICATION_TYPE_VISUALS, DEFAULT_NOTIFICATION_VISUAL } from '@/constants';
 
 export const NotificationDropdown = memo(function NotificationDropdown() {
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const mounted = useMounted();
   const notifState = useAppSelector((state) => state.notifications);
   const items = useMemo(() => notifState?.items ?? [], [notifState?.items]);
@@ -81,6 +84,17 @@ export const NotificationDropdown = memo(function NotificationDropdown() {
     [dispatch]
   );
 
+  const handleNotificationClick = useCallback(
+    (notification: NotificationItem) => {
+      handleMarkAsRead(notification.notificationId, notification.isRead);
+      if (notification.link) {
+        setIsOpen(false);
+        router.push(notification.link);
+      }
+    },
+    [handleMarkAsRead, router]
+  );
+
   const handleMarkAllAsRead = useCallback(() => {
     if (unreadCount > 0) {
       dispatch(markAllAsReadThunk());
@@ -94,21 +108,8 @@ export const NotificationDropdown = memo(function NotificationDropdown() {
     return items;
   }, [items, activeTab]);
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'user_created':
-        return { icon: '/icons/plus.svg', bg: 'bg-emerald-100 text-emerald-700' };
-      case 'user_deleted':
-        return { icon: '/icons/trash.svg', bg: 'bg-rose-100 text-rose-700' };
-      case 'user_updated':
-        return { icon: '/icons/edit.svg', bg: 'bg-blue-100 text-blue-700' };
-      case 'org_created':
-      case 'org_admin_assigned':
-        return { icon: '/icons/building.svg', bg: 'bg-purple-100 text-purple-700' };
-      default:
-        return { icon: '/icons/bell.svg', bg: 'bg-slate-100 text-slate-700' };
-    }
-  };
+  const getNotificationIcon = (type: string) =>
+    NOTIFICATION_TYPE_VISUALS[type] ?? DEFAULT_NOTIFICATION_VISUAL;
 
   if (!mounted || !currentUser) {
     return null;
@@ -242,9 +243,7 @@ export const NotificationDropdown = memo(function NotificationDropdown() {
                   <button
                     type="button"
                     key={notification.notificationId || notification._id}
-                    onClick={() =>
-                      handleMarkAsRead(notification.notificationId, notification.isRead)
-                    }
+                    onClick={() => handleNotificationClick(notification)}
                     className={`w-full text-left flex items-start gap-3 p-3.5 transition-colors cursor-pointer hover:bg-slate-50/80 ${
                       !notification.isRead ? 'bg-blue-50/30' : 'bg-white'
                     }`}

@@ -10,6 +10,17 @@ export interface NotificationActor {
   profilePic?: string;
 }
 
+export interface NotificationMetadata {
+  projectId?: string;
+  projectKey?: string;
+  taskId?: string;
+  taskKey?: string;
+  userId?: string;
+  email?: string;
+  role?: string;
+  [key: string]: unknown;
+}
+
 export interface Notification {
   id?: string;
   _id?: string;
@@ -21,6 +32,9 @@ export interface Notification {
   actorName?: string;
   actorRole?: string;
   actor?: NotificationActor | null;
+  metadata?: NotificationMetadata;
+  /** Section to navigate to on click, scoped to what this user is allowed to see. */
+  link?: string | null;
   isRead: boolean;
   createdAt: string;
   updatedAt?: string;

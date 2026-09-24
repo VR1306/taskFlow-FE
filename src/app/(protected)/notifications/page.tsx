@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button, Badge, Pagination, Image, EmptyState, Select } from '@/components/ui';
 import {
   useAppDispatch,
@@ -17,11 +18,14 @@ import { NotificationItem } from '@/types';
 import {
   NOTIFICATION_READ_FILTER_OPTIONS,
   NOTIFICATION_TYPE_FILTER_OPTIONS,
+  NOTIFICATION_TYPE_VISUALS,
+  DEFAULT_NOTIFICATION_VISUAL,
   NOTIFICATIONS_CONSTANTS,
 } from '@/constants';
 
 export default function NotificationsPage() {
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const mounted = useMounted();
   const currentUser = useAppSelector((state) => state.auth.user);
 
@@ -88,6 +92,16 @@ export default function NotificationsPage() {
     [dispatch]
   );
 
+  const handleNotificationClick = useCallback(
+    (notification: NotificationItem) => {
+      handleMarkAsRead(notification.notificationId, notification.isRead);
+      if (notification.link) {
+        router.push(notification.link);
+      }
+    },
+    [handleMarkAsRead, router]
+  );
+
   const handleMarkAllAsRead = useCallback(() => {
     if (unreadCount > 0) {
       dispatch(markAllAsReadThunk());
@@ -117,38 +131,8 @@ export default function NotificationsPage() {
     return result;
   }, [notifications, debouncedSearch, readFilter, typeFilter]);
 
-  const getNotificationVisual = (type: string) => {
-    switch (type) {
-      case 'user_created':
-        return {
-          icon: '/icons/plus.svg',
-          bg: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-          label: 'User Created',
-          badgeVariant: 'success' as const,
-        };
-      case 'user_deleted':
-        return {
-          icon: '/icons/trash.svg',
-          bg: 'bg-rose-100 text-rose-700 border-rose-200',
-          label: 'User Deleted',
-          badgeVariant: 'danger' as const,
-        };
-      case 'user_updated':
-        return {
-          icon: '/icons/edit.svg',
-          bg: 'bg-blue-100 text-blue-700 border-blue-200',
-          label: 'User Updated',
-          badgeVariant: 'primary' as const,
-        };
-      default:
-        return {
-          icon: '/icons/bell.svg',
-          bg: 'bg-slate-100 text-slate-700 border-slate-200',
-          label: 'System Notification',
-          badgeVariant: 'default' as const,
-        };
-    }
-  };
+  const getNotificationVisual = (type: string) =>
+    NOTIFICATION_TYPE_VISUALS[type] ?? DEFAULT_NOTIFICATION_VISUAL;
 
   if (!mounted) return null;
 
@@ -276,7 +260,7 @@ export default function NotificationsPage() {
                 <button
                   type="button"
                   key={notification.notificationId || notification.id || notification._id}
-                  onClick={() => handleMarkAsRead(notification.notificationId, notification.isRead)}
+                  onClick={() => handleNotificationClick(notification)}
                   className={`w-full text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 transition-all cursor-pointer hover:bg-slate-50/90 ${
                     isUnread ? 'bg-blue-50/30 font-medium' : 'bg-white'
                   }`}

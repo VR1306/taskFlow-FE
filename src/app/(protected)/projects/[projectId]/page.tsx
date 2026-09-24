@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Button, Image, Loader, Badge, EmptyState } from '@/components/ui';
 import {
   KanbanBoard,
@@ -23,7 +23,9 @@ const DEFAULT_FILTERS: TaskFiltersState = { assigneeId: 'all', priority: 'all', 
 export default function ProjectBoardPage() {
   const params = useParams<{ projectId: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
+  const deepLinkedTaskId = useRef(searchParams.get('taskId'));
 
   const canCreateTask = usePermission(['tasks.create', '*']);
 
@@ -72,6 +74,19 @@ export default function ProjectBoardPage() {
       dispatch(resetBoard());
     };
   }, [projectId, dispatch]);
+
+  // Deep-link support: a notification may point here with ?taskId=... to open a
+  // specific task directly once the board has loaded it.
+  useEffect(() => {
+    const taskId = deepLinkedTaskId.current;
+    if (!taskId || tasks.length === 0) return;
+    const match = tasks.find((t) => t.id === taskId || t._id === taskId);
+    if (match) {
+      setSelectedTask(match);
+      deepLinkedTaskId.current = null;
+      router.replace(`/projects/${projectId}`);
+    }
+  }, [tasks, projectId, router]);
 
   const members = useMemo<ProjectMember[]>(
     () => (project?.members || []).filter((m): m is ProjectMember => typeof m === 'object'),

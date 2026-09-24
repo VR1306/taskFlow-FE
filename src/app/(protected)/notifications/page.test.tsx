@@ -12,6 +12,11 @@ import type { NotificationItem } from '@/types';
 
 jest.mock('@/services');
 
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush, replace: jest.fn() }),
+}));
+
 const mockUser = {
   id: 'usr-1',
   firstName: 'Taskflow',
@@ -73,6 +78,7 @@ const createMockStore = (unreadCount = 1, items: NotificationItem[] = [mockNotif
 
 describe('NotificationsPage Component', () => {
   beforeEach(() => {
+    mockPush.mockClear();
     (notificationsService.getNotifications as jest.Mock).mockResolvedValue({
       success: true,
       data: [mockNotification],
@@ -175,6 +181,35 @@ describe('NotificationsPage Component', () => {
 
     expect(screen.getByText('Falls back to id')).toBeInTheDocument();
     expect(screen.getByText('Falls back to underscore id')).toBeInTheDocument();
+  });
+
+  it('navigates to the notification link when a linked notification is clicked', async () => {
+    const linked = { ...mockNotification, link: '/projects/proj-1' };
+    const store = createMockStore(1, [linked]);
+
+    render(
+      <Provider store={store}>
+        <NotificationsPage />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('New User Registered'));
+
+    expect(mockPush).toHaveBeenCalledWith('/projects/proj-1');
+  });
+
+  it('does not navigate when a notification has no link', async () => {
+    const store = createMockStore(1, [{ ...mockNotification, link: undefined }]);
+
+    render(
+      <Provider store={store}>
+        <NotificationsPage />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('New User Registered'));
+
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it('changes page and rows-per-page via the pagination controls', async () => {
