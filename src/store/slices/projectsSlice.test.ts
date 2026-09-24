@@ -32,6 +32,13 @@ describe('projectsSlice Redux Reducer & Async Thunks', () => {
     isActionLoading: false,
     error: null,
     ttlMs: 120000,
+    archivedItems: [],
+    archivedTotalItems: 0,
+    archivedTotalPages: 1,
+    archivedCurrentPage: 1,
+    archivedLimit: 12,
+    isArchivedLoading: false,
+    archivedError: null,
   };
 
   const mockProject = {

@@ -40,6 +40,17 @@ export interface ProjectsState {
   isActionLoading: boolean;
   error: string | null;
   ttlMs: number;
+  // Archived projects live in their own section on the page, with their own pagination —
+  // deliberately not sharing currentPage/limit/totalItems above (those always describe
+  // the active-projects section) and not sharing cachedPages' TTL cache (fetched fresh
+  // on every load/refresh, same as fetchProjects without the cache).
+  archivedItems: Project[];
+  archivedTotalItems: number;
+  archivedTotalPages: number;
+  archivedCurrentPage: number;
+  archivedLimit: number;
+  isArchivedLoading: boolean;
+  archivedError: string | null;
 }
 
 const initialState: ProjectsState = {
@@ -56,6 +67,13 @@ const initialState: ProjectsState = {
   isActionLoading: false,
   error: null,
   ttlMs: 120000, // 2 minutes TTL
+  archivedItems: [],
+  archivedTotalItems: 0,
+  archivedTotalPages: 1,
+  archivedCurrentPage: 1,
+  archivedLimit: 12,
+  isArchivedLoading: false,
+  archivedError: null,
 };
 
 export const fetchMemberCandidates = createAsyncThunk<
@@ -130,6 +148,45 @@ export const fetchProjects = createAsyncThunk<
   }
 });
 
+/**
+ * Fetches the archived-projects section shown separately on the projects page. Always
+ * fetched fresh (no TTL cache like fetchProjects above) since it's opened far less often
+ * than the main active list.
+ */
+export const fetchArchivedProjects = createAsyncThunk<
+  { data: Project[]; pagination: ProjectPaginationInfo },
+  { page?: number; limit?: number; search?: string; forceRefresh?: boolean } | void,
+  { state: { projects: ProjectsState } }
+>('projects/fetchArchivedProjects', async (params, { getState, rejectWithValue }) => {
+  const state = getState().projects;
+  const page = params?.page ?? state.archivedCurrentPage;
+  const limit = params?.limit ?? state.archivedLimit;
+  const search = params?.search !== undefined ? params.search.trim() : state.search;
+
+  try {
+    const response: ProjectsResponse = await projectsService.getProjects({
+      page,
+      limit,
+      search,
+      status: 'archived',
+    });
+
+    const pagination: ProjectPaginationInfo = {
+      totalItems: response.pagination?.totalItems ?? response.data.length,
+      totalPages: response.pagination?.totalPages ?? (Math.ceil(response.data.length / limit) || 1),
+      currentPage: response.pagination?.currentPage ?? page,
+      limit: response.pagination?.limit ?? limit,
+      hasNextPage: Boolean(response.pagination?.hasNextPage),
+      hasPrevPage: Boolean(response.pagination?.hasPrevPage),
+    };
+
+    return { data: response.data, pagination };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to fetch archived projects.';
+    return rejectWithValue(message);
+  }
+});
+
 export const createProjectThunk = createAsyncThunk<
   Project,
   CreateProjectPayload,
@@ -200,6 +257,13 @@ export const projectsSlice = createSlice({
     clearProjectsError: (state) => {
       state.error = null;
     },
+    setArchivedCurrentPage: (state, action: PayloadAction<number>) => {
+      state.archivedCurrentPage = action.payload;
+    },
+    setArchivedLimit: (state, action: PayloadAction<number>) => {
+      state.archivedLimit = action.payload;
+      state.archivedCurrentPage = 1;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -254,6 +318,23 @@ export const projectsSlice = createSlice({
         state.error = (action.payload as string) || 'Failed to fetch projects';
       })
 
+      .addCase(fetchArchivedProjects.pending, (state) => {
+        state.isArchivedLoading = true;
+        state.archivedError = null;
+      })
+      .addCase(fetchArchivedProjects.fulfilled, (state, action) => {
+        state.isArchivedLoading = false;
+        state.archivedItems = action.payload.data;
+        state.archivedTotalItems = action.payload.pagination.totalItems;
+        state.archivedTotalPages = action.payload.pagination.totalPages;
+        state.archivedCurrentPage = action.payload.pagination.currentPage;
+        state.archivedLimit = action.payload.pagination.limit;
+      })
+      .addCase(fetchArchivedProjects.rejected, (state, action) => {
+        state.isArchivedLoading = false;
+        state.archivedError = (action.payload as string) || 'Failed to fetch archived projects';
+      })
+
       .addCase(createProjectThunk.pending, (state) => {
         state.isActionLoading = true;
         state.error = null;
@@ -303,6 +384,8 @@ export const {
   clearFilters: clearProjectFilters,
   invalidateProjectsCache,
   clearProjectsError,
+  setArchivedCurrentPage: setArchivedProjectCurrentPage,
+  setArchivedLimit: setArchivedProjectLimit,
 } = projectsSlice.actions;
 
 export default projectsSlice.reducer;

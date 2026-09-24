@@ -13,7 +13,7 @@ it('does not access browser storage during server rendering', () => {
   expect(authStorage.getUser()).toBeNull();
   expect(authStorage.getRememberedEmail()).toBe('');
   expect(authStorage.getRememberMe()).toBe(false);
-  expect(authStorage.getDefaultModule()).toBe('users');
+  expect(authStorage.getDefaultModule()).toBe('dashboard');
 });
 
 it('resolves relative API paths against the application URL on the server', () => {

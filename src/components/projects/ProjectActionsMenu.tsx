@@ -9,6 +9,7 @@ export interface ProjectActionsMenuProps {
   project: Project;
   onOpenBoard: (project: Project) => void;
   onEdit: (project: Project) => void;
+  onArchiveToggle: (project: Project) => void;
   onDelete: (project: Project) => void;
   canEdit?: boolean;
   canDelete?: boolean;
@@ -18,10 +19,13 @@ export const ProjectActionsMenu = memo(function ProjectActionsMenu({
   project,
   onOpenBoard,
   onEdit,
+  onArchiveToggle,
   onDelete,
   canEdit = true,
   canDelete = true,
 }: ProjectActionsMenuProps) {
+  const isArchived = project.status === 'archived';
+
   const menuItems = useMemo<(ActionMenuItem | false | undefined)[]>(
     () => [
       {
@@ -36,6 +40,14 @@ export const ProjectActionsMenu = memo(function ProjectActionsMenu({
         icon: '/icons/edit.svg',
         onClick: () => onEdit(project),
       },
+      canEdit && {
+        key: 'archive-toggle',
+        label: isArchived
+          ? PROJECTS_CONSTANTS.actionsMenu.restoreProject
+          : PROJECTS_CONSTANTS.actionsMenu.archiveProject,
+        icon: isArchived ? '/icons/refresh.svg' : '/icons/download.svg',
+        onClick: () => onArchiveToggle(project),
+      },
       canDelete && {
         key: 'delete',
         label: PROJECTS_CONSTANTS.actionsMenu.deleteProject,
@@ -45,7 +57,7 @@ export const ProjectActionsMenu = memo(function ProjectActionsMenu({
         onClick: () => onDelete(project),
       },
     ],
-    [project, onOpenBoard, onEdit, onDelete, canEdit, canDelete]
+    [project, isArchived, onOpenBoard, onEdit, onArchiveToggle, onDelete, canEdit, canDelete]
   );
 
   return (

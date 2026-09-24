@@ -133,12 +133,12 @@ export const authStorage = {
   },
 
   getDefaultModule: (): string => {
-    if (typeof window === 'undefined') return 'users';
+    if (typeof window === 'undefined') return 'dashboard';
 
     try {
-      return localStorage.getItem(DEFAULT_MODULE_KEY) || 'users';
+      return localStorage.getItem(DEFAULT_MODULE_KEY) || 'dashboard';
     } catch {
-      return 'users';
+      return 'dashboard';
     }
   },
 

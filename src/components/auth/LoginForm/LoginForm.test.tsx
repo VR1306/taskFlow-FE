@@ -150,16 +150,21 @@ describe('LoginForm Component', () => {
     });
   });
 
-  it('calls authService.signIn with rememberMe and redirects to module from response on successful login', async () => {
+  it('calls authService.signIn with rememberMe and redirects to the first module the response permissions grant', async () => {
     (authService.signIn as jest.Mock).mockResolvedValue({
       success: true,
       message: 'Sign-in successful!',
       token: 'mock-jwt-token',
       accessToken: 'mock-jwt-token',
       refreshToken: 'mock-refresh-token',
-      defaultModule: 'users',
-      redirectUrl: '/users',
-      user: { id: '1', email: 'user@taskflow.com', firstName: 'Alex', lastName: 'R' },
+      user: {
+        id: '1',
+        email: 'user@taskflow.com',
+        firstName: 'Alex',
+        lastName: 'R',
+        role: 'Custom',
+        permissions: ['users.view'],
+      },
     });
 
     const { store } = renderLoginForm();
@@ -199,6 +204,8 @@ describe('LoginForm Component', () => {
       email: 'user@taskflow.com',
       firstName: 'Alex',
       lastName: 'R',
+      role: 'Custom',
+      permissions: ['users.view'],
     });
     expect(store.getState().auth.isAuthenticated).toBe(true);
   });

@@ -167,6 +167,12 @@ describe('Users Components Unit Tests', () => {
         });
         expect(handleClose).toHaveBeenCalled();
       });
+
+      // Regression guard: the submit button lives outside the <form> in the DOM and is
+      // wired to it only via the native `form="create-user-form"` attribute. It must not
+      // also carry a manual onClick handleSubmit() call, or a single click double-fires
+      // the submission (see EditUserDrawer's equivalent regression test for details).
+      expect(apiClient.post).toHaveBeenCalledTimes(1);
     });
 
     it('shows required validation errors when submitting an empty form', async () => {
@@ -284,9 +290,17 @@ describe('Users Components Unit Tests', () => {
           lastName: 'Connor',
           email: 'john@resistance.org',
           role: 'Developer',
+          isActive: true,
         });
         expect(handleClose).toHaveBeenCalled();
       });
+
+      // Regression guard: the save button lives outside the <form> in the DOM and is
+      // wired to it only via the native `form="edit-user-form"` attribute. It must not
+      // also carry a manual onClick handleSubmit() call, or a single click double-fires
+      // the submission and races react-hook-form's mixed controlled/uncontrolled fields,
+      // which can send an incomplete payload (e.g. empty firstName/lastName/email).
+      expect(apiClient.put).toHaveBeenCalledTimes(1);
     });
 
     it('shows required validation errors when first/last name are cleared', async () => {
@@ -391,6 +405,42 @@ describe('Users Components Unit Tests', () => {
         </Provider>
       );
       expect(container).toBeEmptyDOMElement();
+    });
+
+    it('sends the updated account status when toggled to Inactive', async () => {
+      (apiClient.put as jest.Mock).mockResolvedValue({ success: true });
+      const store = createMockStore();
+      const handleClose = jest.fn();
+
+      const activeUser: UserRecord = {
+        _id: 'usr-103',
+        userId: 'TF0003',
+        firstName: 'Kyle',
+        lastName: 'Reese',
+        email: 'kyle@resistance.org',
+        role: 'Developer',
+        isActive: true,
+      };
+
+      render(
+        <Provider store={store}>
+          <EditUserDrawer isOpen={true} onClose={handleClose} user={activeUser} />
+        </Provider>
+      );
+
+      const statusControl = screen.getByText('Active (Access Enabled)');
+      fireEvent.mouseDown(statusControl);
+      fireEvent.click(screen.getByText('Inactive (Access Suspended)'));
+
+      fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+      await waitFor(() => {
+        expect(apiClient.put).toHaveBeenCalledWith(
+          '/users/updateUser/usr-103',
+          expect.objectContaining({ isActive: false })
+        );
+        expect(handleClose).toHaveBeenCalled();
+      });
     });
 
     it('disables role select and preserves Taskflow Admin role when editing admin user', async () => {

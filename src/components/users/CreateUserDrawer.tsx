@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
-import { Drawer, Button, Image, Select } from '@/components/ui';
+import { Drawer, Button, Image, Select, Input } from '@/components/ui';
 import { useAppDispatch, createUserThunk } from '@/store';
 import { USERS_CONSTANTS, CREATE_ROLE_OPTIONS, CreateUserRole } from '@/constants';
 
@@ -36,7 +36,6 @@ export const CreateUserDrawer = memo(function CreateUserDrawer({
   });
 
   const {
-    register,
     handleSubmit,
     reset,
     control,
@@ -97,7 +96,6 @@ export const CreateUserDrawer = memo(function CreateUserDrawer({
         type="submit"
         form="create-user-form"
         variant="primary"
-        onClick={() => void handleSubmit(handleFormSubmit)()}
         isLoading={isSubmitting}
         leftIcon={<Image src="/icons/plus-white.svg" alt="" width={15} height={15} />}
         className="text-xs font-semibold bg-blue-600 hover:bg-blue-700 py-2.5 px-4"
@@ -128,86 +126,46 @@ export const CreateUserDrawer = memo(function CreateUserDrawer({
           )}
 
           {/* 1. First Name */}
-          <div>
-            <label
-              htmlFor="create-firstName"
-              className="block text-xs font-bold text-slate-700 mb-1.5"
-            >
-              {USERS_CONSTANTS.createDrawer.firstNameLabel} <span className="text-rose-500">*</span>
-            </label>
-            <input
-              id="create-firstName"
-              type="text"
-              placeholder={USERS_CONSTANTS.createDrawer.firstNamePlaceholder}
-              {...register('firstName', {
-                required: USERS_CONSTANTS.validation.firstNameRequired,
-              })}
-              disabled={isSubmitting}
-              className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm font-medium text-slate-900 transition-colors placeholder:text-slate-400 focus:outline-hidden focus:ring-2 ${
-                errors.firstName
-                  ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20'
-                  : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
-              }`}
-            />
-            {errors.firstName && (
-              <p className="mt-1 text-xs text-rose-600 font-medium">{errors.firstName.message}</p>
-            )}
-          </div>
+          <Input<CreateUserFormData>
+            id="create-firstName"
+            name="firstName"
+            type="text"
+            label={USERS_CONSTANTS.createDrawer.firstNameLabel}
+            placeholder={USERS_CONSTANTS.createDrawer.firstNamePlaceholder}
+            required
+            disabled={isSubmitting}
+            rules={{ required: USERS_CONSTANTS.validation.firstNameRequired }}
+          />
 
           {/* 2. Last Name */}
-          <div>
-            <label
-              htmlFor="create-lastName"
-              className="block text-xs font-bold text-slate-700 mb-1.5"
-            >
-              {USERS_CONSTANTS.createDrawer.lastNameLabel} <span className="text-rose-500">*</span>
-            </label>
-            <input
-              id="create-lastName"
-              type="text"
-              placeholder={USERS_CONSTANTS.createDrawer.lastNamePlaceholder}
-              {...register('lastName', {
-                required: USERS_CONSTANTS.validation.lastNameRequired,
-              })}
-              disabled={isSubmitting}
-              className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm font-medium text-slate-900 transition-colors placeholder:text-slate-400 focus:outline-hidden focus:ring-2 ${
-                errors.lastName
-                  ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20'
-                  : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
-              }`}
-            />
-            {errors.lastName && (
-              <p className="mt-1 text-xs text-rose-600 font-medium">{errors.lastName.message}</p>
-            )}
-          </div>
+          <Input<CreateUserFormData>
+            id="create-lastName"
+            name="lastName"
+            type="text"
+            label={USERS_CONSTANTS.createDrawer.lastNameLabel}
+            placeholder={USERS_CONSTANTS.createDrawer.lastNamePlaceholder}
+            required
+            disabled={isSubmitting}
+            rules={{ required: USERS_CONSTANTS.validation.lastNameRequired }}
+          />
 
           {/* 3. Work Email */}
-          <div>
-            <label htmlFor="create-email" className="block text-xs font-bold text-slate-700 mb-1.5">
-              {USERS_CONSTANTS.createDrawer.emailLabel} <span className="text-rose-500">*</span>
-            </label>
-            <input
-              id="create-email"
-              type="email"
-              placeholder={USERS_CONSTANTS.createDrawer.emailPlaceholder}
-              {...register('email', {
-                required: USERS_CONSTANTS.validation.emailRequired,
-                pattern: {
-                  value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                  message: USERS_CONSTANTS.validation.emailInvalid,
-                },
-              })}
-              disabled={isSubmitting}
-              className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm font-medium text-slate-900 transition-colors placeholder:text-slate-400 focus:outline-hidden focus:ring-2 ${
-                errors.email
-                  ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20'
-                  : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
-              }`}
-            />
-            {errors.email && (
-              <p className="mt-1 text-xs text-rose-600 font-medium">{errors.email.message}</p>
-            )}
-          </div>
+          <Input<CreateUserFormData>
+            id="create-email"
+            name="email"
+            type="email"
+            label={USERS_CONSTANTS.createDrawer.emailLabel}
+            placeholder={USERS_CONSTANTS.createDrawer.emailPlaceholder}
+            required
+            disabled={isSubmitting}
+            rules={{
+              required: USERS_CONSTANTS.validation.emailRequired,
+              pattern: {
+                value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                message: USERS_CONSTANTS.validation.emailInvalid,
+              },
+            }}
+          />
 
           {/* 4. Role Select with Controller & React Select */}
           <div>

@@ -9,7 +9,7 @@ import { loginSchema, LoginFormData } from '@/validations/auth';
 import { Input, Button, Checkbox, Image } from '@/components/ui';
 import { LOGIN_CONSTANTS } from '@/constants';
 import { authService } from '@/services/auth';
-import { authStorage, resolvePostLoginRedirect } from '@/helpers';
+import { authStorage, resolvePostLoginRedirect, resolveLandingPageForUser } from '@/helpers';
 import { useAppDispatch, setCredentials } from '@/store';
 
 export interface LoginFormProps {
@@ -64,13 +64,19 @@ export const LoginForm: React.FC<Readonly<LoginFormProps>> = ({ onSubmit, classN
           rememberMe: Boolean(data.rememberMe),
         });
 
+        // The user's permissions (from the login response) decide which modules they can
+        // see at all — landingPage is the first one, used both to store a "default module"
+        // for later (e.g. bouncing an already-authenticated visitor off the login page) and,
+        // unless an explicit deep link brought them here, as where they land right now.
+        const landingPage = resolveLandingPageForUser(response.user);
+
         const activeToken = response.accessToken || response.token;
         authStorage.setAuthSession(
           activeToken,
           response.user,
           Boolean(data.rememberMe),
           response.refreshToken,
-          response.defaultModule || 'users'
+          landingPage.replace(/^\//, '')
         );
         // Hydrate Redux immediately — the app never remounts StoreProvider's
         // one-time storage-hydration effect on this client-side navigation, so
@@ -80,8 +86,7 @@ export const LoginForm: React.FC<Readonly<LoginFormProps>> = ({ onSubmit, classN
 
         const destination = resolvePostLoginRedirect({
           redirectParam: searchParams?.get('redirect'),
-          redirectUrl: response.redirectUrl,
-          defaultModule: response.defaultModule,
+          user: response.user,
         });
 
         router.replace(destination);

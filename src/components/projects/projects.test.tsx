@@ -5,6 +5,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { CreateProjectDrawer } from './CreateProjectDrawer';
 import { EditProjectDrawer } from './EditProjectDrawer';
 import { ProjectActionsMenu } from './ProjectActionsMenu';
+import { ProjectGrid } from './ProjectGrid';
 import authReducer from '@/store/slices/authSlice';
 import projectsReducer from '@/store/slices/projectsSlice';
 import { projectsService } from '@/services';
@@ -274,6 +275,7 @@ describe('Project Components', () => {
     it('invokes the correct callback for each menu action', () => {
       const onOpenBoard = jest.fn();
       const onEdit = jest.fn();
+      const onArchiveToggle = jest.fn();
       const onDelete = jest.fn();
 
       render(
@@ -281,6 +283,7 @@ describe('Project Components', () => {
           project={mockProject}
           onOpenBoard={onOpenBoard}
           onEdit={onEdit}
+          onArchiveToggle={onArchiveToggle}
           onDelete={onDelete}
         />
       );
@@ -294,16 +297,43 @@ describe('Project Components', () => {
       expect(onEdit).toHaveBeenCalledWith(mockProject);
 
       fireEvent.click(screen.getByRole('button', { name: /actions for engineering/i }));
+      fireEvent.click(screen.getByRole('menuitem', { name: /archive project/i }));
+      expect(onArchiveToggle).toHaveBeenCalledWith(mockProject);
+
+      fireEvent.click(screen.getByRole('button', { name: /actions for engineering/i }));
       fireEvent.click(screen.getByRole('menuitem', { name: /delete project/i }));
       expect(onDelete).toHaveBeenCalledWith(mockProject);
     });
 
-    it('hides edit and delete when permissions are not granted', () => {
+    it('shows "Restore Project" instead of "Archive Project" for an already-archived project', () => {
+      const archivedProject = { ...mockProject, status: 'archived' as const };
+      const onArchiveToggle = jest.fn();
+
+      render(
+        <ProjectActionsMenu
+          project={archivedProject}
+          onOpenBoard={jest.fn()}
+          onEdit={jest.fn()}
+          onArchiveToggle={onArchiveToggle}
+          onDelete={jest.fn()}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /actions for engineering/i }));
+      expect(
+        screen.queryByRole('menuitem', { name: /^archive project$/i })
+      ).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('menuitem', { name: /restore project/i }));
+      expect(onArchiveToggle).toHaveBeenCalledWith(archivedProject);
+    });
+
+    it('hides edit, archive, and delete when permissions are not granted', () => {
       render(
         <ProjectActionsMenu
           project={mockProject}
           onOpenBoard={jest.fn()}
           onEdit={jest.fn()}
+          onArchiveToggle={jest.fn()}
           onDelete={jest.fn()}
           canEdit={false}
           canDelete={false}
@@ -312,6 +342,7 @@ describe('Project Components', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /actions for engineering/i }));
       expect(screen.queryByRole('menuitem', { name: /edit project/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: /archive project/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('menuitem', { name: /delete project/i })).not.toBeInTheDocument();
     });
 
@@ -322,6 +353,7 @@ describe('Project Components', () => {
           project={projectWithoutProjectId}
           onOpenBoard={jest.fn()}
           onEdit={jest.fn()}
+          onArchiveToggle={jest.fn()}
           onDelete={jest.fn()}
         />
       );
@@ -337,6 +369,7 @@ describe('Project Components', () => {
           project={projectWithOnlyMongoId}
           onOpenBoard={jest.fn()}
           onEdit={jest.fn()}
+          onArchiveToggle={jest.fn()}
           onDelete={jest.fn()}
         />
       );
@@ -525,5 +558,77 @@ describe('Project Components', () => {
       </Provider>
     );
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+  });
+});
+
+describe('ProjectGrid', () => {
+  const gridProps = {
+    onOpenBoard: jest.fn(),
+    onEdit: jest.fn(),
+    onArchiveToggle: jest.fn(),
+    onDelete: jest.fn(),
+    canEdit: true,
+    canDelete: true,
+  };
+
+  it('shows a loading spinner when isLoading is true and there is no data yet', () => {
+    render(
+      <ProjectGrid
+        {...gridProps}
+        projects={[]}
+        isLoading
+        emptyTitle="No Projects"
+        emptyDescription="none"
+      />
+    );
+    expect(screen.getByRole('img', { name: 'Loading' })).toBeInTheDocument();
+  });
+
+  it('shows the empty state with the given title/description/action when there are no projects', () => {
+    render(
+      <ProjectGrid
+        {...gridProps}
+        projects={[]}
+        isLoading={false}
+        emptyTitle="No Archived Projects"
+        emptyDescription="Nothing archived yet."
+        emptyAction={<button type="button">Create one</button>}
+      />
+    );
+    expect(screen.getByText('No Archived Projects')).toBeInTheDocument();
+    expect(screen.getByText('Nothing archived yet.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create one' })).toBeInTheDocument();
+  });
+
+  it('renders a card per project with its key, name, lead, and status badge', () => {
+    render(
+      <ProjectGrid
+        {...gridProps}
+        projects={[mockProject]}
+        isLoading={false}
+        emptyTitle="No Projects"
+        emptyDescription="none"
+      />
+    );
+    expect(screen.getByText('Engineering')).toBeInTheDocument();
+    expect(screen.getByText('ENG')).toBeInTheDocument();
+    expect(screen.getByText('Jane Doe')).toBeInTheDocument();
+    expect(screen.getByText('active')).toBeInTheDocument();
+  });
+
+  it('calls onOpenBoard when the project name is clicked', () => {
+    const onOpenBoard = jest.fn();
+    render(
+      <ProjectGrid
+        {...gridProps}
+        onOpenBoard={onOpenBoard}
+        projects={[mockProject]}
+        isLoading={false}
+        emptyTitle="No Projects"
+        emptyDescription="none"
+      />
+    );
+    fireEvent.click(screen.getByText('Engineering'));
+    expect(onOpenBoard).toHaveBeenCalledWith(mockProject);
   });
 });

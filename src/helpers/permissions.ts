@@ -1,5 +1,6 @@
 import { AuthUser } from '@/types';
 import { BadgeVariant } from '@/components/ui';
+import { NAV_ITEMS } from '@/constants';
 import { useCurrentUser } from './useCurrentUser';
 
 /**
@@ -24,30 +25,6 @@ export const hasPermission = (
 
   const requested = Array.isArray(requiredPermission) ? requiredPermission : [requiredPermission];
 
-  if (role === 'Project Manager') {
-    // Project Manager has default operational access to team, tasks, and reporting
-    const projectManagerDefaultPerms = new Set([
-      'users.view',
-      'users.create',
-      'users.update',
-      'roles.view',
-      'tasks.view',
-      'tasks.create',
-      'tasks.update',
-      'tasks.delete',
-      'analytics.view',
-      'analytics.export',
-      'settings.view',
-    ]);
-    if (
-      requested.some(
-        (perm) => projectManagerDefaultPerms.has(perm) || userPermissions.includes(perm)
-      )
-    ) {
-      return true;
-    }
-  }
-
   return requested.some((perm) => userPermissions.includes(perm));
 };
 
@@ -57,6 +34,24 @@ export const hasPermission = (
 export const usePermission = (requiredPermission: string | string[]): boolean => {
   const currentUser = useCurrentUser();
   return hasPermission(currentUser, requiredPermission);
+};
+
+/**
+ * Resolves the landing page for a just-logged-in (or already-authenticated) user: the
+ * first permission-gated module in NAV_ITEMS — the same ordered list the sidebar uses to
+ * decide what to show — that the user's role actually grants. Dashboard has no
+ * requiredPermission and is deliberately excluded from this pass (it's "available" to
+ * everyone, so treating it as index 0 would make every user land there regardless of
+ * role); it's used only as the fallback when none of the gated modules are granted.
+ */
+export const resolveLandingPageForUser = (user: Readonly<AuthUser> | null | undefined): string => {
+  const firstGrantedModule = NAV_ITEMS.find(
+    (item) => item.requiredPermission && hasPermission(user, item.requiredPermission)
+  );
+  if (firstGrantedModule) return firstGrantedModule.href;
+
+  const fallbackModule = NAV_ITEMS.find((item) => !item.requiredPermission);
+  return fallbackModule?.href || '/dashboard';
 };
 
 /**

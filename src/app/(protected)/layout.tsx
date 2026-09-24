@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { authStorage } from '@/helpers';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { authStorage, useCurrentUser, hasPermission, useMounted } from '@/helpers';
 import { authService } from '@/services/auth';
-import { Sidebar, Header } from '@/components/layout';
+import { Sidebar, Header, AccessDenied } from '@/components/layout';
 import { ConfirmationModal } from '@/components/ui';
 import { ChangePasswordModal } from '@/components/auth';
+import { NAV_ITEMS } from '@/constants';
 import {
   useAppDispatch,
   useAppSelector,
@@ -14,6 +15,9 @@ import {
   setIsLoggingOut,
   clearCredentials,
   closeChangePasswordModal,
+  invalidateProjectsCache,
+  invalidateUsersCache,
+  invalidateRolesCache,
 } from '@/store';
 
 export default function ProtectedLayout({
@@ -22,12 +26,31 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }>) {
   const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useAppDispatch();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const isCollapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
   const isLogoutModalOpen = useAppSelector((state) => state.auth.isLogoutModalOpen);
   const isLoggingOut = useAppSelector((state) => state.auth.isLoggingOut);
   const isChangePasswordModalOpen = useAppSelector((state) => state.auth.isChangePasswordModalOpen);
+  const reduxUser = useAppSelector((state) => state.auth.user);
+  const storageUser = useCurrentUser();
+  const currentUser = reduxUser || storageUser;
+  const mounted = useMounted();
+
+  // Blocks direct URL navigation to a module the user lacks permission for (the sidebar
+  // only hides the link — it doesn't stop someone typing/bookmarking the URL directly).
+  // Routes with no matching NAV_ITEMS entry (e.g. /notifications) are left unrestricted.
+  const isRouteAllowed = useMemo(() => {
+    if (!mounted) return true;
+    const matchingNavItem = NAV_ITEMS.find((item) =>
+      item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href)
+    );
+    return (
+      !matchingNavItem?.requiredPermission ||
+      hasPermission(currentUser, matchingNavItem.requiredPermission)
+    );
+  }, [mounted, pathname, currentUser]);
 
   // Client-side auth verification & browser back/forward (bfcache) navigation guard
   useEffect(() => {
@@ -68,6 +91,13 @@ export default function ProtectedLayout({
     } finally {
       authStorage.clearAuthSession();
       dispatch(clearCredentials());
+      // Clear per-user cached list pages so a different account logging in on the same
+      // tab (no hard reload in between) can't inherit the previous user's cached,
+      // differently-scoped results (e.g. an admin's full project list leaking to the
+      // next, more restricted user).
+      dispatch(invalidateProjectsCache());
+      dispatch(invalidateUsersCache());
+      dispatch(invalidateRolesCache());
       setIsAuthenticated(false);
       router.replace('/auth/login');
     }
@@ -90,7 +120,7 @@ export default function ProtectedLayout({
       >
         <Header />
         <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-          {children}
+          {isRouteAllowed ? children : <AccessDenied />}
         </main>
       </div>
 

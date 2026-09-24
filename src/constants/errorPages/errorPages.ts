@@ -10,6 +10,16 @@ export const ERROR_PAGES_CONSTANTS = {
     usersButtonText: 'View Team Members',
   },
 
+  // 403 / Access Denied Page (route reached directly without the required permission)
+  accessDenied: {
+    badge: 'Error 403',
+    title: 'Access Denied',
+    description:
+      "You don't have permission to access this module. Please contact your admin for access.",
+    dashboardButtonText: 'Back to Dashboard',
+    backButtonText: 'Go Back',
+  },
+
   // 500 / Runtime Error Page
   serverError: {
     badge: 'Application Error',

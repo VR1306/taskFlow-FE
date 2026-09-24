@@ -19,7 +19,7 @@ export default function PublicLayout({
       const token = authStorage.getToken();
       if (token) {
         setIsAuthorized(true);
-        const defaultModule = authStorage.getDefaultModule() || 'users';
+        const defaultModule = authStorage.getDefaultModule() || 'dashboard';
         router.replace(`/${defaultModule}`);
       } else {
         setIsAuthorized(false);

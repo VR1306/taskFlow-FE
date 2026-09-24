@@ -1,4 +1,6 @@
 import { env } from '@/config/env';
+import { AuthUser } from '@/types';
+import { resolveLandingPageForUser } from './permissions';
 
 /**
  * Strips trailing slashes from a URL string
@@ -45,32 +47,23 @@ export const getBackendTargetUrl = (
 };
 
 /**
- * Resolves post-login redirection target based on query param, backend response, and fallback
+ * Resolves post-login redirection target: an explicit deep link the user was trying to
+ * reach before being bounced to login takes priority; otherwise the user lands on the
+ * first module their permissions actually grant them (see resolveLandingPageForUser).
  */
 export const resolvePostLoginRedirect = (options: {
   redirectParam?: string | null;
-  redirectUrl?: string;
-  defaultModule?: string;
+  user?: Readonly<AuthUser> | null;
 }): string => {
-  const { redirectParam, redirectUrl, defaultModule } = options;
+  const { redirectParam, user } = options;
 
   // 1. Safe query redirect (e.g., from auth interceptor)
   if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('/auth')) {
     return redirectParam;
   }
 
-  // 2. Direct redirect URL from login response
-  if (redirectUrl) {
-    return redirectUrl;
-  }
-
-  // 3. Module name from login response
-  if (defaultModule) {
-    return defaultModule.startsWith('/') ? defaultModule : `/${defaultModule}`;
-  }
-
-  // 4. Default fallback
-  return '/dashboard';
+  // 2. First module the user's permissions actually grant them access to
+  return resolveLandingPageForUser(user);
 };
 
 /**

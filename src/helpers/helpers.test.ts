@@ -76,37 +76,63 @@ describe('Frontend General Helpers', () => {
       expect(
         resolvePostLoginRedirect({
           redirectParam: '/users/settings',
-          redirectUrl: '/users',
-          defaultModule: 'users',
+          user: {
+            id: '1',
+            firstName: 'A',
+            lastName: 'B',
+            email: 'a@b.com',
+            role: 'Taskflow Admin',
+          },
         })
       ).toBe('/users/settings');
     });
 
-    it('ignores unsafe or auth redirect params and uses redirectUrl', () => {
+    it('ignores unsafe or auth redirect params and falls back to the permission-based landing page', () => {
       expect(
         resolvePostLoginRedirect({
           redirectParam: '/auth/login',
-          redirectUrl: '/users',
-          defaultModule: 'users',
+          user: {
+            id: '1',
+            firstName: 'A',
+            lastName: 'B',
+            email: 'a@b.com',
+            role: 'Taskflow Admin',
+          },
         })
-      ).toBe('/users');
+      ).toBe('/projects');
     });
 
-    it('uses defaultModule when redirectUrl is not present', () => {
+    it('lands a permissionless user on /dashboard, the only module with no requiredPermission', () => {
       expect(
         resolvePostLoginRedirect({
-          defaultModule: 'users',
-        })
-      ).toBe('/users');
-
-      expect(
-        resolvePostLoginRedirect({
-          defaultModule: '/dashboard',
+          user: {
+            id: '1',
+            firstName: 'A',
+            lastName: 'B',
+            email: 'a@b.com',
+            role: 'QA',
+            permissions: [],
+          },
         })
       ).toBe('/dashboard');
     });
 
-    it('falls back to /dashboard when no options are provided', () => {
+    it('lands the user on the first NAV_ITEMS module their permissions actually grant', () => {
+      expect(
+        resolvePostLoginRedirect({
+          user: {
+            id: '1',
+            firstName: 'A',
+            lastName: 'B',
+            email: 'a@b.com',
+            role: 'Project Manager',
+            permissions: ['users.view'],
+          },
+        })
+      ).toBe('/users');
+    });
+
+    it('falls back to /dashboard when no user is provided', () => {
       expect(resolvePostLoginRedirect({})).toBe('/dashboard');
     });
   });

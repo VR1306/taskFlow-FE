@@ -20,8 +20,6 @@ export interface AuthSignInResponse {
   accessToken?: string;
   refreshToken?: string;
   rememberMe?: boolean;
-  defaultModule?: string;
-  redirectUrl?: string;
   user: AuthUser;
 }
 

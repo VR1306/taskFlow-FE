@@ -68,8 +68,8 @@ describe('Auth Storage Helper', () => {
     expect(authStorage.getUser()).toEqual(user);
   });
 
-  it('defaults default module to "users" when none has been stored', () => {
-    expect(authStorage.getDefaultModule()).toBe('users');
+  it('defaults default module to "dashboard" when none has been stored', () => {
+    expect(authStorage.getDefaultModule()).toBe('dashboard');
   });
 
   it('clears session and tokens properly', () => {
@@ -105,7 +105,7 @@ describe('restricted browser storage', () => {
     expect(authStorage.getRememberedEmail()).toBe('');
     expect(authStorage.getRememberMe()).toBe(false);
     expect(authStorage.getRefreshToken()).toBeNull();
-    expect(authStorage.getDefaultModule()).toBe('users');
+    expect(authStorage.getDefaultModule()).toBe('dashboard');
     expect(authStorage.getUser()).toBeNull();
   });
 

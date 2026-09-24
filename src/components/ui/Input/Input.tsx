@@ -1,7 +1,14 @@
 'use client';
 
 import React from 'react';
-import { useController, useFormContext, FieldValues, Path, Control } from 'react-hook-form';
+import {
+  useController,
+  useFormContext,
+  FieldValues,
+  Path,
+  Control,
+  RegisterOptions,
+} from 'react-hook-form';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 
 export interface ControlledInputProps<
@@ -11,6 +18,7 @@ export interface ControlledInputProps<
   name: TName;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   control?: Control<TFieldValues, any>;
+  rules?: RegisterOptions<TFieldValues, TName>;
   label?: string;
   required?: boolean;
   icon?: React.ReactNode;
@@ -26,6 +34,7 @@ export function Input<
 >({
   name,
   control,
+  rules,
   label,
   required = false,
   icon,
@@ -49,6 +58,7 @@ export function Input<
   } = useController({
     name,
     control: effectiveControl,
+    rules,
   });
 
   const inputId = id || `input-${name}`;

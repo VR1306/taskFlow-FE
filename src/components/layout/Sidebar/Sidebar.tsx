@@ -12,40 +12,7 @@ import {
   openLogoutModal,
 } from '@/store';
 import { useCurrentUser, hasPermission, useMounted } from '@/helpers';
-
-export interface NavItem {
-  name: string;
-  href: string;
-  icon: string;
-  badge?: string;
-  requiredPermission?: string | string[];
-}
-
-const navItems: NavItem[] = [
-  {
-    name: 'Dashboard',
-    href: '/dashboard',
-    icon: '/icons/dashboard.svg',
-  },
-  {
-    name: 'Projects',
-    href: '/projects',
-    icon: '/icons/building.svg',
-    requiredPermission: ['projects.view', '*'],
-  },
-  {
-    name: 'User Management',
-    href: '/users',
-    icon: '/icons/users.svg',
-    requiredPermission: ['users.view', '*'],
-  },
-  {
-    name: 'Role Management',
-    href: '/roles',
-    icon: '/icons/shield-check.svg',
-    requiredPermission: ['roles.view', '*'],
-  },
-];
+import { NAV_ITEMS } from '@/constants';
 
 interface SidebarUserFooterProps {
   currentUser: ReturnType<typeof useCurrentUser>;
@@ -168,7 +135,7 @@ export const Sidebar = memo(function Sidebar() {
   }, [currentUser?.role]);
 
   const visibleNavItems = useMemo(() => {
-    return navItems.filter((item) => {
+    return NAV_ITEMS.filter((item) => {
       if (!item.requiredPermission) return true;
       if (!mounted) return true;
       return hasPermission(currentUser, item.requiredPermission);

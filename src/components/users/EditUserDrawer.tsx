@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
-import { Drawer, Button, Avatar, Image, Select } from '@/components/ui';
+import { Drawer, Button, Avatar, Image, Select, Input } from '@/components/ui';
 import { useAppDispatch, updateUserThunk, UserRecord } from '@/store';
 import {
   USERS_CONSTANTS,
@@ -48,7 +48,6 @@ export const EditUserDrawer = memo(function EditUserDrawer({
   });
 
   const {
-    register,
     handleSubmit,
     reset,
     control,
@@ -82,6 +81,7 @@ export const EditUserDrawer = memo(function EditUserDrawer({
           lastName: data.lastName.trim(),
           email: user!.email.trim().toLowerCase(),
           role: isTaskflowAdmin ? 'Taskflow Admin' : data.role,
+          isActive: data.isActive,
         })
       );
 
@@ -111,7 +111,6 @@ export const EditUserDrawer = memo(function EditUserDrawer({
         type="submit"
         form="edit-user-form"
         variant="primary"
-        onClick={() => void handleSubmit(handleFormSubmit)()}
         isLoading={isSubmitting}
         leftIcon={<Image src="/icons/user-check-white.svg" alt="" width={15} height={15} />}
         className="text-xs font-semibold bg-blue-600 hover:bg-blue-700 py-2.5 px-4"
@@ -160,76 +159,42 @@ export const EditUserDrawer = memo(function EditUserDrawer({
           )}
 
           {/* 1. First Name */}
-          <div>
-            <label
-              htmlFor="edit-firstName"
-              className="block text-xs font-bold text-slate-700 mb-1.5"
-            >
-              {USERS_CONSTANTS.editDrawer.firstNameLabel} <span className="text-rose-500">*</span>
-            </label>
-            <input
-              id="edit-firstName"
-              type="text"
-              {...register('firstName', {
-                required: USERS_CONSTANTS.validation.firstNameRequired,
-              })}
-              disabled={isSubmitting}
-              className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm font-medium text-slate-900 transition-colors placeholder:text-slate-400 focus:outline-hidden focus:ring-2 ${
-                errors.firstName
-                  ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20'
-                  : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
-              }`}
-            />
-            {errors.firstName && (
-              <p className="mt-1 text-xs text-rose-600 font-medium">{errors.firstName.message}</p>
-            )}
-          </div>
+          <Input<EditUserFormData>
+            id="edit-firstName"
+            name="firstName"
+            type="text"
+            label={USERS_CONSTANTS.editDrawer.firstNameLabel}
+            required
+            disabled={isSubmitting}
+            rules={{ required: USERS_CONSTANTS.validation.firstNameRequired }}
+          />
 
           {/* 2. Last Name */}
-          <div>
-            <label
-              htmlFor="edit-lastName"
-              className="block text-xs font-bold text-slate-700 mb-1.5"
-            >
-              {USERS_CONSTANTS.editDrawer.lastNameLabel} <span className="text-rose-500">*</span>
-            </label>
-            <input
-              id="edit-lastName"
-              type="text"
-              {...register('lastName', {
-                required: USERS_CONSTANTS.validation.lastNameRequired,
-              })}
-              disabled={isSubmitting}
-              className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm font-medium text-slate-900 transition-colors placeholder:text-slate-400 focus:outline-hidden focus:ring-2 ${
-                errors.lastName
-                  ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20'
-                  : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
-              }`}
-            />
-            {errors.lastName && (
-              <p className="mt-1 text-xs text-rose-600 font-medium">{errors.lastName.message}</p>
-            )}
-          </div>
+          <Input<EditUserFormData>
+            id="edit-lastName"
+            name="lastName"
+            type="text"
+            label={USERS_CONSTANTS.editDrawer.lastNameLabel}
+            required
+            disabled={isSubmitting}
+            rules={{ required: USERS_CONSTANTS.validation.lastNameRequired }}
+          />
 
           {/* 3. Work Email (Read-Only) */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label htmlFor="edit-email" className="block text-xs font-bold text-slate-700">
-                {USERS_CONSTANTS.editDrawer.emailLabel}
-              </label>
+          <Input<EditUserFormData>
+            id="edit-email"
+            name="email"
+            type="email"
+            label={USERS_CONSTANTS.editDrawer.emailLabel}
+            rightAction={
               <span className="text-[11px] text-slate-400 font-medium">
                 {USERS_CONSTANTS.editDrawer.cannotBeModified}
               </span>
-            </div>
-            <input
-              id="edit-email"
-              type="email"
-              value={user.email.toLowerCase()}
-              disabled
-              readOnly
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium text-slate-500 cursor-not-allowed select-all lowercase"
-            />
-          </div>
+            }
+            disabled
+            readOnly
+            className="lowercase select-all"
+          />
 
           {/* 4. Role Select with Controller & React Select */}
           <div>

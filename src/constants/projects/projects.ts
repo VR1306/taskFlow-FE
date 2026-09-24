@@ -1,11 +1,5 @@
 import { SelectOption } from '@/components/ui/Select';
 
-export const PROJECT_STATUS_OPTIONS: SelectOption<string>[] = [
-  { value: 'all', label: 'All Status' },
-  { value: 'active', label: 'Active' },
-  { value: 'archived', label: 'Archived' },
-];
-
 export const PROJECT_STATUS_FORM_OPTIONS: SelectOption<'active' | 'archived'>[] = [
   { value: 'active', label: 'Active (Operational)' },
   { value: 'archived', label: 'Archived (Read-only)' },
@@ -23,6 +17,15 @@ export const PROJECTS_CONSTANTS = {
     initialDescription: 'Start by creating your first project to organize team work.',
   },
 
+  archivedSection: {
+    title: 'Archived Projects',
+    showButtonText: (count: number) => `Show Archived Projects (${count})`,
+    hideButtonText: 'Hide Archived Projects',
+    emptyTitle: 'No Archived Projects',
+    emptyDescription: 'Projects you archive will show up here, out of the active list.',
+    searchEmptyDescription: 'No archived projects match your current search.',
+  },
+
   card: {
     membersLabel: 'Members',
     tasksLabel: 'Tasks',
@@ -34,6 +37,8 @@ export const PROJECTS_CONSTANTS = {
   actionsMenu: {
     openBoard: 'Open Board',
     editProject: 'Edit Project',
+    archiveProject: 'Archive Project',
+    restoreProject: 'Restore Project',
     deleteProject: 'Delete Project',
   },
 
@@ -68,9 +73,24 @@ export const PROJECTS_CONSTANTS = {
   deleteModal: {
     title: 'Delete Project',
     message: (name: string) =>
-      `Are you sure you want to delete "${name}"? This cannot be undone once all its tasks are removed.`,
-    confirmButtonText: 'Delete Project',
-    defaultError: 'Failed to delete project. Please ensure it has no active tasks.',
+      `Are you sure you want to permanently delete "${name}"? This will also delete all of its tasks and cannot be undone. If you want to keep the project's data but hide it from the active list, archive it instead.`,
+    confirmButtonText: 'Delete Permanently',
+    defaultError: 'Failed to delete project.',
+  },
+
+  archiveModal: {
+    title: 'Archive Project',
+    message: (name: string) =>
+      `Archive "${name}"? It will be hidden from the active projects list but its data and tasks are kept, and you can restore it any time.`,
+    confirmButtonText: 'Archive Project',
+    defaultError: 'Failed to archive project.',
+  },
+
+  restoreModal: {
+    title: 'Restore Project',
+    message: (name: string) => `Restore "${name}" back to the active projects list?`,
+    confirmButtonText: 'Restore Project',
+    defaultError: 'Failed to restore project.',
   },
 } as const;
 

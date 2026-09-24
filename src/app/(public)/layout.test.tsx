@@ -62,7 +62,7 @@ describe('PublicLayout Component', () => {
     });
   });
 
-  it('falls back to the "users" module when no default module is resolved', async () => {
+  it('falls back to the "dashboard" module when no default module is resolved', async () => {
     authStorage.setTokens('valid-jwt-token');
     jest.spyOn(authStorage, 'getDefaultModule').mockReturnValue('');
 
@@ -75,7 +75,7 @@ describe('PublicLayout Component', () => {
     );
 
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith('/users');
+      expect(mockReplace).toHaveBeenCalledWith('/dashboard');
       expect(screen.queryByTestId('auth-form-content')).not.toBeInTheDocument();
     });
   });
