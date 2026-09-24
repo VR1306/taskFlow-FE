@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import ProtectedLayout from './layout';
@@ -446,6 +447,18 @@ describe('ProtectedLayout Component', () => {
         expect(screen.getByTestId('child-content')).toBeInTheDocument();
       });
       expect(screen.queryByText('Access Denied')).not.toBeInTheDocument();
+    });
+
+    it('allows route during SSR when component is not mounted yet to avoid hydration mismatch', () => {
+      const store = createMockStore();
+      const html = renderToString(
+        <Provider store={store}>
+          <ProtectedLayout>
+            <div data-testid="child-content">SSR Child Content</div>
+          </ProtectedLayout>
+        </Provider>
+      );
+      expect(html).toContain('SSR Child Content');
     });
   });
 });

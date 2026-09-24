@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { authStorage, useCurrentUser, hasPermission } from '@/helpers';
+import { authStorage, useCurrentUser, hasPermission, useMounted } from '@/helpers';
 import { authService } from '@/services/auth';
 import { Sidebar, Header, AccessDenied } from '@/components/layout';
 import { ConfirmationModal } from '@/components/ui';
@@ -36,11 +36,13 @@ export default function ProtectedLayout({
   const reduxUser = useAppSelector((state) => state.auth.user);
   const storageUser = useCurrentUser();
   const currentUser = reduxUser || storageUser;
+  const mounted = useMounted();
 
   // Blocks direct URL navigation to a module the user lacks permission for (the sidebar
   // only hides the link — it doesn't stop someone typing/bookmarking the URL directly).
   // Routes with no matching NAV_ITEMS entry (e.g. /notifications) are left unrestricted.
   const isRouteAllowed = useMemo(() => {
+    if (!mounted) return true;
     const matchingNavItem = NAV_ITEMS.find((item) =>
       item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href)
     );
@@ -48,7 +50,7 @@ export default function ProtectedLayout({
       !matchingNavItem?.requiredPermission ||
       hasPermission(currentUser, matchingNavItem.requiredPermission)
     );
-  }, [pathname, currentUser]);
+  }, [mounted, pathname, currentUser]);
 
   // Client-side auth verification & browser back/forward (bfcache) navigation guard
   useEffect(() => {
