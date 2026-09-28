@@ -183,19 +183,23 @@ export default function ProjectBoardPage() {
         </button>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 border border-blue-100 text-blue-700 font-bold text-xs">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+            <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 border border-blue-100 text-blue-700 font-bold text-xs">
               {project.key}
             </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight text-slate-900">{project.name}</h1>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 truncate max-w-[200px] sm:max-w-none">
+                  {project.name}
+                </h1>
+                <Badge size="sm" variant={project.status === 'active' ? 'success' : 'default'}>
+                  {project.status}
+                </Badge>
+              </div>
               <p className="text-xs text-slate-500 mt-0.5">
                 {filteredTasks.length} tasks on the board
               </p>
             </div>
-            <Badge size="sm" variant={project.status === 'active' ? 'success' : 'default'}>
-              {project.status}
-            </Badge>
           </div>
 
           {canCreateTask && (
@@ -203,6 +207,7 @@ export default function ProjectBoardPage() {
               type="button"
               variant="primary"
               onClick={() => setIsCreateDrawerOpen(true)}
+              className="w-full sm:w-auto justify-center"
               leftIcon={<Image src="/icons/plus-white.svg" alt="" width={15} height={15} />}
             >
               {TASKS_CONSTANTS.createTaskButtonText}
@@ -211,21 +216,37 @@ export default function ProjectBoardPage() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white p-3 rounded-2xl border border-slate-200/80 shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200/80 shadow-2xs">
         <div className="relative w-full sm:w-72">
           <input
             type="text"
             placeholder={TASKS_CONSTANTS.boardSearchPlaceholder}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+            className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-8 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
           />
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <Image src="/icons/search.svg" alt="" width={14} height={14} className="opacity-50" />
           </div>
+          {searchInput && (
+            <button
+              type="button"
+              onClick={() => setSearchInput('')}
+              className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              aria-label="Clear search"
+            >
+              <Image src="/icons/close.svg" alt="" width={12} height={12} />
+            </button>
+          )}
         </div>
 
-        <Button type="button" variant="outline" size="sm" onClick={handleOpenFilterDrawer}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleOpenFilterDrawer}
+          className="justify-center sm:justify-start"
+        >
           {TASKS_CONSTANTS.filterButtonText}
           {activeFilterCount > 0 && (
             <Badge size="sm" variant="primary" className="ml-1.5">

@@ -2,7 +2,15 @@
 
 import React, { useEffect, useCallback, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Image, Pagination, ConfirmationModal, Tabs, TabItem } from '@/components/ui';
+import {
+  Button,
+  Image,
+  Pagination,
+  ConfirmationModal,
+  Tabs,
+  TabPanel,
+  TabItem,
+} from '@/components/ui';
 import { CreateProjectDrawer, EditProjectDrawer, ProjectGrid } from '@/components/projects';
 import { useDebounce, usePermission } from '@/helpers';
 import { PROJECTS_CONSTANTS } from '@/constants';
@@ -47,6 +55,17 @@ export default function ProjectsPage() {
   } = useAppSelector((state) => state.projects);
 
   const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
+  const [transitionDirection, setTransitionDirection] = useState<'left' | 'right'>('right');
+
+  const handleTabChange = useCallback(
+    (newTab: 'active' | 'archived') => {
+      if (newTab === activeTab) return;
+      setTransitionDirection(newTab === 'archived' ? 'right' : 'left');
+      setActiveTab(newTab);
+    },
+    [activeTab]
+  );
+
   const [searchInput, setSearchInput] = useState(search);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [editProject, setEditProject] = useState<Project | null>(null);
@@ -59,13 +78,21 @@ export default function ProjectsPage() {
     () => [
       {
         key: 'active',
-        label: 'Active Projects',
+        label: (
+          <span>
+            Active<span className="hidden min-[400px]:inline"> Projects</span>
+          </span>
+        ),
         badge: totalItems,
         icon: <Image src="/icons/building.svg" alt="" width={15} height={15} />,
       },
       {
         key: 'archived',
-        label: 'Archived Projects',
+        label: (
+          <span>
+            Archived<span className="hidden min-[400px]:inline"> Projects</span>
+          </span>
+        ),
         badge: archivedTotalItems,
         icon: <Image src="/icons/download.svg" alt="" width={15} height={15} />,
       },
@@ -200,7 +227,7 @@ export default function ProjectsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
             {PROJECTS_CONSTANTS.pageTitle}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">{PROJECTS_CONSTANTS.pageSubtitle}</p>
@@ -211,6 +238,7 @@ export default function ProjectsPage() {
             type="button"
             variant="primary"
             onClick={() => setIsCreateDrawerOpen(true)}
+            className="w-full sm:w-auto justify-center"
             leftIcon={<Image src="/icons/plus-white.svg" alt="" width={16} height={16} />}
           >
             {PROJECTS_CONSTANTS.createButtonText}
@@ -220,13 +248,16 @@ export default function ProjectsPage() {
 
       {/* Navigation Tabs and Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200/80 shadow-2xs">
-        <Tabs
-          items={tabItems}
-          activeKey={activeTab}
-          onChange={(key) => setActiveTab(key as 'active' | 'archived')}
-          variant="segmented"
-          ariaLabel="Project filter tabs"
-        />
+        <div className="w-full sm:w-auto">
+          <Tabs
+            items={tabItems}
+            activeKey={activeTab}
+            onChange={(key) => handleTabChange(key as 'active' | 'archived')}
+            variant="segmented"
+            ariaLabel="Project filter tabs"
+            className="w-full sm:w-auto"
+          />
+        </div>
 
         <div className="relative w-full sm:w-80">
           <input
@@ -256,14 +287,13 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/* Active Projects Tab Panel */}
-      {activeTab === 'active' && (
-        <div
-          key="active-projects-panel"
-          role="tabpanel"
-          id="tabpanel-active"
-          aria-labelledby="tab-active"
-          className="space-y-6 animate-fadeIn transition-all duration-300"
+      <div className="overflow-x-clip">
+        {/* Active Projects Tab Panel */}
+        <TabPanel
+          tabKey="active"
+          activeKey={activeTab}
+          direction={transitionDirection}
+          className="space-y-6"
         >
           <ProjectGrid
             projects={projects}
@@ -297,7 +327,7 @@ export default function ProjectsPage() {
           />
 
           {totalItems > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-4">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-4">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
@@ -308,17 +338,14 @@ export default function ProjectsPage() {
               />
             </div>
           )}
-        </div>
-      )}
+        </TabPanel>
 
-      {/* Archived Projects Tab Panel */}
-      {activeTab === 'archived' && (
-        <div
-          key="archived-projects-panel"
-          role="tabpanel"
-          id="tabpanel-archived"
-          aria-labelledby="tab-archived"
-          className="space-y-6 animate-fadeIn transition-all duration-300"
+        {/* Archived Projects Tab Panel */}
+        <TabPanel
+          tabKey="archived"
+          activeKey={activeTab}
+          direction={transitionDirection}
+          className="space-y-6"
         >
           <ProjectGrid
             projects={archivedItems}
@@ -336,7 +363,7 @@ export default function ProjectsPage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setActiveTab('active')}
+                  onClick={() => handleTabChange('active')}
                   leftIcon={<Image src="/icons/building.svg" alt="" width={14} height={14} />}
                 >
                   View Active Projects
@@ -352,7 +379,7 @@ export default function ProjectsPage() {
           />
 
           {archivedTotalItems > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-4">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-4">
               <Pagination
                 currentPage={archivedCurrentPage}
                 totalPages={archivedTotalPages}
@@ -363,8 +390,8 @@ export default function ProjectsPage() {
               />
             </div>
           )}
-        </div>
-      )}
+        </TabPanel>
+      </div>
 
       <CreateProjectDrawer
         isOpen={isCreateDrawerOpen}

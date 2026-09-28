@@ -37,8 +37,14 @@ export const ProjectDrawerFooter = memo(function ProjectDrawerFooter({
   submitIcon,
 }: ProjectDrawerFooterProps) {
   return (
-    <div className="flex w-full items-center justify-end gap-3">
-      <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+    <div className="flex flex-col-reverse sm:flex-row w-full items-stretch sm:items-center justify-end gap-2.5 sm:gap-3">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onClose}
+        disabled={isLoading}
+        className="w-full sm:w-auto justify-center"
+      >
         {cancelText}
       </Button>
       <Button
@@ -46,6 +52,7 @@ export const ProjectDrawerFooter = memo(function ProjectDrawerFooter({
         variant="primary"
         onClick={onSubmit}
         isLoading={isLoading}
+        className="w-full sm:w-auto justify-center"
         leftIcon={submitIcon ? <Image src={submitIcon} alt="" width={16} height={16} /> : undefined}
       >
         {submitText}

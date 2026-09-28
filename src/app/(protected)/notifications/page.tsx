@@ -141,8 +141,8 @@ export default function NotificationsPage() {
       {/* Top Header & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
               {NOTIFICATIONS_CONSTANTS.pageTitle}
             </h1>
             {unreadCount > 0 && (
@@ -154,12 +154,13 @@ export default function NotificationsPage() {
           <p className="text-xs text-slate-500 mt-0.5">{NOTIFICATIONS_CONSTANTS.pageSubtitle}</p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
           <Button
             type="button"
             variant="outline"
             onClick={() => loadNotifications(currentPage, true)}
             disabled={isLoading}
+            className="w-full sm:w-auto justify-center"
             leftIcon={
               <Image
                 src="/icons/refresh.svg"
@@ -181,6 +182,7 @@ export default function NotificationsPage() {
               variant="primary"
               onClick={handleMarkAllAsRead}
               disabled={isActionLoading}
+              className="w-full sm:w-auto justify-center"
               leftIcon={<Image src="/icons/check.svg" alt="" width={15} height={15} />}
             >
               {NOTIFICATIONS_CONSTANTS.markAllAsReadButtonText}
@@ -190,35 +192,47 @@ export default function NotificationsPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/80 shadow-2xs">
-        <div className="flex flex-1 flex-wrap items-center gap-2.5">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200/80 shadow-2xs">
+        <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-2.5 w-full">
           <div className="relative w-full sm:w-64">
             <input
               type="text"
               placeholder={NOTIFICATIONS_CONSTANTS.searchPlaceholder}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+              className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-8 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
             />
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <Image src="/icons/search.svg" alt="" width={14} height={14} className="opacity-50" />
             </div>
+            {searchInput && (
+              <button
+                type="button"
+                onClick={() => setSearchInput('')}
+                className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                aria-label="Clear search"
+              >
+                <Image src="/icons/close.svg" alt="" width={12} height={12} />
+              </button>
+            )}
           </div>
 
-          <div className="w-36">
-            <Select
-              value={readFilter}
-              onChange={(val) => setReadFilter(val as 'all' | 'unread' | 'read')}
-              options={NOTIFICATION_READ_FILTER_OPTIONS}
-            />
-          </div>
+          <div className="grid grid-cols-2 gap-2.5 w-full sm:flex sm:w-auto">
+            <div className="w-full sm:w-36">
+              <Select
+                value={readFilter}
+                onChange={(val) => setReadFilter(val as 'all' | 'unread' | 'read')}
+                options={NOTIFICATION_READ_FILTER_OPTIONS}
+              />
+            </div>
 
-          <div className="w-44">
-            <Select
-              value={typeFilter}
-              onChange={(val) => setTypeFilter(val)}
-              options={NOTIFICATION_TYPE_FILTER_OPTIONS}
-            />
+            <div className="w-full sm:w-44">
+              <Select
+                value={typeFilter}
+                onChange={(val) => setTypeFilter(val)}
+                options={NOTIFICATION_TYPE_FILTER_OPTIONS}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -261,20 +275,20 @@ export default function NotificationsPage() {
                   type="button"
                   key={notification.notificationId || notification.id || notification._id}
                   onClick={() => handleNotificationClick(notification)}
-                  className={`w-full text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 transition-all cursor-pointer hover:bg-slate-50/90 ${
+                  className={`w-full text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-5 transition-all cursor-pointer hover:bg-slate-50/90 ${
                     isUnread ? 'bg-blue-50/30 font-medium' : 'bg-white'
                   }`}
                 >
-                  <span className="flex items-start gap-3.5 min-w-0 flex-1">
+                  <span className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
                     {/* Event Icon Badge */}
                     <span
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${visual.bg}`}
+                      className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl border ${visual.bg}`}
                     >
                       <Image src={visual.icon} alt="" width={18} height={18} />
                     </span>
 
                     {/* Content Details */}
-                    <span className="min-w-0 flex-1">
+                    <span className="min-w-0 flex-1 break-words">
                       <span className="flex flex-wrap items-center gap-2 mb-1">
                         <Badge size="sm" variant={visual.badgeVariant}>
                           {visual.label}
@@ -287,17 +301,17 @@ export default function NotificationsPage() {
                       <span
                         className={`text-xs sm:text-sm ${
                           isUnread ? 'font-bold text-slate-900' : 'font-semibold text-slate-800'
-                        }`}
+                        } block break-words`}
                       >
                         {notification.title}
                       </span>
 
-                      <span className="text-xs text-slate-600 mt-1 leading-relaxed">
+                      <span className="text-xs text-slate-600 mt-1 leading-relaxed block break-words">
                         {notification.message}
                       </span>
 
                       {/* Actor & Exact Date Footer */}
-                      <span className="flex items-center gap-3 mt-2 text-[11px] text-slate-400">
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-[11px] text-slate-400">
                         {notification.actor && (
                           <span>
                             Triggered by{' '}

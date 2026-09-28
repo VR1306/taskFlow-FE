@@ -118,8 +118,30 @@ describe('Tabs Component', () => {
   });
 
   it('renders with fullWidth style', () => {
-    render(<Tabs items={items} activeKey="active" onChange={jest.fn()} fullWidth />);
+    const { rerender } = render(
+      <Tabs items={items} activeKey="active" onChange={jest.fn()} fullWidth />
+    );
     expect(screen.getByRole('tablist')).toHaveClass('w-full');
+
+    rerender(
+      <Tabs items={items} activeKey="active" onChange={jest.fn()} variant="underline" fullWidth />
+    );
+    expect(screen.getByRole('tablist')).toHaveClass('w-full');
+
+    rerender(
+      <Tabs items={items} activeKey="active" onChange={jest.fn()} variant="pills" fullWidth />
+    );
+    expect(screen.getByRole('tablist')).toHaveClass('w-full');
+  });
+
+  it('handles unknown activeKey or empty items gracefully', () => {
+    const { rerender } = render(
+      <Tabs items={items} activeKey="non-existent" onChange={jest.fn()} />
+    );
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
+
+    rerender(<Tabs items={[]} activeKey="any" onChange={jest.fn()} />);
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
   });
 });
 
@@ -167,5 +189,21 @@ describe('TabPanel Component', () => {
     const panel = screen.getByRole('tabpanel', { hidden: true });
     expect(panel).toHaveAttribute('hidden');
     expect(screen.getByText('Hidden Content')).toBeInTheDocument();
+  });
+
+  it('applies slide transition classes when direction is right or left', () => {
+    const { rerender } = render(
+      <TabPanel tabKey="one" activeKey="one" direction="right">
+        <div>Panel Right</div>
+      </TabPanel>
+    );
+    expect(screen.getByRole('tabpanel')).toHaveClass('animate-slide-in-right');
+
+    rerender(
+      <TabPanel tabKey="one" activeKey="one" direction="left">
+        <div>Panel Left</div>
+      </TabPanel>
+    );
+    expect(screen.getByRole('tabpanel')).toHaveClass('animate-slide-in-left');
   });
 });

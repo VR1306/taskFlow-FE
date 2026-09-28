@@ -147,7 +147,7 @@ export const NotificationDropdown = memo(function NotificationDropdown() {
         <dialog
           open
           aria-label="Notifications dropdown"
-          className="absolute left-auto m-0 right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl border border-slate-200/90 bg-white/98 p-0 shadow-2xl backdrop-blur-md z-50 transition-all duration-150 animate-in fade-in zoom-in-95 overflow-hidden flex flex-col max-h-[520px]"
+          className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-96 max-w-sm sm:max-w-none mx-auto sm:mx-0 rounded-2xl border border-slate-200/90 bg-white/98 p-0 shadow-2xl backdrop-blur-md z-50 transition-all duration-150 animate-in fade-in zoom-in-95 overflow-hidden flex flex-col max-h-[calc(100vh-5rem)] sm:max-h-[520px]"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-4 py-3">
@@ -203,7 +203,7 @@ export const NotificationDropdown = memo(function NotificationDropdown() {
           </div>
 
           {/* Notification List Items */}
-          <div className="flex-1 overflow-y-auto divide-y divide-slate-100 max-h-[340px]">
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-100 max-h-[min(340px,calc(100vh-14rem))]">
             {isLoading && items.length === 0 && (
               <div className="flex flex-col items-center justify-center py-10 text-slate-400 gap-2">
                 <Image
@@ -275,11 +275,11 @@ export const NotificationDropdown = memo(function NotificationDropdown() {
                         </span>
                       </span>
 
-                      <span className="text-[11px] text-slate-600 line-clamp-2 mt-0.5 leading-relaxed">
+                      <span className="text-[11px] text-slate-600 line-clamp-2 mt-0.5 leading-relaxed break-words">
                         {notification.message}
                       </span>
 
-                      <span className="flex items-center gap-2 mt-1.5">
+                      <span className="flex flex-wrap items-center gap-2 mt-1.5">
                         {notification.actor?.firstName && (
                           <span className="text-[10px] text-slate-400">
                             By {notification.actor.firstName} {notification.actor.lastName || ''}

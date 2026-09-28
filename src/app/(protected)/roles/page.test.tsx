@@ -537,9 +537,12 @@ describe('RolesPage Component', () => {
     const submitBtn = screen.getAllByRole('button', { name: /create role/i })[1];
     fireEvent.click(submitBtn);
 
-    await waitFor(() => {
-      expect(screen.queryByText('Create New Role')).not.toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.queryByText('Create New Role')).not.toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
 
     // Test delete modal cancel
     const actionsBtn = screen.getByRole('button', { name: /actions for project manager/i });

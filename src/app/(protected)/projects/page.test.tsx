@@ -254,6 +254,13 @@ describe('ProjectsPage Component', () => {
       'aria-selected',
       'true'
     );
+
+    // Clicking already active tab returns early and keeps tab active
+    fireEvent.click(screen.getByRole('tab', { name: /active projects/i }));
+    expect(screen.getByRole('tab', { name: /active projects/i })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
   });
 
   it('allows clearing the search input with the clear button', async () => {

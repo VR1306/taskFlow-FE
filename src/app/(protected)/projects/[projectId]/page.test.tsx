@@ -187,6 +187,13 @@ describe('ProjectBoardPage Component', () => {
     await waitFor(() => {
       expect(screen.queryByText('Fix login bug')).not.toBeInTheDocument();
     });
+
+    // Test clear search button
+    const clearBtn = screen.getByRole('button', { name: 'Clear search' });
+    fireEvent.click(clearBtn);
+    await waitFor(() => {
+      expect(screen.getByText('Fix login bug')).toBeInTheDocument();
+    });
   });
 
   it('silently polls the board for updates on an interval', async () => {

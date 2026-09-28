@@ -63,31 +63,33 @@ export const ProjectGrid = memo(function ProjectGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-fadeIn">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 animate-fadeIn">
       {projects.map((project) => {
         const lead = typeof project.leadId === 'object' && project.leadId ? project.leadId : null;
         return (
           <div
             key={project?.projectId || project?.id || project?._id}
-            className="relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col gap-4 cursor-pointer"
+            className="relative rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col gap-3.5 sm:gap-4 cursor-pointer"
           >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 border border-blue-100 text-blue-700 font-bold text-xs">
                   {project.key}
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <button
                     type="button"
                     onClick={() => onOpenBoard(project)}
-                    className="text-left text-sm font-bold text-slate-900 truncate cursor-pointer after:absolute after:inset-0 after:content-['']"
+                    className="text-left text-sm font-bold text-slate-900 truncate block w-full cursor-pointer outline-none focus:outline-none after:absolute after:inset-0 after:content-['']"
                   >
                     {project.name}
                   </button>
-                  <span className="text-[11px] font-mono text-slate-400">{project.projectId}</span>
+                  <span className="text-[11px] font-mono text-slate-400 block truncate">
+                    {project.projectId}
+                  </span>
                 </div>
               </div>
-              <div className="relative z-10">
+              <div className="relative z-10 shrink-0">
                 <ProjectActionsMenu
                   project={project}
                   onOpenBoard={onOpenBoard}
@@ -100,16 +102,16 @@ export const ProjectGrid = memo(function ProjectGrid({
               </div>
             </div>
 
-            <p className="text-xs text-slate-500 line-clamp-2 min-h-[2rem]">
+            <p className="text-xs text-slate-500 line-clamp-2 min-h-[2rem] break-words">
               {project.description || 'No description provided.'}
             </p>
 
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t border-slate-100">
+              <div className="flex items-center gap-2 min-w-0">
                 {lead ? (
                   <>
                     <Avatar firstName={lead.firstName} lastName={lead.lastName} size="xs" />
-                    <span className="text-[11px] font-medium text-slate-600 truncate max-w-[100px]">
+                    <span className="text-[11px] font-medium text-slate-600 truncate max-w-[100px] sm:max-w-[120px]">
                       {`${lead.firstName || ''} ${lead.lastName || ''}`.trim() || 'Lead'}
                     </span>
                   </>
@@ -120,7 +122,7 @@ export const ProjectGrid = memo(function ProjectGrid({
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <Badge size="sm" variant="default">
                   {project.memberCount ?? 0} members
                 </Badge>

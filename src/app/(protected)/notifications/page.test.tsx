@@ -438,6 +438,12 @@ describe('notification feed actions', () => {
     const search = screen.getByPlaceholderText(NOTIFICATIONS_CONSTANTS.searchPlaceholder);
     fireEvent.change(search, { target: { value: 'Jamie' } });
     await waitFor(() => expect(screen.getByText(mockNotification.title)).toBeInTheDocument());
+
+    // Test clear search button
+    const clearBtn = screen.getByRole('button', { name: 'Clear search' });
+    fireEvent.click(clearBtn);
+    expect(search).toHaveValue('');
+
     fireEvent.change(search, { target: { value: 'no matching notification' } });
     expect(
       await screen.findByText(NOTIFICATIONS_CONSTANTS.emptyState.filteredDescription)
